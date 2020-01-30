@@ -12,6 +12,7 @@ public class HexagonMap : MonoBehaviour
     public float noisePerTileHeight;
     public Noise.NoiseSettings noiseSettings;
     public HexagonTile tilePrefab;
+    public float tileHeightFrequency;
     public float SeedOffsetX { get; private set; }
     public float SeedOffsetY { get; private set; }
 
@@ -21,7 +22,7 @@ public class HexagonMap : MonoBehaviour
     public AnimationCurve tileHeightCurve;
     public AnimationCurve tileHeightFalloffCurve;
     public AnimationCurve noiseCurve;
-    public Gradient heightColorGradient;
+    public AnimationCurve noisePerTileHeightCurve;
     public HexagonTile this[int x,int y] => x < 0 || y < 0 || x >= tiles.GetLength(0) || y >= tiles.GetLength(1) ? null : tiles[x, y];
 
     private static int[] NeighbourX =
@@ -56,43 +57,22 @@ public class HexagonMap : MonoBehaviour
 
     public float SampleHeight(float x, float y, float hexX, float hexY, int tileX, int tileY)
     {
-        Vector3 cubeCenter = new Vector3(tileX, tileY, -tileX - tileY);
-        Vector3 cubePoint = new Vector3(hexX, hexY, -hexX - hexY);
+        float noise = SampleNoise(x, y);
+        float tileHeight = SampleTileHeight(tileX, tileY);
+        Vector2 cartesian = new Vector2(x, y);
+        Vector2 centerCartesian = HexToCartesian(tileX, tileY);
+        float maxDistance = SQRT_3;
+        float centerDistance = Vector2.Distance(cartesian, centerCartesian);
 
-        float xDelta = cubeCenter.x - cubePoint.x;
-        float yDelta = cubeCenter.y - cubePoint.y;
-        float zDelta = cubeCenter.z - cubePoint.z;
-
-        /*
-        if (Mathf.Abs(xDelta - yDelta) <= .5f &&
-            Mathf.Abs(xDelta - zDelta) <= .5f &&
-            Mathf.Abs(yDelta - zDelta) <= .5f
-            //&&
-            //Mathf.Abs(cubeCenter.y - cubePoint.y) < .25f && 
-            //Mathf.Abs(cubeCenter.z - cubePoint.z) < .25f
-            )
-            {
-            return SampleTileHeight(tileX, tileY);
-        }
-        else
-        {
-        */
-            float noise = SampleNoise(x, y);
-            float tileHeight = SampleTileHeight(tileX, tileY);
-            Vector2 cartesian = new Vector2(x, y);
-            Vector2 centerCartesian = HexToCartesian(tileX, tileY);
-            float maxDistance = SQRT_3;
-            float centerDistance = Vector2.Distance(cartesian, centerCartesian);
-
-            //       float heightSum = tileHeight * (1f - Mathf.Clamp(centerDistance / maxDistance, 0, 1));
-            float heightSum = tileHeight * tileHeightFalloffCurve.Evaluate((1f - Mathf.Clamp(centerDistance / maxDistance, 0, 1)));
+        //       float heightSum = tileHeight * (1f - Mathf.Clamp(centerDistance / maxDistance, 0, 1));
+        float heightSum = tileHeight * tileHeightFalloffCurve.Evaluate((1f - Mathf.Clamp(centerDistance / maxDistance, 0, 1)));
 
         //List<Vector2> closest = new List<Vector2>();
 
         // closest.Add(new Vector2(tileHeight, centerDistance));
 
         for (int i = 0; i < 6; i++)
-            {
+        {
                 int nX = tileX + NeighbourX[i];
                 int nY = tileY + NeighbourY[i];
 
@@ -101,7 +81,10 @@ public class HexagonMap : MonoBehaviour
 
                 float neighbourTileHeight = SampleTileHeight(nX, nY);
             //closest.Add(new Vector3(neighbourTileHeight, distance));
-                heightSum = Mathf.Max(heightSum, neighbourTileHeight * tileHeightFalloffCurve.Evaluate((1f - Mathf.Clamp(distance / maxDistance, 0, 1))));
+
+//            heightSum = Mathf.Max(heightSum, neighbourTileHeight * tileHeightFalloffCurve.Evaluate((1f - Mathf.Clamp(distance / maxDistance, 0, 1))));
+
+            heightSum += neighbourTileHeight * tileHeightFalloffCurve.Evaluate((1f - Mathf.Clamp(distance / maxDistance, 0, 1)));
 
             //
             //          if (distance > SQRT_3)
@@ -110,19 +93,19 @@ public class HexagonMap : MonoBehaviour
             //            heightSum += neighbourTileHeight * (1f - Mathf.Clamp(distance / maxDistance, 0, 1));
         }
 
-            //closest.Sort(Closest);
+        //closest.Sort(Closest);
 
-            //for (int i = 0; i < 3; i++)
-            //{
-            //    heightSum = Mathf.Max(heightSum, closest[i].x * (1f - Mathf.Clamp(closest[i].y / maxDistance, 0, 1)));
-           //}
+        //for (int i = 0; i < 3; i++)
+        //{
+        //    heightSum = Mathf.Max(heightSum, closest[i].x * (1f - Mathf.Clamp(closest[i].y / maxDistance, 0, 1)));
+        //}
 
-            return heightSum + heightSum * (noise - .5f) * noisePerTileHeight + (noise - .5f) * noiseScale;
+        return heightSum + noisePerTileHeightCurve.Evaluate(heightSum) * (noise - .5f) + noiseScale * (noise - .5f);
         //}
 
     }
 
-    public float SampleTileHeight(int x, int y) => tileHeightCurve.Evaluate(Mathf.PerlinNoise(x + SeedOffsetX, y + SeedOffsetY));
+    public float SampleTileHeight(int x, int y) => tileHeightCurve.Evaluate(Mathf.PerlinNoise((x + SeedOffsetX)*tileHeightFrequency, (y + SeedOffsetY) * tileHeightFrequency));
 
     public float SampleNoise(float x, float y) => noiseCurve.Evaluate(Noise.Perlin(x + SeedOffsetX, y + SeedOffsetY, noiseSettings));
 

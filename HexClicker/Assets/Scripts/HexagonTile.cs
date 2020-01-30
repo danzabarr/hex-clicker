@@ -23,7 +23,6 @@ public class HexagonTile : MonoBehaviour
         transform.position = new Vector3(cartesianPosition.x, 0, cartesianPosition.y);
         tileHeight = map.SampleTileHeight(x, y);
 
-        meshRenderer.material.color = map.heightColorGradient.Evaluate(tileHeight);
 
         int res = map.resolution;
 
