@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 8604472299702636680}
   - component: {fileID: 8604472299702636682}
   - component: {fileID: 1074967575922730038}
-  m_Layer: 0
+  - component: {fileID: 9076195393788734775}
+  m_Layer: 10
   m_Name: HexTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -59,6 +60,8 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 125e336662727de478b0e36820b7fae1, type: 2}
+  - {fileID: 2100000, guid: dc23b46c0890b774bb9bbeb2aa16645d, type: 2}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -93,4 +96,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   meshFilter: {fileID: 8604472299702636680}
   meshRenderer: {fileID: 8604472299702636682}
-  tileHeight: 0
+  meshCollider: {fileID: 9076195393788734775}
+  border: {fileID: 2100000, guid: dfdbd2ffd5df5cc40855ab8e5bff7cba, type: 2}
+  treeMaterial: {fileID: 2100000, guid: e092a33e4b327cf46a017d3851a730fc, type: 2}
+  treeMesh: {fileID: -2432090755550338912, guid: b900ef66f1bd06c489689042194348c6,
+    type: 3}
+--- !u!64 &9076195393788734775
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8604472299702636683}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Convex: 0
+  m_CookingOptions: 14
+  m_Mesh: {fileID: 0}

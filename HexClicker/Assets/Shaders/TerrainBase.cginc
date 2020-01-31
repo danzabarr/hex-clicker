@@ -12,6 +12,17 @@ uniform float3 _WorldOffset;
 sampler2D _MainTex, _BumpMap, _Metallic;
 float4 _MainTex_ST, _BumpMap_ST, _Metallic_ST;
 
+
+sampler2D  _SandAlbedo,  _SandNormal,  _SandMetallic;
+sampler2D  _DirtAlbedo,  _DirtNormal,  _DirtMetallic;
+sampler2D  _RockAlbedo,  _RockNormal,  _RockMetallic;
+sampler2D _GrassAlbedo, _GrassNormal, _GrassMetallic;
+
+float4  _SandAlbedo_ST,  _SandNormal_ST,  _SandMetallic_ST;
+float4  _DirtAlbedo_ST,  _DirtNormal_ST,  _DirtMetallic_ST;
+float4  _RockAlbedo_ST,  _RockNormal_ST,  _RockMetallic_ST;
+float4 _GrassAlbedo_ST, _GrassNormal_ST, _GrassMetallic_ST;
+
 float _SlopeStart, _SlopeEnd;
 
 float _Band0, _Band1, _Band2, _Band3;
@@ -117,7 +128,7 @@ GroundType ground(vertexOutput input) {
 	float slopeAmount = 1.0f - input.normal.y;
 
 	float temperature = _Temperature / 50;
-	temperature += (-input.worldPos.z + _LatitudeScale / 2) / _LatitudeScale, 
+	temperature += (-input.worldPos.z + _LatitudeScale / 2) / _LatitudeScale;
 	temperature -= input.worldPos.y / _AltitudeTemperature;
 	//if (input.worldPos.y < (_WaterLevel + 20)) temperature -= (1 - input.worldPos.y / (_WaterLevel + 20)) * (temperature - .75) / .75 * (1 - slopeAmount * 2);
 	//temperature += diffuse * .1;
@@ -127,44 +138,56 @@ GroundType ground(vertexOutput input) {
 	float mipLevel = GetMipLevel(input.uv, float2(2048, 2048));
 
 	GroundType sand;
-	float4 sandAtlasedUV = float4(TransformAtlasedTex(input.uv, int2(0, 0), float2(1, 1), float2(0, 0)), 0, mipLevel);
-	sand.albedo = tex2Dlod(_MainTex, sandAtlasedUV).rgb;
-	half3 sandNormal = UnpackNormal(tex2Dlod(_BumpMap, sandAtlasedUV));
+	//float4 sandAtlasedUV = float4(TransformAtlasedTex(input.uv, int2(0, 0), float2(1, 1), float2(0, 0)), 0, mipLevel);
+	//sand.albedo = tex2Dlod(_MainTex, sandAtlasedUV).rgb;
+	sand.albedo = tex2D(_SandAlbedo, TRANSFORM_TEX(input.uv, _SandAlbedo)).rgb;
+	//half3 sandNormal = UnpackNormal(tex2Dlod(_BumpMap, sandAtlasedUV));
+	half3 sandNormal = UnpackNormal(tex2D(_SandNormal, TRANSFORM_TEX(input.uv, _SandNormal)));
 	sand.worldNormal =  half3(dot(input.tspace0, sandNormal), dot(input.tspace1, sandNormal), dot(input.tspace2, sandNormal));
-	half4 sandMetallic = tex2Dlod(_Metallic, sandAtlasedUV);
+	//half4 sandMetallic = tex2Dlod(_Metallic, sandAtlasedUV);
+	half4 sandMetallic = tex2D(_SandMetallic, TRANSFORM_TEX(input.uv, _SandMetallic));
 	sand.metallic = sandMetallic.r;
 	sand.shininess = sandMetallic.a;
 	sand.diffuse = saturate(dot(lightDir.xyz, sand.worldNormal)) * 1.25;
 	sand.specular = saturate(pow(max(0.0, dot(reflect(-lightDir, sand.worldNormal), input.viewDir)), max(1, sand.shininess * 50)) * sand.metallic);
 
 	GroundType rock;
-	float4 rockAtlasedUV = float4(TransformAtlasedTex(input.uv, int2(0, 1), float2(2, 2), float2(0, 0)), 0, mipLevel);
-	rock.albedo = tex2Dlod(_MainTex, rockAtlasedUV).rgb;
-	half3 rockNormal = UnpackNormal(tex2Dlod(_BumpMap, rockAtlasedUV));
+	//float4 rockAtlasedUV = float4(TransformAtlasedTex(input.uv, int2(0, 1), float2(2, 2), float2(0, 0)), 0, mipLevel);
+	//rock.albedo = tex2Dlod(_MainTex, rockAtlasedUV).rgb;
+	rock.albedo = tex2D(_RockAlbedo, TRANSFORM_TEX(input.uv, _RockAlbedo)).rgb;
+	//half3 rockNormal = UnpackNormal(tex2Dlod(_BumpMap, rockAtlasedUV));
+	half3 rockNormal = UnpackNormal(tex2D(_RockNormal, TRANSFORM_TEX(input.uv, _RockNormal)));
 	rock.worldNormal =  half3(dot(input.tspace0, rockNormal), dot(input.tspace1, rockNormal), dot(input.tspace2, rockNormal));
-	half4 rockMetallic = tex2Dlod(_Metallic, rockAtlasedUV);
+	//half4 rockMetallic = tex2Dlod(_Metallic, rockAtlasedUV);
+	half4 rockMetallic = tex2D(_RockMetallic, TRANSFORM_TEX(input.uv, _RockMetallic));
 	rock.metallic = rockMetallic.r;
 	rock.shininess = rockMetallic.a;
 	rock.diffuse = saturate(dot(lightDir.xyz, rock.worldNormal)) * 1.25;
 	rock.specular = saturate(pow(max(0.0, dot(reflect(-lightDir, rock.worldNormal), input.viewDir)), max(1, rock.shininess * 50)) * rock.metallic);
 
 	GroundType gras;
-	float4 grasAtlasedUV = float4(TransformAtlasedTex(input.uv, int2(1, 1), float2(4, 4), float2(0, 0)), 0, mipLevel);
-	gras.albedo = tex2Dlod(_MainTex, grasAtlasedUV).rgb;
-	half3 grasNormal = UnpackNormal(tex2Dlod(_BumpMap, grasAtlasedUV));
+	//float4 grasAtlasedUV = float4(TransformAtlasedTex(input.uv, int2(1, 1), float2(4, 4), float2(0, 0)), 0, mipLevel);
+	//gras.albedo = tex2Dlod(_MainTex, grasAtlasedUV).rgb;
+	gras.albedo = tex2D(_GrassAlbedo, TRANSFORM_TEX(input.uv, _GrassAlbedo)).rgb;
+	//half3 grasNormal = UnpackNormal(tex2Dlod(_BumpMap, grasAtlasedUV));
+	half3 grasNormal = UnpackNormal(tex2D(_GrassNormal, TRANSFORM_TEX(input.uv, _GrassNormal)));
 	gras.worldNormal =  half3(dot(input.tspace0, grasNormal), dot(input.tspace1, grasNormal), dot(input.tspace2, grasNormal));
-	half4 grasMetallic = tex2D(_Metallic, grasAtlasedUV);
+	//half4 grasMetallic = tex2D(_Metallic, grasAtlasedUV);
+	half4 grasMetallic = tex2D(_GrassMetallic, TRANSFORM_TEX(input.uv, _GrassMetallic));
 	gras.metallic = grasMetallic.r;
 	gras.shininess = grasMetallic.a;
 	gras.diffuse = saturate(dot(lightDir.xyz, gras.worldNormal)) * 1.25;
 	gras.specular = saturate(pow(max(0.0, dot(reflect(-lightDir, gras.worldNormal), input.viewDir)), max(1, gras.shininess * 50)) * gras.metallic);
 
 	GroundType dirt;
-	float4 dirtAtlasedUV = float4(TransformAtlasedTex(input.uv, int2(1, 0), float2(10, 10), float2(0, 0)), 0, mipLevel);
-	dirt.albedo = tex2Dlod(_MainTex, dirtAtlasedUV).rgb;
-	half3 dirtNormal = UnpackNormal(tex2D(_BumpMap, dirtAtlasedUV));
+	//float4 dirtAtlasedUV = float4(TransformAtlasedTex(input.uv, int2(1, 0), float2(10, 10), float2(0, 0)), 0, mipLevel);
+	//dirt.albedo = tex2Dlod(_MainTex, dirtAtlasedUV).rgb;
+	dirt.albedo = tex2D(_DirtAlbedo, TRANSFORM_TEX(input.uv, _DirtAlbedo)).rgb;
+	//half3 dirtNormal = UnpackNormal(tex2Dlod(_BumpMap, dirtAtlasedUV));
+	half3 dirtNormal = UnpackNormal(tex2D(_DirtNormal, TRANSFORM_TEX(input.uv, _DirtNormal)));
 	dirt.worldNormal =  half3(dot(input.tspace0, dirtNormal), dot(input.tspace1, dirtNormal), dot(input.tspace2, dirtNormal));
-	half4 dirtMetallic = tex2D(_Metallic, dirtAtlasedUV);
+	//half4 dirtMetallic = tex2D(_Metallic, dirtAtlasedUV);
+	half4 dirtMetallic = tex2D(_DirtMetallic, TRANSFORM_TEX(input.uv, _DirtMetallic));
 	dirt.metallic = dirtMetallic.r;
 	dirt.shininess = dirtMetallic.a;
 	dirt.diffuse = saturate(dot(lightDir.xyz, dirt.worldNormal)) * 1.25;
@@ -227,8 +250,8 @@ GroundType ground(vertexOutput input) {
 	}
 	else {
 		result = low;
-		//slope = dirtSand;
-		slope = dirt;
+		slope = dirtSand;
+		//slope = dirt;
 	}
 
 	//slopeAmount = 1 - result.worldNormal.y;//(1.0f - result.worldNormal.y) * .25;
@@ -248,7 +271,7 @@ GroundType ground(vertexOutput input) {
 				
 	//Remove snow under/near water.
 	if (input.worldPos.y < _WaterLevel) snowAmount *= 0;
-	else if (input.worldPos.y >= _WaterLevel && input.worldPos.y < _WaterLevel + _SnowBlending) snowAmount *= 1 - ((_WaterLevel + _SnowBlending) - input.worldPos.y) / _SnowBlending;
+	//else if (input.worldPos.y >= _WaterLevel && input.worldPos.y < _WaterLevel + _SnowBlending) snowAmount *= 1 - ((_WaterLevel + _SnowBlending) - input.worldPos.y) / _SnowBlending;
 	else {
 		//Remove snow on slopes
 		if (slopeAmount >= _SnowSlopeMax && slopeAmount < _SnowSlopeMax + _SnowBlending) {

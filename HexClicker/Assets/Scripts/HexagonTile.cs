@@ -8,11 +8,33 @@ public class HexagonTile : MonoBehaviour
     private MeshFilter meshFilter;
     [SerializeField]
     private MeshRenderer meshRenderer;
+    [SerializeField]
+    private MeshCollider meshCollider;
+    [SerializeField]
+    private Material border;
+
+    private static Material[] materials, borderShown;
+    public Mesh Mesh => meshFilter.mesh;
+    
     public int X { get; private set; }
     public int Y { get; private set; }
-    public float tileHeight;
+    public float TileHeight { get; private set; }
 
+    public void Awake()
+    {
+        if (materials == null)
+        {
+            materials = meshRenderer.sharedMaterials;
+            borderShown = new Material[]
+            {
+                materials[0],
+                materials[1],
+                border
+            };
+        }
+    }
 
+    public void ShowBorder(bool show) => meshRenderer.sharedMaterials = show ? borderShown : materials;
 
     public void Generate(HexagonMap map, int x, int y, bool fixNormalsAtSeams)
     {
@@ -21,8 +43,7 @@ public class HexagonTile : MonoBehaviour
 
         Vector2 cartesianPosition = HexagonMap.HexToCartesian(x, y);
         transform.position = new Vector3(cartesianPosition.x, 0, cartesianPosition.y);
-        tileHeight = map.SampleTileHeight(x, y);
-
+        TileHeight = map.SampleTileHeight(x, y);
 
         int res = map.resolution;
 
@@ -59,6 +80,7 @@ public class HexagonTile : MonoBehaviour
         Vector3[] vertices = new Vector3[verticesCount];
         //Vector3[] normals = new Vector3[verticesCount];
         Vector2[] uv = new Vector2[verticesCount];
+        Vector2[] uv2 = new Vector2[verticesCount];
 
         int[] triangles = new int[trianglesCount];
 
@@ -101,12 +123,13 @@ public class HexagonTile : MonoBehaviour
                     Vector2 globalHex = HexagonMap.CartesianToHex(globalCartesian.x, globalCartesian.y);
 
                     float height = map.SampleHeight(globalCartesian.x, globalCartesian.y, globalHex.x, globalHex.y, x, y);
+                    float angle = Mathf.Atan2(localCartesian.x, localCartesian.y);
+                    float radialX = (angle + Mathf.PI) / (Mathf.PI * 2);
+                    float radialY = radius;
 
                     vertices[i] = new Vector3(localCartesian.x, height, localCartesian.y);
-                    //if (fixNormalsAtSeams)
-                    //    normals[i] = CalculateVectorNormal(globalCartesian.x + localCartesian.x, height, globalCartesian.y + localCartesian.y, 1f / rings);
-
                     uv[i] = centerCartesian + localCartesian;
+                    uv2[i] = new Vector2(radialX, radialY);
                     i++;
                 }
 
@@ -145,6 +168,7 @@ public class HexagonTile : MonoBehaviour
         mesh.vertices = vertices;
         //mesh.normals = normals;
         mesh.uv = uv;
+        mesh.uv2 = uv2;
         mesh.triangles = triangles;
 
         //if (!fixNormalsAtSeams)
@@ -187,9 +211,13 @@ public class HexagonTile : MonoBehaviour
         mesh.RecalculateTangents();
 
         meshFilter.mesh = mesh;
+        meshCollider.sharedMesh = mesh;
+
     }
 
-    public static Vector3 CalculateSurfaceNormal(Vector3 p1, Vector3 p2, Vector3 p3)
+    
+
+    static Vector3 CalculateSurfaceNormal(Vector3 p1, Vector3 p2, Vector3 p3)
     {
         Vector3 v1 = Vector3.zero;             // Vector 1 (x,y,z) & Vector 2 (x,y,z)
         Vector3 v2 = Vector3.zero;

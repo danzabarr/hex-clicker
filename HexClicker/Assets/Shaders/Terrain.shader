@@ -7,6 +7,7 @@
 		_SlopeEnd("Slope End"  , Range(0, 1)) = .7
 
 
+		/*
 		_AmbientColor("Ambient Color", Color) = (1,1,1,1)
 		_ShadowColor("Shadow Color", Color) = (0,0,0,1)
 		_WaterColor("Water Color", Color) = (0,0,1,.5)
@@ -23,6 +24,8 @@
 		_SnowBrightness("Snow Brightness", Range(0,1)) = .5
 		_SnowSpecular("Snow Specular", Range(0,1)) = .5
 		_SnowSlopeMax("Snow Slope Max", Range(0,1)) = .5
+		*/
+		
 
 		_Band0("Band 0", Float) = 1
 		_Band1("Band 1", Float) = 1
@@ -34,17 +37,21 @@
 		_BumpMap ("Normal", 2D) = "bump" {}
 		_Metallic ("Metallic", 2D) = "black" {}
 
-        _SandNrm ("Sand Normal", 2D) = "bump" {}
-        _SandGlo ("Sand Metallic", 2D) = "black" {}
+		_SandAlbedo("Sand Albedo", 2D) = "white" {}
+        _SandNormal("Sand Normal", 2D) = "bump" {}
+        _SandMetallic("Sand Metallic", 2D) = "black" {}
 
-        _RockNrm ("Rock Normal", 2D) = "bump" {}
-        _RockGlo ("Rock Metallic", 2D) = "black" {}
+        _RockAlbedo("Rock Albedo", 2D) = "white" {}
+        _RockNormal("Rock Normal", 2D) = "bump" {}
+        _RockMetallic("Rock Metallic", 2D) = "black" {}
 
-        _GrasNrm ("Grass Normal", 2D) = "bump" {}
-        _GrasGlo ("Grass Metallic", 2D) = "black" {}
+        _GrassAlbedo("Grass Albedo", 2D) = "white" {}
+        _GrassNormal("Grass Normal", 2D) = "bump" {}
+        _GrassMetallic("Grass Metallic", 2D) = "black" {}
 
-        _DirtNrm ("Dirt Normal", 2D) = "bump" {}
-        _DirtGlo ("Dirt Metallic", 2D) = "black" {}
+        _DirtAlbedo("Dirt Albedo", 2D) = "white" {}
+        _DirtNormal("Dirt Normal", 2D) = "bump" {}
+        _DirtMetallic("Dirt Metallic", 2D) = "black" {}
    }
 
    SubShader {
