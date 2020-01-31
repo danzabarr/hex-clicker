@@ -184,7 +184,7 @@ public class HexagonMap : MonoBehaviour
 
     }
 
-    public float SampleTileHeight(int x, int y) => tileHeightCurve.Evaluate((Mathf.PerlinNoise((x + y + SeedOffsetX) * tileHeightFrequency, (y - x + SeedOffsetY) * tileHeightFrequency)));
+    public float SampleTileHeight(int x, int y) => tileHeightCurve.Evaluate((Mathf.PerlinNoise((x + y + SeedOffsetX) * tileHeightFrequency, (y - x + SeedOffsetY) * tileHeightFrequency))) * Mathf.Clamp(1f - Mathf.Abs(y - 20) / 60f, 0.1f, 1) * 1.25f + Mathf.Clamp(y / 50f - 0.2f, 0, .6f);
 
     public float SampleNoise(float x, float y) => noiseCurve.Evaluate(Noise.Perlin(x + SeedOffsetX, y + SeedOffsetY, noiseSettings));
 
@@ -239,13 +239,25 @@ public class HexagonMap : MonoBehaviour
 
         for (int x = 0; x < width; x++)
             for (int z = 0; z < height; z++)
+            {
+
+                Vector2 cartesian = HexToCartesian(x - width / 2, z - height / 2);
+
+                if (cartesian.x > width / 2 || cartesian.x < -width / 2)
+                    continue;
+                if (cartesian.y > height/ 2 || cartesian.y < -height/ 2)
+                    continue;
+
                 tiles[x, z] = Instantiate(tilePrefab, transform);
+            }
 
 
         for (int x = 0; x < width; x++)
             for (int z = 0; z < height; z++)
             {
-                tiles[x, z].Generate(this, x, z, true);
+                if (tiles[x, z] == null)
+                    continue;
+                tiles[x, z].Generate(this, x - width / 2, z - height / 2, true);
                 SetupTrees(tiles[x, z]);
             }
     }
@@ -472,7 +484,7 @@ public class HexagonMap : MonoBehaviour
                 continue;
 
             Quaternion rotation = Quaternion.Euler(0, Random.Range(-180, 180), 0);
-            Vector3 scale = new Vector3(1, Random.Range(1f, 1.5f), 1) * Random.Range(.25f, .5f);
+            Vector3 scale = new Vector3(1, Random.Range(1f, 1.25f), 1) * Random.Range(.125f, .5f) * treeSample * 1.5f;
 
             tile.treesCount++;
 
