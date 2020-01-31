@@ -152,7 +152,7 @@ MonoBehaviour:
   seed: 2
   width: 80
   height: 80
-  resolution: 4
+  resolution: 3
   tilePrefab: {fileID: 1074967575922730038, guid: 383fb86b05abe97448062b77ac03dd7e,
     type: 3}
   tileHeightFrequency: 0.15
@@ -363,30 +363,10 @@ MonoBehaviour:
     type: 3}
   treesFrequency: 0.2
   treesThreshold: 0.5
-  treesCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 1
-      outSlope: 1
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 1
-      outSlope: 1
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  treesMinimumTemperature: -0.7
+  treesMaximumTemperature: 0.3
+  treesMinimumAltitude: 0.05
+  treesMaximumAltitude: 0.6
   temperature: 25
   latitudeScale: 100
   altitudeTemperature: 2

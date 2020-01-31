@@ -34,7 +34,12 @@ public class HexagonMap : MonoBehaviour
     public float treesFrequency;
     [Range(0,1)]
     public float treesThreshold;
-    public AnimationCurve treesCurve;
+    [Range(-1, 1)]
+    public float treesMinimumTemperature;
+    [Range(-1, 1)]
+    public float treesMaximumTemperature;
+    public float treesMinimumAltitude;
+    public float treesMaximumAltitude;
     
     public float SeedOffsetX { get; private set; }
     public float SeedOffsetY { get; private set; }
@@ -183,7 +188,7 @@ public class HexagonMap : MonoBehaviour
 
     public float SampleNoise(float x, float y) => noiseCurve.Evaluate(Noise.Perlin(x + SeedOffsetX, y + SeedOffsetY, noiseSettings));
 
-    public float SampleTree(float x, float y) => treesCurve.Evaluate((Mathf.PerlinNoise((x + y + SeedOffsetX + 10000) * treesFrequency, (y - x + SeedOffsetY + 10000) * treesFrequency)));
+    public float SampleTree(float x, float y) => (Mathf.PerlinNoise((x + y + SeedOffsetX + 10000) * treesFrequency, (y - x + SeedOffsetY + 10000) * treesFrequency));
 
     public float SampleTemperature(float x, float z)
     {
@@ -326,7 +331,7 @@ public class HexagonMap : MonoBehaviour
                 {
                     mouse.ShowBorder(true);
                     select = mouse;
-                    Debug.Log(TileHeightType(select.TileHeight));
+                    Debug.Log(select);
                 }
             }
         }
@@ -401,7 +406,6 @@ public class HexagonMap : MonoBehaviour
         }
     }
 
-    
     public class InstancedMeshBatch
     {
         public Matrix4x4[] Matrices { get; private set; } = new Matrix4x4[1023];
@@ -448,10 +452,10 @@ public class HexagonMap : MonoBehaviour
             // Build matrix.
             Vector3 position = tile.transform.position + vertex;
 
-            if (position.y < 0.05f)
+            if (position.y < treesMinimumAltitude)
                 continue;
 
-            if (position.y > .6f)
+            if (position.y > treesMaximumAltitude)
                 continue;
 
             float treeSample = SampleTree(position.x, position.z);
@@ -461,13 +465,16 @@ public class HexagonMap : MonoBehaviour
 
             float temperatureSample = SampleTemperature(position.x, position.y, position.z);
 
-            if (temperatureSample > .3f)
+            if (temperatureSample > treesMaximumTemperature)
                 continue;
-            if (temperatureSample < -.7f)
+
+            if (temperatureSample < treesMinimumTemperature)
                 continue;
 
             Quaternion rotation = Quaternion.Euler(0, Random.Range(-180, 180), 0);
             Vector3 scale = new Vector3(1, Random.Range(1f, 1.5f), 1) * Random.Range(.25f, .5f);
+
+            tile.treesCount++;
 
             Add(Matrix4x4.TRS(position, rotation, scale));
 

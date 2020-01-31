@@ -19,6 +19,9 @@ public class HexagonTile : MonoBehaviour
     public int X { get; private set; }
     public int Y { get; private set; }
     public float TileHeight { get; private set; }
+    public int treesCount;
+    public float Temperature { get; private set; }
+    public HexagonMap.TileHeight TileHeightType;
 
     public void Awake()
     {
@@ -34,6 +37,8 @@ public class HexagonTile : MonoBehaviour
         }
     }
 
+    public override string ToString() => "HexagonTile [" + X + "," + Y + "]\n Type: " + TileHeightType + "\n Altitude: " + string.Format("{0:0.00}", TileHeight) + "\n Temperature: " + string.Format("{0:0.00}", Temperature) + "\n Trees: " + treesCount; 
+
     public void ShowBorder(bool show) => meshRenderer.sharedMaterials = show ? borderShown : materials;
 
     public void Generate(HexagonMap map, int x, int y, bool fixNormalsAtSeams)
@@ -44,6 +49,8 @@ public class HexagonTile : MonoBehaviour
         Vector2 cartesianPosition = HexagonMap.HexToCartesian(x, y);
         transform.position = new Vector3(cartesianPosition.x, 0, cartesianPosition.y);
         TileHeight = map.SampleTileHeight(x, y);
+        TileHeightType = HexagonMap.TileHeightType(TileHeight);
+        Temperature = map.SampleTemperature(x, TileHeight, y);
 
         int res = map.resolution;
 

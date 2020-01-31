@@ -65,17 +65,17 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _WindDistortionMap:
         m_Texture: {fileID: 2800000, guid: f28bba76fb944bc48be841e3ab6c411f, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 0.01, y: 0.01}
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BendRotationRandom: 0.288
     - _BladeCurve: 2.9
     - _BladeForward: 0.05
-    - _BladeHeight: 0.2
-    - _BladeHeightRandom: 0.2
+    - _BladeHeight: 0.1
+    - _BladeHeightRandom: 0.1
     - _BladeRandomAmount: 0.5
     - _BladeSegments: 3
-    - _BladeWidth: 0.02
+    - _BladeWidth: 0.03
     - _BladeWidthRandom: 0.02
     - _BumpScale: 1
     - _ClipXZ: 0.0001
@@ -101,7 +101,7 @@ Material:
     - _MaxTempBladeHeight: 0
     - _MaxTempBladeWidth: 0
     - _Metallic: 0
-    - _MinAlt: 0
+    - _MinAlt: 0.15
     - _MinTemp: 0.25
     - _MinTempBladeHeight: 0
     - _MinTempBladeWidth: 0
@@ -114,7 +114,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _TessellationUniform: 6
+    - _TessellationUniform: 12
     - _TranslucentGain: 0.5
     - _UVSec: 0
     - _WindScale: 1
