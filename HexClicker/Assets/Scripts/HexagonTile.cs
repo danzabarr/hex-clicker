@@ -2,8 +2,41 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HexagonTile : MonoBehaviour
+public class HexagonTile : MonoBehaviour, PathFinding.INode
 {
+    public enum ElevationType
+    {
+        Water,
+        Plain,
+        Hill,
+        Mountain
+    }
+
+    public static ElevationType GetType(float height)
+    {
+        if (height < 0.0f) return ElevationType.Water;
+        if (height < .25f) return ElevationType.Plain;
+        if (height < .8f) return ElevationType.Hill;
+        return ElevationType.Mountain;
+    }
+
+    public static int GetCost(ElevationType type)
+    {
+        switch (type)
+        {
+            case ElevationType.Water:
+                return 0;
+            case ElevationType.Plain:
+                return 0;
+            case ElevationType.Hill:
+                return 1;
+            case ElevationType.Mountain:
+                return 2;
+            default:
+                return 0;
+        }
+    }
+
     [SerializeField]
     private MeshFilter meshFilter;
     [SerializeField]
@@ -16,12 +49,11 @@ public class HexagonTile : MonoBehaviour
     private static Material[] materials, borderShown;
     public Mesh Mesh => meshFilter.mesh;
     
-    public int X { get; private set; }
-    public int Y { get; private set; }
-    public float TileHeight { get; private set; }
+    public Vector2Int Position { get; private set; }
+    public float Elevation { get; private set; }
+    public ElevationType Type;
     public int treesCount;
     public float Temperature { get; private set; }
-    public HexagonMap.TileHeight TileHeightType;
 
     public void Awake()
     {
@@ -37,20 +69,19 @@ public class HexagonTile : MonoBehaviour
         }
     }
 
-    public override string ToString() => "HexagonTile [" + X + "," + Y + "]\n Type: " + TileHeightType + "\n Altitude: " + string.Format("{0:0.00}", TileHeight) + "\n Temperature: " + string.Format("{0:0.00}", Temperature) + "\n Trees: " + treesCount; 
+    public override string ToString() => "HexagonTile " + Position + "\n Type: " + Type + "\n Altitude: " + string.Format("{0:0.00}", Elevation) + "\n Temperature: " + string.Format("{0:0.00}", Temperature) + "\n Trees: " + treesCount; 
 
     public void ShowBorder(bool show) => meshRenderer.sharedMaterials = show ? borderShown : materials;
 
-    public void Generate(HexagonMap map, int x, int y, bool fixNormalsAtSeams)
+    public void GenerateMesh(HexagonMap map, int x, int y, bool fixNormalsAtSeams)
     {
-        X = x;
-        Y = y;
+        Position = new Vector2Int(x, y);
 
         Vector2 cartesianPosition = HexagonMap.HexToCartesian(x, y);
         transform.position = new Vector3(cartesianPosition.x, 0, cartesianPosition.y);
-        TileHeight = map.SampleTileHeight(x, y);
-        TileHeightType = HexagonMap.TileHeightType(TileHeight);
-        Temperature = map.SampleTemperature(x, TileHeight, y);
+        Elevation = map.SampleTileHeight(x, y);
+        Type = GetType(Elevation);
+        Temperature = map.SampleTemperature(x, Elevation, y);
 
         int res = map.resolution;
 
@@ -221,9 +252,6 @@ public class HexagonTile : MonoBehaviour
         meshCollider.sharedMesh = mesh;
 
     }
-
-    
-
     static Vector3 CalculateSurfaceNormal(Vector3 p1, Vector3 p2, Vector3 p3)
     {
         Vector3 v1 = Vector3.zero;             // Vector 1 (x,y,z) & Vector 2 (x,y,z)
@@ -251,4 +279,25 @@ public class HexagonTile : MonoBehaviour
 
         return normal;
     }
+
+
+    #region PathFinding
+    public float Cost => GetCost(Type);
+    public PathFinding.INode PathParent { get; set; }
+    public float PathDistance { get; set; }
+    public float PathCrowFliesDistance { get; set; }
+    public float PathCost { get; set; }
+    public int PathSteps { get; set; }
+    public int PathTurns { get; set; }
+    public int PathEndDirection { get; set; }
+    public bool Accessible => Type != ElevationType.Water;
+    public int NeighboursCount => 6;
+    public HexagonTile[] Neighbours { get; set; }
+    public PathFinding.INode Neighbour(int neighbourIndex) => Neighbours[neighbourIndex];
+    public float NeighbourDistance(int neighbourIndex) => 1;
+    public float NeighbourCost(int neighbourIndex) => Neighbours[neighbourIndex].Cost;
+    public bool NeighbourAccessible(int neighbourIndex) => Neighbours[neighbourIndex].Accessible;
+    public float Distance(PathFinding.INode node) => Vector2.Distance(Position, (node as HexagonTile).Position);
+
+    #endregion
 }

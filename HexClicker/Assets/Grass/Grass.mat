@@ -72,16 +72,16 @@ Material:
     - _BladeCurve: 2.9
     - _BladeForward: 0.05
     - _BladeHeight: 0.1
-    - _BladeHeightRandom: 0.1
+    - _BladeHeightRandom: 0.05
     - _BladeRandomAmount: 0.5
     - _BladeSegments: 3
-    - _BladeWidth: 0.03
-    - _BladeWidthRandom: 0.02
+    - _BladeWidth: 0.01
+    - _BladeWidthRandom: 0.01
     - _BumpScale: 1
     - _ClipXZ: 0.0001
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DistanceCulling: 500
+    - _DistanceCulling: 30
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -94,10 +94,10 @@ Material:
     - _LowTemp: 0
     - _LowTempBladeHeight: 0
     - _LowTempBladeWidth: 0
-    - _MaskThreshold: 0.3
+    - _MaskThreshold: 0.2
     - _MaxAlt: 0.5
     - _MaxSlope: 0.11
-    - _MaxTemp: 0.6
+    - _MaxTemp: 0.65
     - _MaxTempBladeHeight: 0
     - _MaxTempBladeWidth: 0
     - _Metallic: 0
@@ -125,5 +125,5 @@ Material:
     - _Color: {r: 0, g: 0.5754717, b: 0.06694827, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Shadow: {r: 0.24525547, g: 0.29124084, b: 0.35, a: 0.75686276}
-    - _TopColor: {r: 0.32775864, g: 0.47843137, b: 0.24065098, a: 1}
+    - _TopColor: {r: 0.19760656, g: 0.287, b: 0.1435, a: 1}
     - _WindFrequency: {r: 0.025, g: 0.025, b: 0, a: 0}

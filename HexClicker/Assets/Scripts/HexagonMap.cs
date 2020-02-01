@@ -44,9 +44,17 @@ public class HexagonMap : MonoBehaviour
     public float SeedOffsetX { get; private set; }
     public float SeedOffsetY { get; private set; }
 
-    public HexagonTile this[int x,int y] => x < 0 || y < 0 || x >= tiles.GetLength(0) || y >= tiles.GetLength(1) ? null : tiles[x, y];
+    public HexagonTile this[int x,int y]
+    {
+        get
+        {
+            x += width / 2;
+            y += height / 2;
+            return x < 0 || y < 0 || x >= tiles.GetLength(0) || y >= tiles.GetLength(1) ? null : tiles[x, y];
+        }
+    }
 
-    private static int[] NeighbourX =
+    private static readonly int[] NeighbourX =
     {
         1,
         0,
@@ -55,7 +63,7 @@ public class HexagonMap : MonoBehaviour
         0,
         1,
     };
-    private static int[] NeighbourY =
+    private static readonly int[] NeighbourY =
     {
          0,
          1,
@@ -224,11 +232,20 @@ public class HexagonMap : MonoBehaviour
         Generate();
     }
 
-    [ContextMenu("Generate")]
-    public void Generate()
+    [ContextMenu("Clear")]
+    public void Clear()
     {
         for (int i = transform.childCount - 1; i >= 0; i--)
             DestroyImmediate(transform.GetChild(i).gameObject);
+        tiles = null;
+        SeedOffsetX = 0;
+        SeedOffsetY = 0;
+    }
+
+    [ContextMenu("Generate")]
+    public void Generate()
+    {
+        Clear();
 
         camera = Camera.main;
         tiles = new HexagonTile[width, height];
@@ -245,7 +262,7 @@ public class HexagonMap : MonoBehaviour
 
                 if (cartesian.x > width / 2 || cartesian.x < -width / 2)
                     continue;
-                if (cartesian.y > height/ 2 || cartesian.y < -height/ 2)
+                if (cartesian.y > height / 2 || cartesian.y < -height / 2)
                     continue;
 
                 tiles[x, z] = Instantiate(tilePrefab, transform);
@@ -257,8 +274,16 @@ public class HexagonMap : MonoBehaviour
             {
                 if (tiles[x, z] == null)
                     continue;
-                tiles[x, z].Generate(this, x - width / 2, z - height / 2, true);
+                tiles[x, z].GenerateMesh(this, x - width / 2, z - height / 2, true);
                 SetupTrees(tiles[x, z]);
+            }
+
+        for (int x = 0; x < width; x++)
+            for (int z = 0; z < height; z++)
+            {
+                if (tiles[x, z] == null)
+                    continue;
+                tiles[x, z].Neighbours = GetNeighbours(x - width / 2, z - height / 2);
             }
     }
 
@@ -303,24 +328,16 @@ public class HexagonMap : MonoBehaviour
         return new Vector2Int(cube.x, cube.y);
     }
 
-    public enum TileHeight
-    {
-        Water,
-        Plain,
-        Hill,
-        Mountain
-    }
+    
 
-    public static TileHeight TileHeightType(float height)
-    {
-        if (height < 0.0f) return TileHeight.Water;
-        if (height < .25f) return TileHeight.Plain;
-        if (height < .8f) return TileHeight.Hill;
-        return TileHeight.Mountain;
-    }
+    private PathFinding.Path<HexagonTile> testPath;
 
     public void Update()
     {
+
+        HexagonTile oldStart = select;
+        HexagonTile oldEnd = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
+
         if (XZPlane.ScreenPointXZ0PlaneIntersection(camera, Input.mousePosition, out Vector3 intersection))
             MousePointOnXZ0Plane = intersection;
 
@@ -348,6 +365,13 @@ public class HexagonMap : MonoBehaviour
             }
         }
 
+        HexagonTile start = select;
+        HexagonTile end = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
+
+        if (start != oldStart || end != oldEnd)
+        {
+            PathFinding.PathFind(start, end, 1000, 500, PathFinding.StandardCostFunction, out testPath);
+        }
 
         //DrawInstances();
         DrawTrees();
@@ -356,6 +380,16 @@ public class HexagonMap : MonoBehaviour
     public void OnDrawGizmos()
     {
         DrawHexagon(MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y);
+
+        if (testPath != null && testPath.FoundPath)
+        {
+            for (int i = 0; i < testPath.Steps; i++)
+            {
+                HexagonTile i0 = testPath[i];
+                HexagonTile i1 = testPath[i + 1];
+                Gizmos.DrawLine(i0.transform.position, i1.transform.position);
+            }
+        }
     }
 
     /*
