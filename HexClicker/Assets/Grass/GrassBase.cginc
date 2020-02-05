@@ -171,7 +171,7 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	half temperature = _Temperature / 50;
 				
-	temperature += (-world.z + _LatitudeScale / 2) / _LatitudeScale, 
+	temperature += (-world.x + _LatitudeScale / 2) / _LatitudeScale, 
 	temperature -= world.y / _AltitudeTemperature;
 	//if (world.y < _WaterLevel + 20) temperature -= (1 - world.y / (_WaterLevel + 20)) * (temperature - .75) / .75;
 	//temperature += diffuse * .1;
@@ -232,7 +232,7 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 	float3x3 bendRotationMatrix = AngleAxis3x3(rand(pos.zzx) * _BendRotationRandom * UNITY_PI * 0.5, float3(-1, 0, 0));
 
 	// Sample the wind distortion map, and construct a normalized vector of its direction.
-	float2 uv = pos.xz * _WindDistortionMap_ST.xy + _WindDistortionMap_ST.zw + _WindFrequency * _Time.y;
+	float2 uv = world.xz * _WindDistortionMap_ST.xy + _WindDistortionMap_ST.zw + _WindFrequency * _Time.y;
 	float2 windSample = (tex2Dlod(_WindDistortionMap, float4(uv, 0, 0)).xy * 2 - 1) * _WindStrength;
 	float3 wind = normalize(float3(windSample.x, windSample.y, 0));
 

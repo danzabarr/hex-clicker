@@ -2,16 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HexMap : MonoBehaviour
+public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 {
     private new Camera camera;
 
-    private HexTile[,] tiles;
+    private HexTile[] tiles;
     private HexTile select;
     private PathFinding.Path<HexTile> testPath;
 
     [SerializeField]
     private HexTile tilePrefab;
+
+    [SerializeField]
+    private Transform water;
 
     [Header("Map Settings")]
     [SerializeField]
@@ -28,6 +31,7 @@ public class HexMap : MonoBehaviour
     public int Width => width;
     public int Height => height;
     public int Resolution => resolution;
+    public int TileCount => width * height;
 
     [Header("Tile Elevation")]
     [SerializeField]
@@ -38,10 +42,6 @@ public class HexMap : MonoBehaviour
     private AnimationCurve tileHeightFalloffCurve;
 
     [Header("Terrain Noise")]
-    [SerializeField]
-    private float noiseScale;
-    [SerializeField]
-    private float noisePerTileHeight;
     [SerializeField]
     private Noise.NoiseSettings noiseSettings;
     [SerializeField]
@@ -113,11 +113,14 @@ public class HexMap : MonoBehaviour
     {
         get
         {
-            x += width / 2;
-            y += height / 2;
-            return x < 0 || y < 0 || x >= tiles.GetLength(0) || y >= tiles.GetLength(1) ? null : tiles[x, y];
+            int storeX = x + width / 2;
+            int storeY = y + height / 2 + storeX / 2 - width / 4;
+            return storeX < 0 || storeY < 0 || storeX >= width || storeY >= height ? null : tiles[storeX + storeY * width];
         }
     }
+
+    public IEnumerator<HexTile> GetEnumerator() => ((IEnumerable<HexTile>)tiles).GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public HexTile[] GetNeighbours(int tileX, int tileY)
     {
@@ -141,7 +144,7 @@ public class HexMap : MonoBehaviour
         float tileHeight = SampleElevation(tileX, tileY);
         Vector2 cartesian = new Vector2(x, z);
         Vector2 centerCartesian = HexUtils.HexToCartesian(tileX, tileY);
-        float maxDistance = HexUtils.SQRT_3;
+        float maxDistance = HexUtils.SQRT_3 * 1.05f;
         float centerDistance = Vector2.Distance(cartesian, centerCartesian);
         float heightSum = tileHeight * tileHeightFalloffCurve.Evaluate((1f - Mathf.Clamp(centerDistance / maxDistance, 0, 1)));
 
@@ -157,7 +160,7 @@ public class HexMap : MonoBehaviour
             heightSum += neighbourTileHeight * tileHeightFalloffCurve.Evaluate((1f - Mathf.Clamp(distance / maxDistance, 0, 1)));
         }
 
-        return heightSum + noisePerTileHeightCurve.Evaluate(heightSum) * (noise - .25f) + noiseScale * (noise - .25f);
+        return heightSum + noisePerTileHeightCurve.Evaluate(heightSum) * (noise - .5f);
     }
 
     public float SampleHeight(float x, float z)
@@ -166,15 +169,29 @@ public class HexMap : MonoBehaviour
         return SampleHeight(x, z, tile.x, tile.y);
     }
 
-    public Vector3 ToTerrain(Vector3 p) => new Vector3(p.x, SampleHeight(p.x, p.z), p.z);
-    public float SampleElevation(int x, int y) => tileHeightCurve.Evaluate((Mathf.PerlinNoise((x + y + SeedOffsetX) * tileHeightFrequency, (y - x + SeedOffsetY) * tileHeightFrequency))) * Mathf.Clamp(1f - Mathf.Abs(y - 20) / 60f, 0.1f, 1) * 1.25f + Mathf.Clamp(y / 50f - 0.2f, 0, .6f);
+    public Vector3 OnTerrain(Vector3 p) => new Vector3(p.x, SampleHeight(p.x, p.z), p.z);
+    public float SampleElevation(int x, int y)
+    {
+        Vector2 cartesian = HexUtils.HexToCartesian(x, y);
+
+        float noise = Mathf.PerlinNoise((cartesian.x + SeedOffsetX) * tileHeightFrequency, (cartesian.y + SeedOffsetY) * tileHeightFrequency);
+
+        float elevation = tileHeightCurve.Evaluate(noise);
+
+        float middleValleyBias = Mathf.Clamp(Mathf.Abs(cartesian.x / 50), 0, 0.4f);
+
+        float southFlatnessBias =  Mathf.Clamp(cartesian.x / 50 + 1, .4f, 1f);
+
+        return elevation * southFlatnessBias + middleValleyBias;
+
+    }
     public float SampleNoise(float x, float z) => noiseCurve.Evaluate(Noise.Perlin(x + SeedOffsetX, z + SeedOffsetY, noiseSettings));
-    public float SampleTree(float x, float z) => (Mathf.PerlinNoise((x + z + SeedOffsetX + 10000) * treesFrequency, (z - x + SeedOffsetY + 10000) * treesFrequency));
+    public float SampleTree(float x, float z) => (Mathf.PerlinNoise((x + SeedOffsetX + 10000) * treesFrequency, (z + SeedOffsetY + 10000) * treesFrequency)) * 0;
     public float SampleTemperature(float x, float z) => SampleTemperature(x, SampleHeight(x, z), z);
     public float SampleTemperature(float x, float y, float z)
     {
         float temperature = this.temperature / 50;
-        temperature += (-z + latitudeScale / 2) / latitudeScale;
+        temperature += (-x + latitudeScale / 2) / latitudeScale;
 	    temperature -= y / altitudeTemperature;
         //if (input.worldPos.y < (_WaterLevel + 20)) temperature -= (1 - input.worldPos.y / (_WaterLevel + 20)) * (temperature - .75) / .75 * (1 - slopeAmount * 2);
         //temperature += diffuse * .1;
@@ -183,11 +200,17 @@ public class HexMap : MonoBehaviour
         return temperature;
     }
 
+    public HexRegion region;
+    public Material regionOutlineMaterial;
+    public Camera regionOutlineCamera;
 
     public void Awake()
     {
         camera = Camera.main;
         Generate();
+
+        region = new HexRegion();
+        region.map = this;
     }
 
     public void OnValidate()
@@ -207,6 +230,8 @@ public class HexMap : MonoBehaviour
         Shader.SetGlobalFloat("_SnowShininess", snowShininess);
         Shader.SetGlobalFloat("_SnowSpecular", snowSpecular);
         Shader.SetGlobalFloat("_SnowSlopeMax", snowSlopeMax);
+
+        water.transform.position = new Vector3(0, waterLevel, 0);
     }
 
     [ContextMenu("Clear")]
@@ -217,6 +242,9 @@ public class HexMap : MonoBehaviour
         tiles = null;
         SeedOffsetX = 0;
         SeedOffsetY = 0;
+        if (treesRenderer != null)
+            treesRenderer.Clear();
+        treesRenderer = null;
     }
 
     [ContextMenu("Generate")]
@@ -225,7 +253,7 @@ public class HexMap : MonoBehaviour
         Clear();
 
         camera = Camera.main;
-        tiles = new HexTile[width, height];
+        tiles = new HexTile[width * height];
 
         Random.InitState(seed);
         SeedOffsetX = Random.value * 10000;
@@ -234,40 +262,29 @@ public class HexMap : MonoBehaviour
         for (int x = 0; x < width; x++)
             for (int z = 0; z < height; z++)
             {
-
-                Vector2 cartesian = HexUtils.HexToCartesian(x - width / 2, z - height / 2);
-
-                if (cartesian.x > width / 2 || cartesian.x < -width / 2)
-                    continue;
-                if (cartesian.y > height / 2 || cartesian.y < -height / 2)
-                    continue;
-
-                tiles[x, z] = Instantiate(tilePrefab, transform);
-            }
-
-
-        treesRenderer = new InstancedRenderer(new MaterialPropertyBlock());
-
-        for (int x = 0; x < width; x++)
-            for (int z = 0; z < height; z++)
-            {
-                if (tiles[x, z] == null)
-                    continue;
-                tiles[x, z].GenerateMesh(this, x - width / 2, z - height / 2, true);
-                SetupTrees(tiles[x, z]);
+                tiles[x + z * width] = Instantiate(tilePrefab, transform);
+                int hexX = x - width / 2;
+                int hexY = z - height / 2 - x / 2 + width / 4;
+                tiles[x + z * width].GenerateMesh(this, hexX, hexY, true);
             }
 
         for (int x = 0; x < width; x++)
             for (int z = 0; z < height; z++)
             {
-                if (tiles[x, z] == null)
-                    continue;
-                tiles[x, z].Neighbours = GetNeighbours(x - width / 2, z - height / 2);
+                int hexX = x - width / 2;
+                int hexY = z - height / 2 - x / 2 + width / 4;
+                tiles[x + z * width].Neighbours = GetNeighbours(hexX, hexY);
             }
+
+        SetupTrees();
     }
+
 
     public void Update()
     {
+
+        Graphics.DrawMesh(region.Mesh, Vector3.zero, Quaternion.identity, regionOutlineMaterial, LayerMask.NameToLayer("Regions"), null, 0, null, false, false);
+
         HexTile oldStart = select;
         HexTile oldEnd = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
 
@@ -281,7 +298,7 @@ public class HexMap : MonoBehaviour
         {
             if (select != null)
             {
-                select.ShowBorder(false);
+                //select.ShowBorder(false);
                 select = null;
             }
             if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
@@ -292,6 +309,16 @@ public class HexMap : MonoBehaviour
                     mouse.ShowBorder(true);
                     select = mouse;
                     Debug.Log(select);
+
+
+
+                    foreach (HexTile tile in tiles)
+                        if (tile != null)
+                            tile.ShowBorder(false);
+
+                    foreach (HexTile tile in HexUtils.BreadthFirstFloodFill(select, HexUtils.SameType))
+                        tile.ShowBorder(true);
+
                 }
             }
         }
@@ -305,12 +332,25 @@ public class HexMap : MonoBehaviour
         }
 
         //DrawInstances();
-        treesRenderer.Draw(treeMesh, treeMaterial);
+        if (treesRenderer != null)
+            treesRenderer.Draw(treeMesh, treeMaterial, LayerMask.NameToLayer("Trees"));
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            {
+                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
+                if (mouse)
+                {
+                    region.ToggleMember(mouse);
+                }
+            }
+        }
     }
 
     public void OnDrawGizmos()
     {
-        DrawHexagon(MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y);
+        //DrawHexagon(MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y);
 
         if (testPath != null && testPath.FoundPath)
         {
@@ -321,32 +361,19 @@ public class HexMap : MonoBehaviour
                 Gizmos.DrawLine(i0.transform.position, i1.transform.position);
             }
         }
-    }
 
-    public static void DrawHexagon(float x, float y)
-    {
-        Vector2 cartesian = HexUtils.HexToCartesian(x, y);
-
-        for (int i = 0; i < 6; i++)
-        {
-            float angle0 = Mathf.PI / 2f + Mathf.PI * 2f / 6f * i;
-            float angle1 = Mathf.PI / 2f + Mathf.PI * 2f / 6f * (i + 1);
-
-            float sinAngle0 = Mathf.Sin(angle0);
-            float cosAngle0 = Mathf.Cos(angle0);
-            float sinAngle1 = Mathf.Sin(angle1);
-            float cosAngle1 = Mathf.Cos(angle1);
-
-            Vector3 i0 = new Vector3(cartesian.x + sinAngle0, 0, cartesian.y + cosAngle0);
-            Vector3 i1 = new Vector3(cartesian.x + sinAngle1, 0, cartesian.y + cosAngle1);
-
-            Gizmos.DrawLine(i0, i1);
-        }
+        region?.OnDrawGizmos();
     }
 
     #region Trees
 
     private InstancedRenderer treesRenderer;
+    private void SetupTrees()
+    {
+        treesRenderer = new InstancedRenderer(new MaterialPropertyBlock());
+        foreach(HexTile tile in tiles)
+            SetupTrees(tile);
+    }
 
     private void SetupTrees(HexTile tile)
     {
@@ -387,6 +414,8 @@ public class HexMap : MonoBehaviour
 
         //block.SetVectorArray("_Colors", colors);
     }
+
+
 
     /* 
      * 

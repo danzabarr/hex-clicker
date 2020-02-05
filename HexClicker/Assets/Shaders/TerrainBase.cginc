@@ -128,7 +128,7 @@ GroundType ground(vertexOutput input) {
 	float slopeAmount = 1.0f - input.normal.y;
 
 	float temperature = _Temperature / 50;
-	temperature += (-input.worldPos.z + _LatitudeScale / 2) / _LatitudeScale;
+	temperature += (-input.worldPos.x + _LatitudeScale / 2) / _LatitudeScale;
 	temperature -= input.worldPos.y / _AltitudeTemperature;
 	//if (input.worldPos.y < (_WaterLevel + 20)) temperature -= (1 - input.worldPos.y / (_WaterLevel + 20)) * (temperature - .75) / .75 * (1 - slopeAmount * 2);
 	//temperature += diffuse * .1;

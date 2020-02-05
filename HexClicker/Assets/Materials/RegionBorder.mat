@@ -7,13 +7,13 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Grass
-  m_Shader: {fileID: 4800000, guid: 01eab4087a959ef4cbc34b8a3fba1e1f, type: 3}
+  m_Name: RegionBorder
+  m_Shader: {fileID: 4800000, guid: 3abc6b8788329104497b507899f9216e, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -39,10 +39,6 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _GrassMask:
-        m_Texture: {fileID: 2800000, guid: 3cc0cc0fde0c9c547ab66ae490380e65, type: 3}
-        m_Scale: {x: 0.1, y: 0.1}
-        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -59,71 +55,24 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _SizeMask:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _WindDistortionMap:
-        m_Texture: {fileID: 2800000, guid: f28bba76fb944bc48be841e3ab6c411f, type: 3}
-        m_Scale: {x: 0.01, y: 0.01}
-        m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _BendRotationRandom: 0.288
-    - _BladeCurve: 2.9
-    - _BladeForward: 0.05
-    - _BladeHeight: 0.1
-    - _BladeHeightRandom: 0.05
-    - _BladeRandomAmount: 0.5
-    - _BladeSegments: 3
-    - _BladeWidth: 0.01
-    - _BladeWidthRandom: 0.01
     - _BumpScale: 1
-    - _ClipXZ: 0.0001
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DistanceCulling: 30
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HighSlope: 0.03
-    - _HighSlopeBladeSize: 0.03
-    - _HighTemp: 0
-    - _HighTempBladeHeight: 0
-    - _HighTempBladeWidth: 0
-    - _LowTemp: 0
-    - _LowTempBladeHeight: 0
-    - _LowTempBladeWidth: 0
-    - _MaskThreshold: 0.2
-    - _MaxAlt: 0.5
-    - _MaxSlope: 0.11
-    - _MaxTemp: 0.9125
-    - _MaxTempBladeHeight: 0
-    - _MaxTempBladeWidth: 0
+    - _Intensity: 2
     - _Metallic: 0
-    - _MinAlt: 0.15
-    - _MinTemp: 0.517
-    - _MinTempBladeHeight: 0
-    - _MinTempBladeWidth: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Rotation: 0
-    - _RotationRandom: 0.174
-    - _Smoothness: 0.25
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _TessellationUniform: 12
-    - _TranslucentGain: 0.5
     - _UVSec: 0
-    - _WindScale: 1
-    - _WindStrength: 0.7
     - _ZWrite: 1
     m_Colors:
-    - _BottomColor: {r: 0.18447672, g: 0.26415092, b: 0.13841508, a: 1}
-    - _Color: {r: 0, g: 0.5754717, b: 0.06694827, a: 1}
+    - _Color: {r: 1, g: 0.17671043, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Shadow: {r: 0.24525547, g: 0.29124084, b: 0.35, a: 0.75686276}
-    - _TopColor: {r: 0.19760656, g: 0.287, b: 0.1435, a: 1}
-    - _WindFrequency: {r: 0.025, g: 0.025, b: 0, a: 0}

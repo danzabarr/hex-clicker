@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class HexUtils
 {
@@ -65,5 +66,126 @@ public class HexUtils
     {
         Vector3Int cube = CubeRound(AxialToCube(hex));
         return new Vector2Int(cube.x, cube.y);
+    }
+    public static void DrawHexagon(float x, float y)
+    {
+        Vector2 cartesian = HexUtils.HexToCartesian(x, y);
+
+        for (int i = 0; i < 6; i++)
+        {
+            float angle0 = Mathf.PI / 2f + Mathf.PI * 2f / 6f * i;
+            float angle1 = Mathf.PI / 2f + Mathf.PI * 2f / 6f * (i + 1);
+
+            float sinAngle0 = Mathf.Sin(angle0);
+            float cosAngle0 = Mathf.Cos(angle0);
+            float sinAngle1 = Mathf.Sin(angle1);
+            float cosAngle1 = Mathf.Cos(angle1);
+
+            Vector3 i0 = new Vector3(cartesian.x + sinAngle0, 0, cartesian.y + cosAngle0);
+            Vector3 i1 = new Vector3(cartesian.x + sinAngle1, 0, cartesian.y + cosAngle1);
+
+            Gizmos.DrawLine(i0, i1);
+        }
+    }
+
+    public static Mesh Mesh { get; } = CreateHexagonMesh();
+    public static Mesh CreateHexagonMesh()
+    {
+        Mesh mesh = new Mesh();
+        Vector3[] vertices = new Vector3[7];
+        Vector2[] uv = new Vector2[7];
+        int[] triangles = new int[18];
+
+        vertices[0] = Vector3.zero;
+        uv[0] = Vector3.zero;
+
+        for (int i = 0; i < 6; i++)
+        {
+            vertices[1 + i] = new Vector3(sinAngles[i], 0, cosAngles[i]);
+            uv[1 + i] = new Vector2((angles[i] + Mathf.PI) / (Mathf.PI * 2), 1);
+            triangles[i * 3 + 0] = 0;
+            triangles[i * 3 + 1] = 1 + i;
+            triangles[i * 3 + 2] = 1 + (i + 1) % 6;
+        }
+
+        mesh.vertices = vertices;
+        mesh.uv = uv;
+        mesh.triangles = triangles;
+
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
+
+        return mesh;
+    }
+
+    public delegate bool Match(HexTile original, HexTile tile);
+    public static bool SameType(HexTile original, HexTile tile) => original.Type == tile.Type;
+
+    public static List<HexTile> RecursiveDepthFirstFloodFill(HexTile start, Match match)
+    {
+        List<HexTile> list = new List<HexTile>();
+
+        if (start == null)
+            return list;
+
+        void Recursive(HexTile tile)
+        {
+            if (match(start, tile) && !tile.inFloodFillSet)
+            {
+                list.Add(tile);
+                tile.inFloodFillSet = true;
+            }
+            else
+                return;
+
+            foreach (HexTile neighbour in tile.Neighbours)
+                if (neighbour != null && match(start, neighbour))
+                    Recursive(neighbour);
+        }
+
+        Recursive(start);
+
+
+        foreach (HexTile tile in list)
+            tile.inFloodFillSet = false;
+
+        return list;
+    }
+
+    public static List<HexTile> BreadthFirstFloodFill(HexTile start, Match match)
+    {
+        List<HexTile> list = new List<HexTile>();
+
+        if (!match(start, start))
+            return list;
+
+        Queue<HexTile> frontier = new Queue<HexTile>();
+        frontier.Enqueue(start);
+
+        while (frontier.Count > 0)
+        {
+            HexTile tile = frontier.Dequeue();
+            list.Add(tile);
+            foreach (HexTile neighbour in tile.Neighbours)
+            {
+                if (neighbour == null)
+                    continue;
+
+                if (!match(start, neighbour))
+                    continue;
+
+                if (neighbour.inFloodFillSet)
+                    continue;
+
+                neighbour.inFloodFillSet = true;
+                frontier.Enqueue(neighbour);
+            }
+        }
+
+        foreach (HexTile tile in list)
+            tile.inFloodFillSet = false;
+
+        return list;
     }
 }

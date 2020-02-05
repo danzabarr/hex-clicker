@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class HexTile : MonoBehaviour, PathFinding.INode
 {
     public enum ElevationType
@@ -15,9 +16,9 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     //Static convert a (float) height to one of the ElevationType types
     public static ElevationType GetType(float height)
     {
-        if (height < 0.0f) return ElevationType.Water;
-        if (height < .25f) return ElevationType.Plain;
-        if (height < .8f) return ElevationType.Hill;
+        if (height < 0) return ElevationType.Water;
+        if (height < 1) return ElevationType.Plain;
+       // if (height < .8f) return ElevationType.Hill;
         return ElevationType.Mountain;
     }
 
@@ -33,7 +34,7 @@ public class HexTile : MonoBehaviour, PathFinding.INode
             case ElevationType.Hill:
                 return 1;
             case ElevationType.Mountain:
-                return 2;
+                return 100;
             default:
                 return 0;
         }
@@ -49,12 +50,22 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     private Material border;
 
     private static Material[] materials, borderShown;
-    public Mesh Mesh => meshFilter.mesh;
+    public Mesh Mesh => meshFilter.sharedMesh;
     public Vector2Int Position { get; private set; }
     public float Elevation { get; private set; }
     public ElevationType Type { get; set; }
     public int TreesCount { get; set; }
     public float Temperature { get; private set; }
+
+    public int RegionID { get; set; }
+    public int ContigRegionID { get; set; }
+
+    [HideInInspector]
+    public bool[] edgesVisited = new bool[6];
+    [HideInInspector]
+    public bool inFloodFillSet;
+    [HideInInspector]
+    public int identifyHoleState;
 
     public void Awake()
     {
@@ -249,7 +260,7 @@ public class HexTile : MonoBehaviour, PathFinding.INode
         mesh.RecalculateBounds();
         mesh.RecalculateTangents();
 
-        meshFilter.mesh = mesh;
+        meshFilter.sharedMesh = mesh;
         meshCollider.sharedMesh = mesh;
 
     }

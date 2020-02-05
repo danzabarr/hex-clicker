@@ -9,10 +9,11 @@
 	SubShader
 	{
 		Tags {"Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent"}
-		 LOD 100
+		LOD 100
 
-		 ZWrite Off
-		 Blend SrcAlpha OneMinusSrcAlpha
+		ZWrite Off
+		ZTest Off
+		Blend SrcAlpha OneMinusSrcAlpha
 		Lighting Off
 		Fog { Mode Off }
 

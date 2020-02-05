@@ -173,7 +173,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AltitudeTemperature: 1
-    - _Band0: -0.005
+    - _Band0: -0.05
     - _Band1: 0.25
     - _Band2: 0.8
     - _Band3: 0.5

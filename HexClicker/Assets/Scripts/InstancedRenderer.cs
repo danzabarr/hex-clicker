@@ -28,10 +28,10 @@ public class InstancedRenderer
         current = null;
     }
 
-    public void Draw(Mesh mesh, Material material)
+    public void Draw(Mesh mesh, Material material, int layer)
     {
         foreach (Batch batch in batches)
-            batch.Draw(mesh, material, materialPropertyBlock);
+            batch.Draw(mesh, material, materialPropertyBlock, layer);
     }
 
     [System.Serializable]
@@ -48,9 +48,9 @@ public class InstancedRenderer
             Count++;
             return true;
         }
-        public void Draw(Mesh mesh, Material material, MaterialPropertyBlock block)
+        public void Draw(Mesh mesh, Material material, MaterialPropertyBlock block, int layer)
         {
-            Graphics.DrawMeshInstanced(mesh, 0, material, Matrices, Count);
+            Graphics.DrawMeshInstanced(mesh, 0, material, Matrices, Count, block, UnityEngine.Rendering.ShadowCastingMode.On, true, layer);
         }
     }
 }
