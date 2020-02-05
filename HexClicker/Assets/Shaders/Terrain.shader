@@ -101,7 +101,7 @@
 				float diffuse = result.diffuse;
 				float specular = result.specular;
 
-				col *= max((diffuse + specular) * atten  * _LightColor0, UNITY_LIGHTMODEL_AMBIENT) * 2;
+				col *= max((diffuse + specular) * atten  * _LightColor0, UNITY_LIGHTMODEL_AMBIENT * .5) * 1.5;
 
 				if (input.worldPos.y <= _WaterLevel) {
 					float waterAmount = _WaterColor.a;

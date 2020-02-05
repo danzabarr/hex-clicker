@@ -74,7 +74,7 @@ Shader "Roystan/Grass"
 				//half3 lightIntensity = clamp(diffuse + ambient + specular * .5, 0, 1.25);
                 half atten = SHADOW_ATTENUATION(i);
 
-				col *= max((diffuse + specular) * atten  * _LightColor0, UNITY_LIGHTMODEL_AMBIENT) * 2;
+				col *= max((diffuse + specular) * atten  * _LightColor0, UNITY_LIGHTMODEL_AMBIENT * .5) * 1.5;
 
 				UNITY_APPLY_FOG(i.fogCoord, col);
 

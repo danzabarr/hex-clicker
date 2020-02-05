@@ -14,12 +14,12 @@ public class InstancedRenderer
         this.materialPropertyBlock = materialPropertyBlock;
     }
 
-    public void Add(Matrix4x4 matrix)
+    public void Add(Matrix4x4 matrix, Color color)
     {
         if (current == null || current.Full)
             batches.Add(current = new Batch());
 
-        current.Add(matrix);
+        current.Add(matrix, color);
     }
 
     public void Clear()
@@ -31,26 +31,33 @@ public class InstancedRenderer
     public void Draw(Mesh mesh, Material material, int layer)
     {
         foreach (Batch batch in batches)
-            batch.Draw(mesh, material, materialPropertyBlock, layer);
+            batch.Draw(mesh, material, layer);
     }
 
     [System.Serializable]
     public class Batch
     {
-        public Matrix4x4[] Matrices { get; } = new Matrix4x4[1024];
+        public MaterialPropertyBlock Block { get; private set; }
+        public Matrix4x4[] Matrices { get; } = new Matrix4x4[1023];
+        public Vector4[] Colors { get; } = new Vector4[1023];
         public int Count { get; private set; }
         public bool Full => (Count >= 1023);
-        public bool Add(Matrix4x4 matrix)
+        public bool Add(Matrix4x4 matrix, Color color)
         {
-            if (Full)
+            if (Full) 
                 return false;
+            if (Block == null)
+                Block = new MaterialPropertyBlock();
+
             Matrices[Count] = matrix;
+            Colors[Count] = color;
+            Block.SetVectorArray("_Color", Colors);
             Count++;
             return true;
         }
-        public void Draw(Mesh mesh, Material material, MaterialPropertyBlock block, int layer)
+        public void Draw(Mesh mesh, Material material, int layer)
         {
-            Graphics.DrawMeshInstanced(mesh, 0, material, Matrices, Count, block, UnityEngine.Rendering.ShadowCastingMode.On, true, layer);
+            Graphics.DrawMeshInstanced(mesh, 0, material, Matrices, Count, Block, UnityEngine.Rendering.ShadowCastingMode.On, true, layer);
         }
     }
 }

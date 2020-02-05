@@ -70,6 +70,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     private float treesMinimumAltitude;
     [SerializeField]
     private float treesMaximumAltitude;
+    [SerializeField]
+    private Gradient treesColor;
 
     [Header("Temperature")]
     [SerializeField]
@@ -193,7 +195,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
     }
     public float SampleNoise(float x, float z) => noiseCurve.Evaluate(Noise.Perlin(x + SeedOffsetX, z + SeedOffsetY, noiseSettings));
-    public float SampleTree(float x, float z) => (Mathf.PerlinNoise((x + SeedOffsetX + 10000) * treesFrequency, (z + SeedOffsetY + 10000) * treesFrequency)) * 0;
+    public float SampleTree(float x, float z) => (Mathf.PerlinNoise((x + SeedOffsetX + 10000) * treesFrequency, (z + SeedOffsetY + 10000) * treesFrequency));
     public float SampleTemperature(float x, float z) => SampleTemperature(x, SampleHeight(x, z), z);
     public float SampleTemperature(float x, float y, float z)
     {
@@ -379,7 +381,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     {
         int layer = LayerMask.NameToLayer("Regions");
         foreach (HexRegion region in regions.Values)
-            Graphics.DrawMesh(region.Mesh, Vector3.zero, Quaternion.identity, RegionMaterial(region.RegionID), layer, null, 0, null, false, false);
+            Graphics.DrawMesh(region.Mesh, new Vector3(0,0.05f,0), Quaternion.identity, RegionMaterial(region.RegionID), layer, null, 0, null, false, false);
     }
 
     public bool SetTileRegion(int regionID, int x, int y)
@@ -450,8 +452,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             }
 
         }
-        Debug.Log(regions.Count);
-
         return true;
     }
 
@@ -482,7 +482,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     private void SetupTrees()
     {
         treesRenderer = new InstancedRenderer(new MaterialPropertyBlock());
-        foreach(HexTile tile in tiles)
+        Random.InitState(seed);
+        foreach (HexTile tile in tiles)
             SetupTrees(tile);
     }
 
@@ -490,9 +491,11 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     {
         // Vector4[] colors = new Vector4[population];
 
-        foreach (Vector3 vertex in tile.Mesh.vertices)
+        Vector3[] vertices = tile.Mesh.vertices;
+
+        for (int i = 0; i < vertices.Length - resolution * 3; i++)
         {
-            Vector3 position = tile.transform.position + vertex;
+            Vector3 position = tile.transform.position + vertices[i];
 
             if (position.y < treesMinimumAltitude)
                 continue;
@@ -515,10 +518,10 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
             Quaternion rotation = Quaternion.Euler(0, Random.Range(-180, 180), 0);
             Vector3 scale = new Vector3(1, Random.Range(1f, 1.25f), 1) * Random.Range(.125f, .5f) * treeSample * 1.5f;
-
+            Color color = treesColor.Evaluate(Random.value);
             tile.TreesCount++;
 
-            treesRenderer.Add(Matrix4x4.TRS(position, rotation, scale));
+            treesRenderer.Add(Matrix4x4.TRS(position, rotation, scale), color);
 
             // colors[i] = Color.Lerp(Color.red, Color.blue, Random.value);
         }
