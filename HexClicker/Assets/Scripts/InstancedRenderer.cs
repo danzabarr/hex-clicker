@@ -60,5 +60,73 @@ public class InstancedRenderer
             Graphics.DrawMeshInstanced(mesh, 0, material, Matrices, Count, Block, UnityEngine.Rendering.ShadowCastingMode.On, true, layer);
         }
     }
+
+   //DrawMeshInstancedIndirect example. Can't get this to work with shadows casting/receiving... Probably to do with render order.
+
+   /*
+   private void SetupTrees(HexagonTile tile)
+   {
+       foreach (Vector3 vertex in tile.Mesh.vertices)
+       {
+           // Build matrix.
+           Vector4 position = tile.transform.position + vertex;
+
+           float treeSample = SampleTree(position.x, position.z);
+
+           if (treeSample < treesThreshold)
+               continue;
+
+           if (position.y < 0.05f)
+               continue;
+
+           if (position.y > .6f)
+               continue;
+
+           position.w = Random.Range(.25f, .5f);
+
+           positions.Add(position);
+       }
+       instanceCount = positions.Count;
+   }
+
+
+
+
+   private int instanceCount = 0;
+   public Mesh instanceMesh;
+   public Material instanceMaterial;
+
+   private int cachedInstanceCount = -1;
+   private ComputeBuffer positionBuffer;
+   private ComputeBuffer argsBuffer;
+   private List<Vector4> positions = new List<Vector4>(); 
+
+   void DrawInstances()
+   {
+
+       // Update starting position buffer
+       if (cachedInstanceCount != instanceCount)
+           SetupInstances(positions);
+
+       // Render
+       instanceMaterial.SetBuffer("positionBuffer", positionBuffer);
+       Graphics.DrawMeshInstancedIndirect(instanceMesh, 0, instanceMaterial, new Bounds(Vector3.zero, Vector3.one * 1000), argsBuffer);
+   }
+
+   void SetupInstances(List<Vector4> positions)
+   {
+       instanceCount = positions.Count;
+       positionBuffer = new ComputeBuffer(instanceCount, 16);
+       positionBuffer.SetData(positions);
+
+       // indirect args
+       uint numIndices = (instanceMesh != null) ? (uint)instanceMesh.GetIndexCount(0) : 0;
+       uint[] args = new uint[5] { numIndices, (uint)instanceCount, 0, 0, 0 };
+       argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+       argsBuffer.SetData(args);
+
+       cachedInstanceCount = instanceCount;
+   }
+   */
 }
-    
+

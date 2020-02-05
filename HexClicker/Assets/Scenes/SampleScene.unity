@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.04
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.16096501, g: 0.16284224, b: 0.245, a: 1}
+  m_AmbientSkyColor: {r: 0.3047843, g: 0.31171283, b: 0.45490196, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
@@ -151,10 +151,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 1074967575922730038, guid: 383fb86b05abe97448062b77ac03dd7e,
     type: 3}
-  water: {fileID: 1870857161214383443}
   seed: 3
-  width: 7
-  height: 7
+  width: 100
+  height: 20
   resolution: 3
   tileHeightFrequency: 0.1
   tileHeightCurve:
@@ -230,7 +229,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
+      time: 0.0019167779
       value: 0
       inSlope: 0
       outSlope: 0
@@ -239,7 +238,7 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.31817347
+      time: 0.31947955
       value: 0.10937876
       inSlope: 0.8230376
       outSlope: 0.8230376
@@ -248,7 +247,7 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.16514447
     - serializedVersion: 3
-      time: 0.5251903
+      time: 0.5260991
       value: 0.43050113
       inSlope: 1.68493
       outSlope: 1.68493
@@ -345,6 +344,24 @@ MonoBehaviour:
       weightedMode: 0
       inWeight: 0.09461944
       outWeight: 0
+    - serializedVersion: 3
+      time: 0.9987271
+      value: 0.8870063
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1.3602998
+      value: 2.0257444
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -357,10 +374,40 @@ MonoBehaviour:
   treesMaximumTemperature: 0.7
   treesMinimumAltitude: 0.05
   treesMaximumAltitude: 0.9
+  treesColor:
+    serializedVersion: 2
+    key0: {r: 1, g: 1, b: 1, a: 1}
+    key1: {r: 0.76199996, g: 0.58756626, b: 0.27542162, a: 1}
+    key2: {r: 0.8392157, g: 0.4023173, b: 0.24085486, a: 0}
+    key3: {r: 0, g: 0, b: 0, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 41249
+    ctime1: 54548
+    ctime2: 65535
+    ctime3: 0
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 3
+    m_NumAlphaKeys: 2
   temperature: 13.4
   latitudeScale: 100
   altitudeTemperature: 2
-  waterLevel: 0
+  water: {fileID: 1870857161214383443}
+  waterLevel: 0.1
   waterBlending: 0.1
   waterColor: {r: 0, g: 0.19273743, b: 0.612, a: 0.5372549}
   wetness: 0
@@ -906,14 +953,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2040953543}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1343056115}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!64 &124944051960232891
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1357,8 +1404,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1870857161214151027}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0.1, z: 0}
+  m_LocalScale: {x: 1.52, y: 1, z: 1.75}
   m_Children:
   - {fileID: 1870857161214383451}
   - {fileID: 1870857161214383441}
