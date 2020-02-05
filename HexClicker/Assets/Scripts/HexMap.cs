@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 {
+    public static HexMap Instance { get; private set; }
+
     private new Camera camera;
     private HexTile[] tiles;
     private HexTile select;
@@ -129,13 +131,11 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         }
     }
 
-
     /// <summary>
     /// Iterator for the tile array.
     /// </summary>
     public IEnumerator<HexTile> GetEnumerator() => ((IEnumerable<HexTile>)tiles).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
 
     /// <summary>
     /// Returns an array containing the the six neighbouring tiles (or null if the neighbouring tile is out of range) around the supplied coordinates, starting with the tile in the positive X direction, and rotating clockwise.
@@ -243,6 +243,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         return elevation * southFlatnessBias + middleValleyBias;
 
     }
+    
     /// <summary>
     /// Samples some perlin noise at the supplied world XZ coordinates
     /// </summary>
@@ -285,6 +286,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
     public void Awake()
     {
+        Instance = this;
         camera = Camera.main;
         Generate();
     }
@@ -539,7 +541,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
             if (!added)
             {
-                region = new HexRegion(this, regionID, HexUtils.NewContigRegionID);
+                region = new HexRegion(regionID, HexUtils.NewContigRegionID);
                 region.AddMember(tile);
                 regions.Add(region.ContigRegionID, region);
             }

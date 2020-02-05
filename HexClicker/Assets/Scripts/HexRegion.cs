@@ -7,20 +7,20 @@ using UnityEngine;
 public class HexRegion
 {
     private List<HexTile> members;
-    private List<Vector3> edgeOutside, edgeInside;
     private List<List<HexTile>> holes;
+
+    //These lists of points are generated but can be moved to local scope if not used for anything.
+    private List<Vector3> edgeOutside, edgeInside;
     private List<List<Vector3>> holeOutsides, holeInsides;
+    //
 
     public Mesh Mesh { get; private set; }
     public int RegionID { get; private set; }
     public int ContigRegionID { get; private set; }
     public int Size => members.Count;
 
-    public HexMap map;
-
-    public HexRegion(HexMap map, int regionID, int contigRegionID)
+    public HexRegion(int regionID, int contigRegionID)
     {
-        this.map = map;
         RegionID = regionID;
         ContigRegionID = contigRegionID;
         members = new List<HexTile>();
@@ -160,16 +160,16 @@ public class HexRegion
         List<Vector2> uv = new List<Vector2>();
         List<int> triangles = new List<int>();
 
-        Trace(map, members, false, out edgeInside, out edgeOutside, vertices, uv, triangles);
+        Trace(members, false, out edgeInside, out edgeOutside, vertices, uv, triangles);
 
-        holes = IdentifyHoles(map, members);
+        holes = IdentifyHoles(members);
 
         holeInsides = new List<List<Vector3>>();
         holeOutsides = new List<List<Vector3>>();
 
         foreach(List<HexTile> hole in holes)
         {
-            Trace(map, hole, true, out List<Vector3> insides, out List<Vector3> outsides, vertices, uv, triangles);
+            Trace(hole, true, out List<Vector3> insides, out List<Vector3> outsides, vertices, uv, triangles);
             holeInsides.Add(insides);
             holeOutsides.Add(outsides);
         }
@@ -195,7 +195,7 @@ public class HexRegion
 
         for (int i = 1; i < islands.Count; i++)
         {
-            HexRegion newRegion = new HexRegion(map, RegionID, HexUtils.NewContigRegionID);
+            HexRegion newRegion = new HexRegion(RegionID, HexUtils.NewContigRegionID);
             newRegion.members = islands[i];
             foreach (HexTile tile in islands[i])
             {
@@ -209,7 +209,7 @@ public class HexRegion
     }
 
     //Don't make me comment this method. I won't.
-    private static void Trace(HexMap map, List<HexTile> region, bool outwardEdge, out List<Vector3> edgeInside, out List<Vector3> edgeOutside, List<Vector3> vertices, List<Vector2> uv, List<int> triangles)
+    private static void Trace(List<HexTile> region, bool outwardEdge, out List<Vector3> edgeInside, out List<Vector3> edgeOutside, List<Vector3> vertices, List<Vector2> uv, List<int> triangles)
     {
         if (region.Count <= 0)
         {
@@ -235,6 +235,8 @@ public class HexRegion
 
         bool turnedOutward = false;
         bool firstEdge = true;
+
+        HexMap map = HexMap.Instance;
 
         void NextEdge()
         {
@@ -521,9 +523,11 @@ public class HexRegion
 
     }
 
-    public static List<List<HexTile>> IdentifyHoles(HexMap map, List<HexTile> region)
+    public static List<List<HexTile>> IdentifyHoles(List<HexTile> region)
     {
         List<List<HexTile>> holes = new List<List<HexTile>>();
+
+        HexMap map = HexMap.Instance;
 
         if (region.Count >= map.TileCount)
             return holes;
