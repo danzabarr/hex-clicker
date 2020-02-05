@@ -89,6 +89,17 @@ public class HexUtils
     }
 
     public static Mesh Mesh { get; } = CreateHexagonMesh();
+
+    private static int IDCounter = 0;
+    public static int NewContigRegionID
+    {
+        get
+        {
+            IDCounter++;
+            return IDCounter;
+        }
+    }
+
     public static Mesh CreateHexagonMesh()
     {
         Mesh mesh = new Mesh();
@@ -162,6 +173,7 @@ public class HexUtils
 
         Queue<HexTile> frontier = new Queue<HexTile>();
         frontier.Enqueue(start);
+        start.inFloodFillSet = true;
 
         while (frontier.Count > 0)
         {
@@ -187,5 +199,49 @@ public class HexUtils
             tile.inFloodFillSet = false;
 
         return list;
+    }
+
+    public static bool State1(HexTile start, HexTile tile) => tile.state == 1;
+    public static bool IsRegionContiguous(List<HexTile> tiles)
+    {
+        if (tiles.Count == 0)
+            return true;
+
+        foreach (HexTile tile in tiles)
+            tile.state = 1;
+
+        List<HexTile> floodFill = BreadthFirstFloodFill(tiles[0], State1);
+
+        foreach (HexTile tile in tiles)
+            tile.state = 0;
+
+        return floodFill.Count == tiles.Count;
+    }
+
+    public static List<List<HexTile>> IdentifyIslands(List<HexTile> tiles)
+    {
+        List<List<HexTile>> islands = new List<List<HexTile>>();
+
+        foreach (HexTile tile in tiles)
+            tile.state = 1;
+
+        foreach(HexTile tile in tiles)
+        {
+            if (tile.state != 1)
+                continue;
+
+            List<HexTile> island = BreadthFirstFloodFill(tile, State1);
+            if (island.Count > 0)
+            {
+                foreach (HexTile member in island)
+                    member.state = 0;
+                islands.Add(island);
+            }
+        }
+
+        foreach (HexTile tile in tiles)
+            tile.state = 0;
+
+        return islands;
     }
 }

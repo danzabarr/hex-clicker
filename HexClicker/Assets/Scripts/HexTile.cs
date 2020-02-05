@@ -60,12 +60,22 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     public int RegionID { get; set; }
     public int ContigRegionID { get; set; }
 
+
+    #region Helper Fields
+    /*
+        ----------!!-ATTENTION-!!----------
+        These global helper field values are assumed to be zero/false within local scope!
+        They are used for tagging tiles as 'visited' or 'contained' in a list and in various other functions instead of a list.Contains(tile) call.
+        If you change them, you must set them to zero/false after use!
+    */
+
     [HideInInspector]
     public bool[] edgesVisited = new bool[6];
     [HideInInspector]
     public bool inFloodFillSet;
     [HideInInspector]
-    public int identifyHoleState;
+    public int state;
+    #endregion
 
     public void Awake()
     {

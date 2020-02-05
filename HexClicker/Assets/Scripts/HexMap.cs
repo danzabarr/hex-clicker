@@ -9,6 +9,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     private HexTile[] tiles;
     private HexTile select;
     private PathFinding.Path<HexTile> testPath;
+    private Dictionary<int, HexRegion> regions;
 
     [SerializeField]
     private HexTile tilePrefab;
@@ -109,6 +110,12 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     [SerializeField]
     private Color snowColor;
 
+    [Header("Regions")]
+    [SerializeField]
+    private Material[] regionMaterials;
+    [SerializeField]
+    private int regionPlacing = 1;
+
     public HexTile this[int x, int y]
     {
         get
@@ -200,17 +207,22 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         return temperature;
     }
 
-    public HexRegion region;
-    public Material regionOutlineMaterial;
-    public Camera regionOutlineCamera;
+    public Material RegionMaterial(int regionID)
+    {
+        if (regionID == 0)
+            return null;
+
+        regionID--;
+
+        if (regionID < 0 || regionID >= regionMaterials.Length)
+            return null;
+        return regionMaterials[regionID];
+    }
 
     public void Awake()
     {
         camera = Camera.main;
         Generate();
-
-        region = new HexRegion();
-        region.map = this;
     }
 
     public void OnValidate()
@@ -245,6 +257,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         if (treesRenderer != null)
             treesRenderer.Clear();
         treesRenderer = null;
+        regions = null;
     }
 
     [ContextMenu("Generate")]
@@ -254,6 +267,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
         camera = Camera.main;
         tiles = new HexTile[width * height];
+        regions = new Dictionary<int, HexRegion>();
 
         Random.InitState(seed);
         SeedOffsetX = Random.value * 10000;
@@ -279,11 +293,11 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         SetupTrees();
     }
 
+   
 
     public void Update()
     {
-
-        Graphics.DrawMesh(region.Mesh, Vector3.zero, Quaternion.identity, regionOutlineMaterial, LayerMask.NameToLayer("Regions"), null, 0, null, false, false);
+        RenderRegionBorders();
 
         HexTile oldStart = select;
         HexTile oldEnd = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
@@ -294,6 +308,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         MouseHexagonOnXZ0Plane = HexUtils.CartesianToHex(MousePointOnXZ0Plane.x, MousePointOnXZ0Plane.z);
         MouseHexagonTileOnXZ0Plane = HexUtils.HexRound(MouseHexagonOnXZ0Plane);
 
+        /*
         if (Input.GetMouseButtonDown(0))
         {
             if (select != null)
@@ -322,6 +337,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
                 }
             }
         }
+        */
 
         HexTile start = select;
         HexTile end = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
@@ -335,6 +351,17 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         if (treesRenderer != null)
             treesRenderer.Draw(treeMesh, treeMaterial, LayerMask.NameToLayer("Trees"));
 
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            {
+                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
+                if (mouse)
+                {
+                    SetTileRegion(regionPlacing, mouse.Position.x, mouse.Position.y);
+                }
+            }
+        }
         if (Input.GetMouseButtonDown(1))
         {
             if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
@@ -342,10 +369,90 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
                 HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
                 if (mouse)
                 {
-                    region.ToggleMember(mouse);
+                    SetTileRegion(0, mouse.Position.x, mouse.Position.y);
                 }
             }
         }
+    }
+
+    private void RenderRegionBorders()
+    {
+        int layer = LayerMask.NameToLayer("Regions");
+        foreach (HexRegion region in regions.Values)
+            Graphics.DrawMesh(region.Mesh, Vector3.zero, Quaternion.identity, RegionMaterial(region.RegionID), layer, null, 0, null, false, false);
+    }
+
+    public bool SetTileRegion(int regionID, int x, int y)
+    {
+        HexTile tile = this[x, y];
+        if (tile == null)
+            return false;
+
+        if (tile.RegionID == regionID)
+            return false;
+
+        if (tile.ContigRegionID != 0)
+        {
+            HexRegion existing = regions[tile.ContigRegionID];
+            if (existing != null && existing.RemoveMember(tile, out List<HexRegion> newRegions))
+            {
+                if (existing.Size <= 0)
+                    regions.Remove(tile.ContigRegionID);
+
+                foreach (HexRegion newRegion in newRegions)
+                {
+                    regions[newRegion.ContigRegionID] = newRegion;
+                }
+            }
+            else
+                return false;
+        }
+
+        if (regionID != 0)
+        {
+            bool added = false;
+
+            HexRegion region = null;
+
+            foreach (HexTile neighbour in tile.Neighbours)
+            {
+                if (neighbour == null)
+                    continue;
+                if (neighbour.RegionID == regionID)
+                {
+                    if (added)
+                    {
+                        if (neighbour.ContigRegionID != region.ContigRegionID)
+                        {
+                            int neighbourID = neighbour.ContigRegionID;
+                            HexRegion toJoin = regions[neighbourID];
+                            if (region.JoinRegion(toJoin))
+                                regions.Remove(neighbourID);
+                        }
+                    }
+                    else
+                    {
+                        HexRegion neighbourRegion = regions[neighbour.ContigRegionID];
+                        if (neighbourRegion != null && neighbourRegion.AddMember(tile))
+                        {
+                            region = neighbourRegion;
+                            added = true;
+                        }
+                    }
+                }
+            }
+
+            if (!added)
+            {
+                region = new HexRegion(this, regionID, HexUtils.NewContigRegionID);
+                region.AddMember(tile);
+                regions.Add(region.ContigRegionID, region);
+            }
+
+        }
+        Debug.Log(regions.Count);
+
+        return true;
     }
 
     public void OnDrawGizmos()
@@ -362,7 +469,11 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             }
         }
 
-        region?.OnDrawGizmos();
+        if (regions != null)
+        {
+            foreach(HexRegion region in regions.Values)
+                region.OnDrawGizmos();
+        }
     }
 
     #region Trees

@@ -6,7 +6,7 @@ using UnityEngine;
 [System.Serializable]
 public class HexRegion
 {
-    private List<HexTile> region;
+    private List<HexTile> members;
     private List<Vector3> edgeOutside, edgeInside;
     private List<List<HexTile>> holes;
     private List<List<Vector3>> holeOutsides, holeInsides;
@@ -14,40 +14,145 @@ public class HexRegion
     public Mesh Mesh { get; private set; }
     public int RegionID { get; private set; }
     public int ContigRegionID { get; private set; }
-    public int Size => region.Count;
+    public int Size => members.Count;
 
     public HexMap map;
 
-    public void ToggleMember(HexTile tile)
+    public HexRegion(HexMap map, int regionID, int contigRegionID)
     {
-        if (tile == null)
-            return;
-
-        if (region == null)
-            region = new List<HexTile>();
-
-        if (region.Contains(tile))
-        {
-            region.Remove(tile);
-            tile.RegionID = 0;
-            tile.ContigRegionID = 0;
-        }
-        else
-        {
-            region.Add(tile);
-            tile.RegionID = 1;
-            tile.ContigRegionID = 1;
-        }
-
-        Mesh = GenerateMesh(map, region, 1, 1);
-    }
-
-    public Mesh GenerateMesh(HexMap map, List<HexTile> region, int regionID, int contigRegionID)
-    {
+        this.map = map;
         RegionID = regionID;
         ContigRegionID = contigRegionID;
-        this.region = region;
+        members = new List<HexTile>();
+    }
 
+    /// <summary>
+    /// Method for safely adding tiles to the region such that THIS region will remain contiguous
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <returns></returns>
+    public bool AddMember(HexTile tile)
+    {
+        if (tile == null)
+            return false;
+
+        if (tile.ContigRegionID == ContigRegionID)
+            return false;
+
+        bool isConnected = members.Count == 0;
+
+        if (!isConnected)
+            foreach(HexTile neighbour in tile.Neighbours)
+                if (neighbour != null && neighbour.ContigRegionID == ContigRegionID)
+                {
+                    isConnected = true;
+                    break;
+                }
+
+        if (!isConnected)
+            return false;
+
+        
+        members.Add(tile);
+        tile.RegionID = RegionID;
+        tile.ContigRegionID = ContigRegionID;
+
+        GenerateMesh();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Method for safely removing tiles to the region such that THIS region will remain contiguous
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <returns></returns>
+    public bool RemoveMember(HexTile tile)
+    {
+        if (tile == null)
+            return false;
+
+        if (tile.ContigRegionID != ContigRegionID)
+            return false;
+
+        List<HexTile> newRegion = new List<HexTile>(members);
+        newRegion.Remove(tile);
+
+        if (newRegion.Count == members.Count)
+            return false;
+
+        if (!HexUtils.IsRegionContiguous(newRegion))
+            return false;
+
+        members = newRegion;
+        tile.RegionID = 0;
+        tile.ContigRegionID = 0;
+
+        GenerateMesh();
+
+        return true;
+    }
+
+    public bool RemoveMember(HexTile tile, out List<HexRegion> newRegions)
+    {
+        newRegions = default;
+
+        if (tile == null)
+            return false;
+
+        if (tile.ContigRegionID != ContigRegionID)
+            return false;
+
+        List<HexTile> newRegion = new List<HexTile>(members);
+        newRegion.Remove(tile);
+
+        if (newRegion.Count == members.Count)
+            return false;
+
+        members = newRegion;
+        tile.RegionID = 0;
+        tile.ContigRegionID = 0;
+
+        newRegions = SeparateIslands();
+
+        GenerateMesh();
+        foreach (HexRegion region in newRegions)
+            region.GenerateMesh();
+
+        return true;
+    }
+
+    public bool JoinRegion(HexRegion region)
+    {
+        if (RegionID != region.RegionID)
+            return false;
+
+        if (ContigRegionID == region.ContigRegionID)
+            return false;
+
+        if (region.members.Count <= 0)
+            return false;
+
+        List<HexTile> newRegion = new List<HexTile>(members);
+        newRegion.AddRange(region.members);
+
+        if (!HexUtils.IsRegionContiguous(newRegion))
+            return false;
+
+        members = newRegion;
+        foreach (HexTile tile in region.members)
+            tile.ContigRegionID = ContigRegionID;
+        region.members = new List<HexTile>();
+
+        GenerateMesh();
+        region.GenerateMesh();
+
+        return true;
+
+    }
+
+    private void GenerateMesh()
+    {
         edgeOutside = new List<Vector3>();
         edgeInside = new List<Vector3>();
         
@@ -55,9 +160,9 @@ public class HexRegion
         List<Vector2> uv = new List<Vector2>();
         List<int> triangles = new List<int>();
 
-        Trace(map, region, false, out edgeInside, out edgeOutside, vertices, uv, triangles);
+        Trace(map, members, false, out edgeInside, out edgeOutside, vertices, uv, triangles);
 
-        holes = IdentifyHoles(map, region);
+        holes = IdentifyHoles(map, members);
 
         holeInsides = new List<List<Vector3>>();
         holeOutsides = new List<List<Vector3>>();
@@ -80,7 +185,27 @@ public class HexRegion
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
 
-        return mesh;
+        Mesh = mesh;
+    }
+
+    private List<HexRegion> SeparateIslands()
+    {
+        List<List<HexTile>> islands = HexUtils.IdentifyIslands(members);
+        List<HexRegion> newRegions = new List<HexRegion>();
+
+        for (int i = 1; i < islands.Count; i++)
+        {
+            HexRegion newRegion = new HexRegion(map, RegionID, HexUtils.NewContigRegionID);
+            newRegion.members = islands[i];
+            foreach (HexTile tile in islands[i])
+            {
+                members.Remove(tile);
+                tile.ContigRegionID = newRegion.ContigRegionID;
+            }
+            newRegions.Add(newRegion);
+        }
+
+        return newRegions;
     }
 
     //Don't make me comment this method. I won't.
@@ -375,8 +500,15 @@ public class HexRegion
             }
         }
 
+
         vertices.AddRange(outside);
         vertices.AddRange(inside);
+
+        for (int i = 0; i < outside.Count; i++)
+            uv.Add(new Vector2(0, 1));
+
+        for (int i = 0; i < inside.Count; i++)
+            uv.Add(new Vector2(0, 0));
 
         foreach (HexTile tile in region)
         {
@@ -403,10 +535,10 @@ public class HexRegion
         const int isHole = 4;
 
         foreach (HexTile tile in map)
-            tile.identifyHoleState = isUnknown;
+            tile.state = isUnknown;
 
         foreach (HexTile tile in region)
-            tile.identifyHoleState = isInsideRegion;
+            tile.state = isInsideRegion;
 
         List<HexTile> outsideEdge = new List<HexTile>();
 
@@ -416,10 +548,10 @@ public class HexRegion
             {
                 if (neighbour == null)
                     continue;
-                if (neighbour.identifyHoleState == isUnknown)
+                if (neighbour.state == isUnknown)
                 {
                     outsideEdge.Add(neighbour);
-                    neighbour.identifyHoleState = isEdge;
+                    neighbour.state = isEdge;
                 }
             }
         }
@@ -429,7 +561,7 @@ public class HexRegion
         {
             list = null;
 
-            if (start.identifyHoleState != isEdge)
+            if (start.state != isEdge)
                 return false;
 
             list = new List<HexTile>();
@@ -452,10 +584,10 @@ public class HexRegion
                         continue;
                     }
 
-                    if (neighbour.identifyHoleState == isOutsideRegion)
+                    if (neighbour.state == isOutsideRegion)
                         hole = false;
 
-                    if (neighbour.identifyHoleState == isInsideRegion)
+                    if (neighbour.state == isInsideRegion)
                         continue;
 
                     if (neighbour.inFloodFillSet)
@@ -470,9 +602,9 @@ public class HexRegion
             {
                 tile.inFloodFillSet = false;
                 if (hole)
-                    tile.identifyHoleState = isHole;
+                    tile.state = isHole;
                 else
-                    tile.identifyHoleState = isOutsideRegion;
+                    tile.state = isOutsideRegion;
             }
 
             return hole;
@@ -487,10 +619,11 @@ public class HexRegion
 
     public void OnDrawGizmos()
     {
-        if (false && region != null)
+        /*
+        if (members != null)
         {
             Gizmos.color = new Color(1, 1, 1, .5f);
-            foreach (HexTile tile in region)
+            foreach (HexTile tile in members)
                 if (tile != null)
                     Gizmos.DrawMesh(HexUtils.Mesh, tile.transform.position);
         }
@@ -507,7 +640,7 @@ public class HexRegion
                 Gizmos.DrawSphere(p0, .01f );
             }
         }
-        /*
+        
         if (edgeOutside != null)
         {
             DrawOutline(edgeOutside);
