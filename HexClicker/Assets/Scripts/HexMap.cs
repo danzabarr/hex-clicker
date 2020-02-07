@@ -71,6 +71,12 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
     private InstancedRenderer treesRenderer;
 
+    [Header("Grass")]
+    [SerializeField]
+    private Material grassMaterial;
+    [SerializeField]
+    private bool grassShadowCasting;
+
     [Header("Temperature")]
     [SerializeField]
     [Range(-50, 50)]
@@ -331,7 +337,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         {
             if (select != null)
             {
-                //select.ShowBorder(false);
                 select = null;
             }
             if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
@@ -339,16 +344,15 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
                 HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
                 if (mouse)
                 {
-                    //mouse.ShowBorder(true);
                     select = mouse;
                     Debug.Log(select);
 
                     //foreach (HexTile tile in tiles)
                     //    if (tile != null)
-                    //        tile.ShowBorder(false);
+                    //        tile.showTileBorder = false;
                     //
                     //foreach (HexTile tile in HexUtils.BreadthFirstFloodFill(select, HexUtils.SameType))
-                    //    tile.ShowBorder(true);
+                    //    tile.showTileBorder = true;
 
                 }
             }
@@ -390,6 +394,9 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
                 }
             }
         }
+
+        foreach (HexTile tile in tiles)
+            Graphics.DrawMesh(tile.Mesh, tile.transform.position, Quaternion.identity, grassMaterial, LayerMask.NameToLayer("Grass"), null, 0, null, grassShadowCasting);
     }
 
     public void OnDrawGizmos()
@@ -552,7 +559,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
     private void SetupTrees()
     {
-        treesRenderer = new InstancedRenderer(new MaterialPropertyBlock());
+        treesRenderer = new InstancedRenderer();
         Random.InitState(seed);
         foreach (HexTile tile in tiles)
             SetupTrees(tile);

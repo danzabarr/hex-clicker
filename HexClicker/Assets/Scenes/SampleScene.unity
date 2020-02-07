@@ -105,15 +105,15 @@ NavMeshSettings:
   m_BuildSettings:
     serializedVersion: 2
     agentTypeID: 0
-    agentRadius: 0.5
+    agentRadius: 0.1
     agentHeight: 2
-    agentSlope: 45
-    agentClimb: 0.4
+    agentSlope: 40
+    agentClimb: 0.1
     ledgeDropHeight: 0
     maxJumpAcrossDistance: 0
     minRegionArea: 2
     manualCellSize: 0
-    cellSize: 0.16666667
+    cellSize: 0.033333335
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
@@ -369,7 +369,7 @@ MonoBehaviour:
   treeMesh: {fileID: -2432090755550338912, guid: b900ef66f1bd06c489689042194348c6,
     type: 3}
   treesFrequency: 0.2
-  treesThreshold: 0.5
+  treesThreshold: 0.717
   treesMinimumTemperature: -0.1
   treesMaximumTemperature: 0.7
   treesMinimumAltitude: 0.05
@@ -403,6 +403,7 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 3
     m_NumAlphaKeys: 2
+  grassMaterial: {fileID: 2100000, guid: dc23b46c0890b774bb9bbeb2aa16645d, type: 2}
   temperature: 13.4
   latitudeScale: 100
   altitudeTemperature: 2
@@ -970,7 +971,7 @@ MeshCollider:
   m_GameObject: {fileID: 1870857161214151035}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Convex: 1
   m_CookingOptions: 14
@@ -984,7 +985,7 @@ MeshCollider:
   m_GameObject: {fileID: 1870857161214151031}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Convex: 1
   m_CookingOptions: 14
@@ -998,7 +999,7 @@ MeshCollider:
   m_GameObject: {fileID: 1870857161214151029}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Convex: 1
   m_CookingOptions: 14
@@ -1300,8 +1301,8 @@ GameObject:
   m_Name: Tile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 8
   m_IsActive: 1
 --- !u!1 &1870857161214151027
 GameObject:
@@ -1339,8 +1340,8 @@ GameObject:
   m_Name: Tile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 8
   m_IsActive: 1
 --- !u!1 &1870857161214151031
 GameObject:
@@ -1359,8 +1360,8 @@ GameObject:
   m_Name: Tile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 8
   m_IsActive: 1
 --- !u!1 &1870857161214151035
 GameObject:
@@ -1379,8 +1380,8 @@ GameObject:
   m_Name: Tile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 8
   m_IsActive: 1
 --- !u!4 &1870857161214383441
 Transform:
@@ -1465,7 +1466,7 @@ MeshCollider:
   m_GameObject: {fileID: 1870857161214151025}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Convex: 1
   m_CookingOptions: 14

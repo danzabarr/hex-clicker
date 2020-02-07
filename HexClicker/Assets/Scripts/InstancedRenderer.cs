@@ -5,14 +5,8 @@ using UnityEngine;
 [System.Serializable]
 public class InstancedRenderer
 {
-    private MaterialPropertyBlock materialPropertyBlock;
     private List<Batch> batches = new List<Batch>();
     private Batch current;
-
-    public InstancedRenderer(MaterialPropertyBlock materialPropertyBlock)
-    {
-        this.materialPropertyBlock = materialPropertyBlock;
-    }
 
     public void Add(Matrix4x4 matrix, Color color)
     {

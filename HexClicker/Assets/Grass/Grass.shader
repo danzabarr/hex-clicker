@@ -83,7 +83,8 @@ Shader "Roystan/Grass"
 
             ENDCG
         }
-
+		/*
+		*/
 		Pass
 		{
 			Tags
@@ -147,7 +148,6 @@ Shader "Roystan/Grass"
 
 			float4 frag (geometryOutput i, fixed facing : VFACE) : SV_Target
 			{
-
 				float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
 
 				float3 albedo = 0;
@@ -159,6 +159,7 @@ Shader "Roystan/Grass"
 				float smoothness = _Smoothness;
 				float3 specularTint;
 				float oneMinusReflectivity;
+
 				albedo = DiffuseAndSpecularFromMetallic(
 					albedo, metallic, specularTint, oneMinusReflectivity
 				);
@@ -166,7 +167,6 @@ Shader "Roystan/Grass"
 				UnityIndirect indirectLight;
 				indirectLight.diffuse = 0;
 				indirectLight.specular = 0;
-	
 
 				float4 result = UNITY_BRDF_PBS(
 					albedo, specularTint,
@@ -174,9 +174,6 @@ Shader "Roystan/Grass"
 					normal, viewDir,
 					CreateLight(i.worldPos + _WorldOffset, normal), indirectLight
 				);
-
-				
-
 
 				result = clamp(result, 0, 1);
 

@@ -101,7 +101,7 @@ Material:
     - _MaxTempBladeHeight: 0
     - _MaxTempBladeWidth: 0
     - _Metallic: 0
-    - _MinAlt: 0
+    - _MinAlt: 0.3
     - _MinTemp: 0.5
     - _MinTempBladeHeight: 0
     - _MinTempBladeWidth: 0
@@ -114,14 +114,14 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _TessellationUniform: 8
+    - _TessellationUniform: 16
     - _TranslucentGain: 0.5
     - _UVSec: 0
     - _WindScale: 1
     - _WindStrength: 0.7
     - _ZWrite: 1
     m_Colors:
-    - _BottomColor: {r: 0.18447672, g: 0.26415092, b: 0.13841508, a: 1}
+    - _BottomColor: {r: 0.091095895, g: 0.133, b: 0.06741096, a: 1}
     - _Color: {r: 0, g: 0.5754717, b: 0.06694827, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Shadow: {r: 0.24525547, g: 0.29124084, b: 0.35, a: 0.75686276}

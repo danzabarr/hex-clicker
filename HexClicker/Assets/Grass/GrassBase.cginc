@@ -5,7 +5,6 @@
 #include "Lighting.cginc"
 #include "Autolight.cginc"
 #include "Shaders/CustomTessellation.cginc"
-
 	            
 uniform float _LatitudeScale, _WaterLevel, _AltitudeTemperature, _Temperature, _Wetness;
 uniform float3 _WorldOffset;
@@ -69,7 +68,6 @@ geometryOutput VertexOutput(float3 pos, float3 normal, float2 uv)
 	o.uv = uv;
 	// Shadows are sampled from a screen-space shadow map texture.
 	o._ShadowCoord = ComputeScreenPos(o.pos);
-
 #elif UNITY_PASS_FORWARDADD
 	o.normal = UnityObjectToWorldNormal(normal);
 	o.uv = uv;

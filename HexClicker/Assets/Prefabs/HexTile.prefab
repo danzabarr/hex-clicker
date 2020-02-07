@@ -60,7 +60,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 125e336662727de478b0e36820b7fae1, type: 2}
-  - {fileID: 2100000, guid: dc23b46c0890b774bb9bbeb2aa16645d, type: 2}
+  - {fileID: 0}
   - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -98,9 +98,9 @@ MonoBehaviour:
   meshRenderer: {fileID: 8604472299702636682}
   meshCollider: {fileID: 9076195393788734775}
   border: {fileID: 2100000, guid: dfdbd2ffd5df5cc40855ab8e5bff7cba, type: 2}
-  treeMaterial: {fileID: 2100000, guid: e092a33e4b327cf46a017d3851a730fc, type: 2}
-  treeMesh: {fileID: -2432090755550338912, guid: b900ef66f1bd06c489689042194348c6,
-    type: 3}
+  edgesVisited: 000000000000
+  inFloodFillSet: 0
+  state: 0
 --- !u!64 &9076195393788734775
 MeshCollider:
   m_ObjectHideFlags: 0

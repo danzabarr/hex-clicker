@@ -48,18 +48,15 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     private MeshCollider meshCollider;
     [SerializeField]
     private Material border;
-
-    private static Material[] materials, borderShown;
     public Mesh Mesh => meshFilter.sharedMesh;
     public Vector2Int Position { get; private set; }
     public float Elevation { get; private set; }
     public ElevationType Type { get; set; }
     public int TreesCount { get; set; }
     public float Temperature { get; private set; }
-
     public int RegionID { get; set; }
     public int ContigRegionID { get; set; }
-
+    public bool showTileBorder;
 
     #region Helper Fields
     /*
@@ -77,27 +74,12 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     public int state;
     #endregion
 
-    public void Awake()
+    public void Update()
     {
-        StoreMaterials();
+        if (showTileBorder)
+            Graphics.DrawMesh(Mesh, transform.position, Quaternion.identity, border, LayerMask.NameToLayer("Grid"), null, 0, null, false, false);
     }
 
-    //Setting elements of the MeshRenderer.sharedMaterial array individually has no effect on rendering. The entire array must be set. Fuckin stoopid.
-    //Storing two arrays of materials, one with and one without the additional 'border' material, so the two sets can be easily switched between.
-    private void StoreMaterials()
-    {
-        if (materials == null)
-        {
-            materials = meshRenderer.sharedMaterials;
-            borderShown = new Material[]
-            {
-                materials[0],
-                materials[1],
-                border
-            };
-        }
-    }
-    public void ShowBorder(bool show) => meshRenderer.sharedMaterials = show ? borderShown : materials;
     public override string ToString() => "HexTile " + Position + "\n Type: " + Type + "\n Altitude: " + string.Format("{0:0.00}", Elevation) + "\n Temperature: " + string.Format("{0:0.00}", Temperature) + "\n Trees: " + TreesCount; 
 
     //Generate the mesh for this tile.

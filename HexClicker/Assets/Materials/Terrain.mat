@@ -213,4 +213,4 @@ Material:
     - _ShadowColor: {r: 0, g: 0, b: 0, a: 0}
     - _SnowColor: {r: 0.7168921, g: 0.8257335, b: 0.8490566, a: 1}
     - _WaterColor: {r: 0.23300104, g: 0.48795706, b: 0.6415094, a: 0.5}
-    - _WorldOffset: {r: 0, g: 0, b: 52.51, a: 0}
+    - _WorldOffset: {r: 0, g: 0, b: 0, a: 0}
