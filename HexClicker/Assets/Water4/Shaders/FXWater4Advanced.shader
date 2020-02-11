@@ -242,8 +242,9 @@ CGINCLUDE
 		#endif
 		
 		baseColor = lerp (lerp (rtRefractions, baseColor, baseColor.a), reflectionColor, refl2Refr);
-		baseColor = baseColor + spec * _LightColor0;
-		
+
+		float shadow = SHADOW_ATTENUATION(i);
+		baseColor = baseColor + spec * _LightColor0 * shadow;
 		
 		// handle foam
 		half4 foam = Foam(_ShoreTex, i.bumpCoords * 2.0);
@@ -255,9 +256,6 @@ CGINCLUDE
 		
 		UNITY_APPLY_FOG(i.fogCoord, baseColor);
 
-
-
-		
 		return baseColor;
 	}
 	
@@ -426,12 +424,10 @@ Subshader
 	Pass {
 
 		Tags { "LightMode" = "ForwardBase" }
-
 		Blend SrcAlpha OneMinusSrcAlpha
 		ZTest LEqual
 		ZWrite Off
 		Cull Back
-		
 		CGPROGRAM
 			
 
@@ -440,7 +436,9 @@ Subshader
 		#pragma fragment frag
 		#pragma multi_compile_fog
         #pragma multi_compile_fwdbase
-		
+
+		#pragma multi_compile_fwdadd_fullshadows
+
 		#pragma multi_compile WATER_VERTEX_DISPLACEMENT_ON WATER_VERTEX_DISPLACEMENT_OFF
 		#pragma multi_compile WATER_EDGEBLEND_ON WATER_EDGEBLEND_OFF
 		#pragma multi_compile WATER_REFLECTIVE WATER_SIMPLE
@@ -574,7 +572,9 @@ Subshader
 
 			result *= edgeBlendFactors.x;
 
-			
+
+			float shadow = UNITY_SHADOW_ATTENUATION(i, i.worldPos);
+			result.rgb *= shadow;
 
 			result = clamp(result, 0, 3);
 
@@ -593,25 +593,25 @@ Subshader
 	ColorMask RGB
 	
 	Pass {
-			Blend SrcAlpha OneMinusSrcAlpha
-			ZTest LEqual
-			ZWrite Off
-			Cull Back
+		Blend SrcAlpha OneMinusSrcAlpha
+		ZTest LEqual
+		ZWrite Off
+		Cull Back
 		
-			CGPROGRAM
+		CGPROGRAM
 		
-			#pragma target 3.0
+		#pragma target 3.0
 		
-			#pragma vertex vert300
-			#pragma fragment frag300
-			#pragma multi_compile_fog
-            #pragma multi_compile_fwdbase
+		#pragma vertex vert300
+		#pragma fragment frag300
+		#pragma multi_compile_fog
+        #pragma multi_compile_fwdbase
 
-			#pragma multi_compile WATER_VERTEX_DISPLACEMENT_ON WATER_VERTEX_DISPLACEMENT_OFF
-			#pragma multi_compile WATER_EDGEBLEND_ON WATER_EDGEBLEND_OFF
-			#pragma multi_compile WATER_REFLECTIVE WATER_SIMPLE
+		#pragma multi_compile WATER_VERTEX_DISPLACEMENT_ON WATER_VERTEX_DISPLACEMENT_OFF
+		#pragma multi_compile WATER_EDGEBLEND_ON WATER_EDGEBLEND_OFF
+		#pragma multi_compile WATER_REFLECTIVE WATER_SIMPLE
 		
-			ENDCG
+		ENDCG
 	}
 }
 
