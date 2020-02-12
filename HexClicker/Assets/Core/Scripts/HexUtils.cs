@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class HexUtils
@@ -39,9 +40,12 @@ public class HexUtils
     };
 
     public static Vector2 HexToCartesian(float x, float y) => new Vector2(3f / 2f * x, SQRT_3 / 2f * x + SQRT_3 * y);
+    public static Vector2 HexToCartesian(Vector2 hex) => HexToCartesian(hex.x, hex.y);
     public static Vector2 CartesianToHex(float x, float z) => new Vector2(2f / 3f * x, -1f / 3f * x + SQRT_3 / 3f * z);
-    public static Vector2 CubeToAxial(Vector3 cube) => new Vector2(cube.x, cube.z);
-    public static Vector3 AxialToCube(Vector2 axial) => new Vector3(axial.x, axial.y, -axial.x - axial.y);
+    public static Vector2 CubeToHex(Vector3 cube) => new Vector2(cube.x, cube.y);
+    public static Vector2Int CubeToHex(Vector3Int cube) => new Vector2Int(cube.x, cube.y);
+    public static Vector3 HexToCube(Vector2 hex) => new Vector3(hex.x, hex.y, -hex.x - hex.y);
+    public static Vector3Int HexToCube(Vector2Int hex) => new Vector3Int(hex.x, hex.y, -hex.x - hex.y);
     public static Vector3Int CubeRound(Vector3 cube)
     {
         int rx = Mathf.RoundToInt(cube.x);
@@ -64,9 +68,10 @@ public class HexUtils
 
     public static Vector2Int HexRound(Vector2 hex)
     {
-        Vector3Int cube = CubeRound(AxialToCube(hex));
+        Vector3Int cube = CubeRound(HexToCube(hex));
         return new Vector2Int(cube.x, cube.y);
     }
+
     public static void DrawHexagon(float x, float y)
     {
         Vector2 cartesian = HexUtils.HexToCartesian(x, y);
@@ -225,7 +230,7 @@ public class HexUtils
         foreach (HexTile tile in tiles)
             tile.state = 1;
 
-        foreach(HexTile tile in tiles)
+        foreach (HexTile tile in tiles)
         {
             if (tile.state != 1)
                 continue;

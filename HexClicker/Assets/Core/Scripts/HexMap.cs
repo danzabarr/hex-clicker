@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
+[System.Serializable]
 public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 {
     public static HexMap Instance { get; private set; }
@@ -11,8 +13,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     private HexTile select;
     private PathFinding.Path<HexTile> testPath;
     private Dictionary<int, HexRegion> regions;
-
-    private Mesh navigationMesh;
 
     [Header("Map Settings")]
     [SerializeField]
@@ -143,6 +143,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     /// </summary>
     public IEnumerator<HexTile> GetEnumerator() => ((IEnumerable<HexTile>)tiles).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public HexTile this[int index] => tiles[index];
+    public int Length => tiles.Length;
 
     /// <summary>
     /// Returns an array containing the the six neighbouring tiles (or null if the neighbouring tile is out of range) around the supplied coordinates, starting with the tile in the positive X direction, and rotating clockwise.
@@ -228,11 +230,19 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         return SampleHeight(x, z, tile.x, tile.y);
     }
 
+    public bool SampleTile(float x, float z, out HexTile tile)
+    {
+        Vector2Int hex = HexUtils.HexRound(HexUtils.CartesianToHex(x, z));
+        tile = this[hex.x, hex.y];
+        return tile != null;
+    }
+
     /// <summary>
     /// Returns the world position which is at the height of the terrain, for the x and z coordinates of the supplied position.
     /// </summary>
-    public Vector3 OnTerrain(Vector3 p) => new Vector3(p.x, SampleHeight(p.x, p.z), p.z);
-
+    public Vector3 OnTerrain(float x, float z) => new Vector3(x, SampleHeight(x, z), z);
+    public Vector3 OnTerrain(Vector3 p) => OnTerrain(p.x, p.z);
+    
     /// <summary>
     /// Returns the elevation value for the tile at the hex coordinates supplied. 
     /// </summary>
@@ -329,7 +339,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         MouseHexagonOnXZ0Plane = HexUtils.CartesianToHex(MousePointOnXZ0Plane.x, MousePointOnXZ0Plane.z);
         MouseHexagonTileOnXZ0Plane = HexUtils.HexRound(MouseHexagonOnXZ0Plane);
 
-
         if (Input.GetMouseButtonDown(0))
         {
             if (select != null)
@@ -354,8 +363,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
                 }
             }
         }
-
-
 
         HexTile start = select;
         HexTile end = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
@@ -396,8 +403,36 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             Graphics.DrawMesh(tile.Mesh, tile.transform.position, Quaternion.identity, grassMaterial, LayerMask.NameToLayer("Grass"), null, 0, null, grassShadowCasting);
     }
 
+    private Dictionary<Vector2Int, NavigationMesh.Node> navNodes;
+    private List<NavigationMesh.Edge> navEdges;
+
+    [ContextMenu("Generate Navigation Mesh")]
+    public void GenerateNavigationMesh()
+    {
+        NavigationMesh.GenerateMesh(this, out navNodes, out navEdges);
+    }
+
     public void OnDrawGizmos()
     {
+        //if (navNodes != null)
+        //{
+        //    foreach (NavigationMesh.Node node in navNodes.Values)
+        //    {
+        //        //Handles.Label(node.Position, "" + node.Hex);
+        //        Gizmos.DrawSphere(node.Position, 0.01f);
+        //        //foreach (NavigationMesh.Neighbour neighbour in node.Neighbours)
+        //        //    Gizmos.DrawLine(node.Position, neighbour.Node.Position);
+        //    }
+        //}
+        if (navEdges != null)
+        {
+            Gizmos.color = Color.red;
+            foreach (NavigationMesh.Edge edge in navEdges)
+            {
+                Gizmos.DrawLine(edge.Node1.Position, edge.Node2.Position);
+            }
+        }
+       
         //DrawHexagon(MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y);
 
         if (testPath != null && testPath.FoundPath)
@@ -415,6 +450,14 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             foreach (HexRegion region in regions.Values)
                 region.OnDrawGizmos();
         }
+        int j = 0;
+        for (int x = 0; x < Width; x++)
+            for (int y = 0; y < Height; y++)
+            {
+                int i = x + y * Width;
+               // Handles.Label(tiles[i].transform.position, j + "");
+                j++;
+            }
     }
 
     /// <summary>
@@ -432,6 +475,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             treesRenderer.Clear();
         treesRenderer = null;
         regions = null;
+        navEdges = null;
+        navNodes = null;
     }
     
     /// <summary>
