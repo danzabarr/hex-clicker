@@ -39,9 +39,9 @@ public class HexUtils
         Mathf.Cos(angles[5]),
     };
 
-    public static Vector2 HexToCartesian(float x, float y) => new Vector2(3f / 2f * x, SQRT_3 / 2f * x + SQRT_3 * y);
-    public static Vector2 HexToCartesian(Vector2 hex) => HexToCartesian(hex.x, hex.y);
-    public static Vector2 CartesianToHex(float x, float z) => new Vector2(2f / 3f * x, -1f / 3f * x + SQRT_3 / 3f * z);
+    public static Vector2 HexToCartesian(float x, float y, float size) => new Vector2(3f / 2f * x, SQRT_3 / 2f * x + SQRT_3 * y) * size;
+    public static Vector2 HexToCartesian(Vector2 hex, float size) => HexToCartesian(hex.x, hex.y, size);
+    public static Vector2 CartesianToHex(float x, float z, float size) => new Vector2(2f / 3f * x, -1f / 3f * x + SQRT_3 / 3f * z) / size;
     public static Vector2 CubeToHex(Vector3 cube) => new Vector2(cube.x, cube.y);
     public static Vector2Int CubeToHex(Vector3Int cube) => new Vector2Int(cube.x, cube.y);
     public static Vector3 HexToCube(Vector2 hex) => new Vector3(hex.x, hex.y, -hex.x - hex.y);
@@ -72,9 +72,9 @@ public class HexUtils
         return new Vector2Int(cube.x, cube.y);
     }
 
-    public static void DrawHexagon(float x, float y)
+    public static void DrawHexagon(float x, float y, float size)
     {
-        Vector2 cartesian = HexUtils.HexToCartesian(x, y);
+        Vector2 cartesian = HexUtils.HexToCartesian(x, y, size);
 
         for (int i = 0; i < 6; i++)
         {

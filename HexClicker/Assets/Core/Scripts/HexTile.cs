@@ -77,12 +77,6 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     public int state;
     #endregion
 
-    public void Update()
-    {
-        if (showTileBorder)
-            Graphics.DrawMesh(Mesh, transform.position, Quaternion.identity, border, LayerMask.NameToLayer("Grid"), null, 0, null, false, false);
-    }
-
     public void OnDrawGizmosSelected()
     {
         return;
@@ -102,11 +96,13 @@ public class HexTile : MonoBehaviour, PathFinding.INode
 
         Vector3 Vertex(int x, int y, int z) => transform.position.AddXZ((-x + -y / 2f) / res, (-y * HexUtils.SQRT_3 / 2f) / res);//HexMap.Instance.OnTerrain(transform.position.x + (x + y / 2f) / res, transform.position.z + (y * HexUtils.SQRT_3 / 2f) / res);
 
+        float size = HexMap.Instance.Size;
+
         void DrawNeighbourDot(HexTile n, Color color)
         {
             if (n == null)
                 return;
-            Vector3 center = Vector3.zero.AddXZ(HexUtils.HexToCartesian(n.Position));
+            Vector3 center = Vector3.zero.AddXZ(HexUtils.HexToCartesian(n.Position, size));
             Gizmos.color = color;
             Gizmos.DrawSphere(center, .1f);
         }
@@ -185,7 +181,7 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     {
         //Set position
         Position = new Vector2Int(x, y);
-        Vector2 centerCartesian = HexUtils.HexToCartesian(x, y);
+        Vector2 centerCartesian = HexUtils.HexToCartesian(x, y, map.Size);
         transform.position = new Vector3(centerCartesian.x, 0, centerCartesian.y);
 
         //Sample the elevation for the tile
@@ -226,7 +222,7 @@ public class HexTile : MonoBehaviour, PathFinding.INode
         //For each hexagon ring, starting from the inside working out
         for (int r = 0; r < res; r++)
         {
-            float radius = (1f + r) / res;
+            float radius = map.Size * (1 + r) / res;
             int trianglesPerEdge = (r * 2) + 1;
             int k = 1;
 
@@ -340,7 +336,7 @@ public class HexTile : MonoBehaviour, PathFinding.INode
             {
                 //Conveniently use the local vertex position stored in the array, and add the transform.position for global position
                 //The radius to sample at is 1 / resolution, which replicates the positions of the six surrounding mesh vertices, whether they exist in this mesh or not
-                normals[i] = CalculateVectorNormal(transform.position + vertices[i], 1f / res);
+                normals[i] = CalculateVectorNormal(transform.position + vertices[i], map.Size / res);
                 i++;
             }
 

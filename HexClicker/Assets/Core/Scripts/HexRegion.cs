@@ -248,7 +248,7 @@ public class HexRegion
                 int startIndex = vertices.Count;
                 int insideLength = map.Resolution;
 
-                Vector3 outsidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]));
+                Vector3 outsidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * map.Size);
                 if (!firstEdge)
                 {
                     Vector3 previousOutsidePoint = outside[outside.Count - 1];
@@ -268,7 +268,7 @@ public class HexRegion
                 {
                     if (outwardEdge)
                     {
-                        insidePoint = map.OnTerrain(t.transform.position + Vector3.LerpUnclamped(new Vector3(cosAngles[e], 0, sinAngles[e]), new Vector3(cosAngles[(e + 1) % 6], 0, sinAngles[(e + 1) % 6]), -1f / map.Resolution));
+                        insidePoint = map.OnTerrain(t.transform.position + Vector3.LerpUnclamped(new Vector3(cosAngles[e], 0, sinAngles[e]), new Vector3(cosAngles[(e + 1) % 6], 0, sinAngles[(e + 1) % 6]), -1f / map.Resolution) * map.Size);
 
                         if (!firstEdge)
                         {
@@ -286,7 +286,7 @@ public class HexRegion
                     }
                     else
                     {
-                        insidePoint = map.OnTerrain(t.transform.position + Vector3.Lerp(new Vector3(cosAngles[e], 0, sinAngles[e]), new Vector3(cosAngles[(e + 1) % 6], 0, sinAngles[(e + 1) % 6]), 1f / map.Resolution));
+                        insidePoint = map.OnTerrain(t.transform.position + Vector3.Lerp(new Vector3(cosAngles[e], 0, sinAngles[e]), new Vector3(cosAngles[(e + 1) % 6], 0, sinAngles[(e + 1) % 6]), 1f / map.Resolution) * map.Size);
 
                         if (!firstEdge)
                         {
@@ -330,7 +330,7 @@ public class HexRegion
 
                 if (outwardEdge)
                 {
-                    insidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * (1 + 1f / map.Resolution));
+                    insidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * map.Size * (1 + 1f / map.Resolution));
 
                     if (!firstEdge)
                     {
@@ -350,7 +350,7 @@ public class HexRegion
                 }
                 else
                 {
-                    insidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * (1 - 1f / map.Resolution));
+                    insidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * map.Size * (1 - 1f / map.Resolution));
 
                     if (!firstEdge)
                     {

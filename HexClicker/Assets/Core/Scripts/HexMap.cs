@@ -28,11 +28,14 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     private int height;
     [SerializeField]
     private int resolution;
+    [SerializeField]
+    private float tileSize;
     public float SeedOffsetX { get; private set; }
     public float SeedOffsetY { get; private set; }
     public int Width => width;
     public int Height => height;
     public int Resolution => resolution;
+    public float Size => tileSize;
     public int TileCount => width * height;
 
     [Header("Tile Elevation")]
@@ -234,7 +237,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         Vector2 cartesian = new Vector2(x, z);
 
         //XZ world position of the center of the tile
-        Vector2 centerCartesian = HexUtils.HexToCartesian(tileX, tileY);
+        Vector2 centerCartesian = HexUtils.HexToCartesian(tileX, tileY, Size);
 
         //Distance from the sample to the tile
         float centerDistance = Vector2.Distance(cartesian, centerCartesian);
@@ -250,7 +253,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             int nX = tileX + HexUtils.neighbourX[i];
             int nY = tileY + HexUtils.neighbourY[i];
 
-            Vector2 neighbourCartesian = HexUtils.HexToCartesian(nX, nY);
+            Vector2 neighbourCartesian = HexUtils.HexToCartesian(nX, nY, Size);
             float distance = Vector2.Distance(cartesian, neighbourCartesian);
             float neighbourTileHeight = SampleElevation(nX, nY);
 
@@ -269,13 +272,13 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     /// </summary>
     public float SampleHeight(float x, float z)
     {
-        Vector2Int tile = HexUtils.HexRound(HexUtils.CartesianToHex(x, z));
+        Vector2Int tile = HexUtils.HexRound(HexUtils.CartesianToHex(x, z, Size));
         return SampleHeight(x, z, tile.x, tile.y);
     }
 
     public bool SampleTile(float x, float z, out HexTile tile)
     {
-        Vector2Int hex = HexUtils.HexRound(HexUtils.CartesianToHex(x, z));
+        Vector2Int hex = HexUtils.HexRound(HexUtils.CartesianToHex(x, z, Size));
         tile = this[hex.x, hex.y];
         return tile != null;
     }
@@ -291,7 +294,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     /// </summary>
     public float SampleElevation(int x, int y)
     {
-        Vector2 cartesian = HexUtils.HexToCartesian(x, y);
+        Vector2 cartesian = HexUtils.HexToCartesian(x, y, Size);
 
         float noise = Mathf.PerlinNoise((cartesian.x + SeedOffsetX) * tileHeightFrequency, (cartesian.y + SeedOffsetY) * tileHeightFrequency);
 
@@ -484,7 +487,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         if (XZPlane.ScreenPointXZ0PlaneIntersection(camera, Input.mousePosition, out Vector3 intersection))
             MousePointOnXZ0Plane = intersection;
 
-        MouseHexagonOnXZ0Plane = HexUtils.CartesianToHex(MousePointOnXZ0Plane.x, MousePointOnXZ0Plane.z);
+        MouseHexagonOnXZ0Plane = HexUtils.CartesianToHex(MousePointOnXZ0Plane.x, MousePointOnXZ0Plane.z, Size);
         MouseHexagonTileOnXZ0Plane = HexUtils.HexRound(MouseHexagonOnXZ0Plane);
 
         /*
