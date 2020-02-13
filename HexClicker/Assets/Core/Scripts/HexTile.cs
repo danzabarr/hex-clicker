@@ -394,7 +394,8 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     public int PathEndDirection { get; set; }
     public bool Accessible => Type != ElevationType.Water;
     public int NeighboursCount => 6;
-    public HexTile[] Neighbours { get; set; }
+    [SerializeField]
+    public HexTile[] Neighbours;
     public PathFinding.INode Neighbour(int neighbourIndex) => Neighbours[neighbourIndex];
     public float NeighbourDistance(int neighbourIndex) => 1;
     public float NeighbourCost(int neighbourIndex) => Neighbours[neighbourIndex].Cost;

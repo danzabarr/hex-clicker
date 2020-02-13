@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -99,9 +100,9 @@ public class NavigationMesh
 
         
 
+        RemoveNodesMinNeighbours(nodes, edges, 1);
         //RemoveNodesMaxNeighbours(nodes, edges, 5);
-        //RemoveNodesMinNeighbours(nodes, edges, 2);
-        //
+       
         //RemoveNodesColinear(nodes, edges);
 
         /*
@@ -114,11 +115,11 @@ public class NavigationMesh
 
     }
 
-    private static void AddConnections(HexMap map, List<Node> nodes, List<Edge> edges, float minHeight, float maxHeight, float sampleResolution)
+    private static void AddConnections(HexMap map, Dictionary<Vector2Int, Node> nodes, List<Edge> edges, float minHeight, float maxHeight, float sampleResolution)
     {
-        foreach(Node n0 in nodes)
+        foreach(Node n0 in nodes.Values)
         {
-            foreach (Node n1 in nodes)
+            foreach (Node n1 in nodes.Values)
             {
                 if (n0 == n1)
                     continue;
@@ -141,51 +142,75 @@ public class NavigationMesh
     private static void RemoveNodesOutsideHeightRange(Dictionary<Vector2Int, Node> nodes, List<Edge> edges, float min, float max)
     {
         List<Node> toDelete = new List<Node>();
-        foreach (Node node in nodes.Values)
+        foreach (KeyValuePair<Vector2Int, Node> node in nodes.Where(pair => pair.Value.Position.y < min || pair.Value.Position.y > max).ToList())
         {
-            if (node.Position.y < min || node.Position.y > max)
-            {
-                RemoveNode(nodes, edges, node);
-                toDelete.Add(node);
-            }
+            RemoveNode(nodes, edges, node.Value);
+            nodes.Remove(node.Key);
         }
-        foreach(Node node in toDelete)
-            nodes.Remove(node.Hex);
-
     }
-    private static void RemoveNodesMinNeighbours(List<Node> nodes, List<Edge> edges, int minNeighbours)
+    private static void RemoveNodesMinNeighbours(Dictionary<Vector2Int, Node> nodes, List<Edge> edges, int minNeighbours)
     {
         while(nodes.Count > 0)
         {
             bool changed = false;
-            for (int i = nodes.Count - 1; i >= 1; i--)
-                if (nodes[i].Neighbours.Count < minNeighbours)
-                {
-                    RemoveNode(nodes, edges, nodes[i]);
-                    changed = true;
-                }
+            foreach (KeyValuePair<Vector2Int, Node> node in nodes.Where(pair => pair.Value.Neighbours.Count < minNeighbours).ToList())
+            {
+                RemoveNode(nodes, edges, node.Value);
+                changed = true;
+                nodes.Remove(node.Key);
+            }
             if (!changed)
                 return;
         }
     }
 
-    private static void RemoveNodesMaxNeighbours(List<Node> nodes, List<Edge> edges, int maxNeighbours)
+    private static void RemoveNodesMaxNeighbours(Dictionary<Vector2Int, Node> nodes, List<Edge> edges, int maxNeighbours)
     {
-        foreach (Node node in nodes)
+        List<Node> toDelete = new List<Node>();
+        foreach (Node node in nodes.Values)
             if (node.Neighbours.Count > maxNeighbours)
-                node.flagDelete = true;
+                toDelete.Add(node);
 
-        for (int i = nodes.Count - 1; i >= 1; i--)
-            if (nodes[i].flagDelete)
-                RemoveNode(nodes, edges, nodes[i]);
-
+        foreach (Node node in toDelete)
+        {
+            RemoveNode(nodes, edges, node);
+            nodes.Remove(node.Hex);
+        }
     }
 
-    private static void RemoveNodesColinear(List<Node> nodes, List<Edge> edges)
+    private static void RemoveNodesColinear(Dictionary<Vector2Int, Node> nodes, List<Edge> edges)
     {
         while(nodes.Count > 0)
         {
             bool changed = false;
+            List<Node> toDelete = new List<Node>();
+
+            foreach(Node node in nodes.Values)
+            {
+                if (node.Neighbours.Count != 2)
+                    continue;
+                Neighbour n0 = node.Neighbour(0);
+                Neighbour n1 = node.Neighbour(1);
+                if (IsColinearXZ(n0.Node, n1.Node) && IsColinearXZ(n0.Node, node))
+                {
+                    if (Connect(n0.Node, n1.Node, out Edge e, true))
+                    {
+                        RemoveNode(nodes, edges, node);
+                        toDelete.Add(node);
+                        edges.Add(e);
+                        changed = true;
+                    }
+                }
+            }
+
+            foreach (Node node in toDelete)
+                nodes.Remove(node.Hex);
+
+            if (!changed)
+                return;
+
+            /*
+
             for (int i = nodes.Count - 1; i >= 1; i--)
             {
                 if (nodes[i].Neighbours.Count != 2)
@@ -207,6 +232,8 @@ public class NavigationMesh
 
             if (!changed)
                 return;
+
+            */
         }
     }
 
@@ -274,7 +301,7 @@ public class NavigationMesh
         //nodes.Remove(node.Hex);
     }
 
-    public class Node
+    public class Node : PathFinding.INode
     {
         public bool flagDelete;
         public Vector2Int Hex { get; private set; }
@@ -309,6 +336,23 @@ public class NavigationMesh
             }
             Neighbours = new List<Neighbour>();
         }
+
+       
+        public PathFinding.INode PathParent { get; set; }
+        public float PathDistance { get; set; }
+        public float PathCrowFliesDistance { get; set; }
+        public float PathCost { get; set; }
+        public int PathSteps { get; set; }
+        public int PathTurns { get; set; }
+        public int PathEndDirection { get; set; }
+        public bool Accessible { get; set; }
+        public int NeighboursCount => Neighbours.Count;
+
+        PathFinding.INode PathFinding.INode.Neighbour(int neighbourIndex) => Neighbour(neighbourIndex).Node;
+        public float NeighbourDistance(int neighbourIndex) => Neighbour(neighbourIndex).Distance;
+        public float NeighbourCost(int neighbourIndex) => 0;
+        public bool NeighbourAccessible(int neighbourIndex) => true;
+        public float Distance(PathFinding.INode node) => CalculateDistance(this, node as Node);
     }
 
     public class Edge

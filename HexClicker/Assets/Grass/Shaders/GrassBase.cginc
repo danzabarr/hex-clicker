@@ -148,15 +148,15 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	float2 cameraDistance = world.xz - _WorldSpaceCameraPos.xz;
 
-	if (dot(cameraDistance, cameraDistance) > _DistanceCulling * _DistanceCulling) return;
+	if (dot(cameraDistance, cameraDistance) > _DistanceCulling * _DistanceCulling)
+		return;
 
 	world -= _WorldOffset;
 
 	float3 mask = tex2Dlod(_GrassMask, float4(IN[0].uv, 0, 0)).rgb;
 
-	if ((mask.x + mask.y + mask.z) / 3 < _MaskThreshold) {
+	if ((mask.x + mask.y + mask.z) / 3 < _MaskThreshold)
 		return;
-	}
 	
 	//Removes weird flickery grass in the very corner
 	//if (pos.x < _ClipXZ && pos.z < _ClipXZ) return;
@@ -232,7 +232,7 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	// Construct a matrix to transform our blade from tangent space
 	// to local space; this is the same process used when sampling normal maps.
-	float3 vNormal = IN[0].normal; //float3(0, 1, 0);//IN[0].normal;
+	float3 vNormal = float3(0, 1, 0);//IN[0].normal;
 	float4 vTangent = IN[0].tangent;
 	float3 vBinormal = cross(vNormal, vTangent) * vTangent.w;
 

@@ -23,6 +23,8 @@ public class CameraController : MonoBehaviour
     public float zoomAcceleration;
     public float zoomDampening;
 
+    public float minimumHeightAboveTerrain;
+
     private Vector3 velocity;
     private float rotationVelocity;
     private float zoomVelocity;
@@ -86,7 +88,7 @@ public class CameraController : MonoBehaviour
 
         camera.transform.localPosition = Vector3.zero;
 
-        float terrain = HexMap.Instance.SampleHeight(camera.transform.position.x, camera.transform.position.z) + 1;
+        float terrain = HexMap.Instance.SampleHeight(camera.transform.position.x, camera.transform.position.z) + minimumHeightAboveTerrain;
         camera.transform.position = new Vector3(camera.transform.position.x, Mathf.Max(terrain, camera.transform.position.y), camera.transform.position.z);
 
     }

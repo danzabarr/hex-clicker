@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.AI;
 
 [System.Serializable]
 public class HexMap : MonoBehaviour, IEnumerable<HexTile>
@@ -9,6 +10,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     public static HexMap Instance { get; private set; }
 
     private new Camera camera;
+    [SerializeField]
+    [HideInInspector]
     private HexTile[] tiles;
     private HexTile select;
     private PathFinding.Path<HexTile> testPath;
@@ -96,6 +99,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     [SerializeField]
     private Transform water;
     [SerializeField]
+    private Mesh waterPlane;
+    [SerializeField]
     private float waterLevel = 0f;
     [SerializeField]
     [Range(0, 1)]
@@ -124,6 +129,44 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     private Material[] regionMaterials;
     [SerializeField]
     private int regionPlacing = 1;
+
+    [Header("Navigation")]
+    [SerializeField]
+    private NavMeshBuildSettingsSerialized navMeshBuildSettings;
+
+    [System.Serializable]
+    public struct NavMeshBuildSettingsSerialized
+    {
+        public float agentRadius;
+        public float agentHeight;
+        public float agentSlope;
+        public float agentClimb;
+        public float minRegionArea;
+        public int tileSize;
+        public float voxelSize;
+    }
+
+    private Dictionary<Vector2Int, NavigationMesh.Node> navNodes;
+    private List<NavigationMesh.Edge> navEdges;
+    private PathFinding.Path<NavigationMesh.Node> navPath;
+
+
+    [Header("Building")]
+    public Building placingObject;
+    public Material cantBuildMaterial;
+    public float placingRotation;
+
+    [Header("Control Mode")]
+    public ControlMode controlMode;
+
+    public enum ControlMode
+    {
+        Regions,
+        Build,
+        Units
+    }
+
+    private List<Unit> selection = new List<Unit>();
 
     /// <summary>
     /// Returns the tile from the array at the supplied coordinates, or null if out of range.
@@ -303,6 +346,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         Instance = this;
         camera = Camera.main;
         Generate();
+        GenerateNavigationMesh();
+        SetPlacingObject(placingObject);
     }
 
     public void OnValidate()
@@ -326,12 +371,115 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         water.transform.position = new Vector3(0, waterLevel, 0);
     }
 
+    public void ControlModeUnits()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain", "Buildings", "Units")))
+            {
+                if (hitInfo.collider.GetComponent<HexTile>())
+                {
+                    selection = new List<Unit>();
+                }
+                Unit unit = hitInfo.collider.GetComponent<Unit>();
+                if (unit)
+                {
+                    selection = new List<Unit>();
+                    selection.Add(unit);
+                }
+            }
+        }
+        if (Input.GetMouseButtonDown(1) && selection.Count > 0)
+        {
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain", "Buildings", "Units")))
+            {
+                if (hitInfo.collider.GetComponent<HexTile>())
+                {
+                    foreach (Unit unit in selection)
+                        unit.SetDestination(hitInfo.point);
+                }
+            }
+        }
+    }
+
+    public void ControlModeBuild()
+    {
+        if (Input.GetKey(KeyCode.LeftArrow))
+            placingRotation--;
+        if (Input.GetKey(KeyCode.RightArrow))
+            placingRotation++;
+
+        if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")) && hitInfo.collider.GetComponent<HexTile>())
+        {
+            HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
+            Matrix4x4 parentTransform = Matrix4x4.TRS(hitInfo.point, Quaternion.Euler(0, placingRotation, 0), Vector3.one);
+
+            placingObject.ToTerrain(parentTransform, this);
+            if (mouse && mouse.RegionID == 1 && !placingObject.CheckCollisions(parentTransform, LayerMask.GetMask("Buildings", "Water")))
+            {
+                placingObject.Draw(parentTransform, LayerMask.NameToLayer("Placing"), null, true);
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    Instantiate(placingObject, hitInfo.point, Quaternion.Euler(0, placingRotation, 0));
+                }
+
+                return;
+            }
+            placingObject.Draw(parentTransform, LayerMask.NameToLayer("Placing"), cantBuildMaterial, false);
+        }
+    }
+
+    public void SetPlacingObject(Building placingObject)
+    {
+        this.placingObject = placingObject;
+        if (placingObject)
+            placingObject.ExtractParts();
+    }
+
+    private void ControlModeRegions()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            {
+                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
+                if (mouse)
+                {
+                    SetTileRegion(regionPlacing, mouse.Position.x, mouse.Position.y);
+                }
+            }
+        }
+        if (Input.GetMouseButtonDown(1))
+        {
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            {
+                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
+                if (mouse)
+                {
+                    SetTileRegion(0, mouse.Position.x, mouse.Position.y);
+                }
+            }
+        }
+    }
+
     public void Update()
     {
-        RenderRegionBorders();
+        switch (controlMode)
+        {
+            case ControlMode.Regions:
+                ControlModeRegions();
+                break;
+            case ControlMode.Build:
+                ControlModeBuild();
+                break;
+            case ControlMode.Units:
+                ControlModeUnits();
+                break;
+        }
 
-        HexTile oldStart = select;
-        HexTile oldEnd = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
+        //HexTile oldStart = select;
+        //HexTile oldEnd = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
 
         if (XZPlane.ScreenPointXZ0PlaneIntersection(camera, Input.mousePosition, out Vector3 intersection))
             MousePointOnXZ0Plane = intersection;
@@ -339,6 +487,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         MouseHexagonOnXZ0Plane = HexUtils.CartesianToHex(MousePointOnXZ0Plane.x, MousePointOnXZ0Plane.z);
         MouseHexagonTileOnXZ0Plane = HexUtils.HexRound(MouseHexagonOnXZ0Plane);
 
+        /*
         if (Input.GetMouseButtonDown(0))
         {
             if (select != null)
@@ -364,6 +513,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             }
         }
 
+
         HexTile start = select;
         HexTile end = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
 
@@ -371,59 +521,77 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         {
             PathFinding.PathFind(start, end, 1000, 500, PathFinding.StandardCostFunction, out testPath);
         }
+        */
+
+        RenderRegionBorders();
 
         //DrawInstances();
         if (treesRenderer != null)
             treesRenderer.Draw(treeMesh, treeMaterial, LayerMask.NameToLayer("Trees"));
 
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
-            {
-                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
-                if (mouse)
-                {
-                    SetTileRegion(regionPlacing, mouse.Position.x, mouse.Position.y);
-                }
-            }
-        }
-        if (Input.GetMouseButtonDown(1))
-        {
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
-            {
-                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
-                if (mouse)
-                {
-                    SetTileRegion(0, mouse.Position.x, mouse.Position.y);
-                }
-            }
-        }
-
         foreach (HexTile tile in tiles)
             Graphics.DrawMesh(tile.Mesh, tile.transform.position, Quaternion.identity, grassMaterial, LayerMask.NameToLayer("Grass"), null, 0, null, grassShadowCasting);
     }
 
-    private Dictionary<Vector2Int, NavigationMesh.Node> navNodes;
-    private List<NavigationMesh.Edge> navEdges;
-
     [ContextMenu("Generate Navigation Mesh")]
     public void GenerateNavigationMesh()
     {
-        NavigationMesh.GenerateMesh(this, out navNodes, out navEdges);
+        //NavigationMesh.GenerateMesh(this, out navNodes, out navEdges);
+
+        NavMeshBuildSettings buildSettings = new NavMeshBuildSettings
+        {
+            agentRadius = navMeshBuildSettings.agentRadius,
+            agentHeight = navMeshBuildSettings.agentHeight,
+            agentSlope = navMeshBuildSettings.agentSlope,
+            agentClimb = navMeshBuildSettings.agentClimb,
+            minRegionArea = navMeshBuildSettings.minRegionArea,
+            overrideTileSize = true,
+            tileSize = navMeshBuildSettings.tileSize,
+            overrideVoxelSize = true,
+            voxelSize = navMeshBuildSettings.voxelSize
+        };
+
+        List<NavMeshBuildSource> sources = new List<NavMeshBuildSource>();
+
+        foreach(HexTile tile in tiles)
+        {
+            sources.Add(new NavMeshBuildSource()
+            {
+                transform = tile.transform.localToWorldMatrix,
+                area = 0,
+                component = tile,
+                shape = NavMeshBuildSourceShape.Mesh,
+                sourceObject = tile.Mesh
+            });
+        }
+
+        sources.Add(new NavMeshBuildSource()
+        {
+            transform = water.localToWorldMatrix * Matrix4x4.Translate(new Vector3(0, -.1f, 0)),
+            area = 1,
+            shape = NavMeshBuildSourceShape.Mesh,
+            sourceObject = waterPlane
+        });
+
+        NavMeshData data = NavMeshBuilder.BuildNavMeshData(buildSettings, sources, new Bounds(Vector3.zero, Vector3.one * 20), Vector3.zero, Quaternion.identity);
+
+        NavMesh.RemoveAllNavMeshData();
+        NavMesh.AddNavMeshData(data);
     }
 
     public void OnDrawGizmos()
     {
-        //if (navNodes != null)
-        //{
-        //    foreach (NavigationMesh.Node node in navNodes.Values)
-        //    {
-        //        //Handles.Label(node.Position, "" + node.Hex);
-        //        Gizmos.DrawSphere(node.Position, 0.01f);
-        //        //foreach (NavigationMesh.Neighbour neighbour in node.Neighbours)
-        //        //    Gizmos.DrawLine(node.Position, neighbour.Node.Position);
-        //    }
-        //}
+
+        if (navNodes != null)
+        {
+            foreach (NavigationMesh.Node node in navNodes.Values)
+            {
+                //Handles.Label(node.Position, "" + node.Hex);
+                Gizmos.DrawSphere(node.Position, 0.01f);
+                foreach (NavigationMesh.Neighbour neighbour in node.Neighbours)
+                    Gizmos.DrawLine(node.Position, neighbour.Node.Position);
+            }
+        }
         if (navEdges != null)
         {
             Gizmos.color = Color.red;

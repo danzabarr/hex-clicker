@@ -68,14 +68,14 @@ Material:
         m_Scale: {x: 0.01, y: 0.01}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _BendRotationRandom: 0
-    - _BladeCurve: 3.1
+    - _BendRotationRandom: 0.55
+    - _BladeCurve: 4
     - _BladeForward: 0.01
-    - _BladeHeight: 0.01
-    - _BladeHeightRandom: 0.01
+    - _BladeHeight: 0.02
+    - _BladeHeightRandom: 0.02
     - _BladeRandomAmount: 0.5
     - _BladeSegments: 3
-    - _BladeWidth: 0.002
+    - _BladeWidth: 0.003
     - _BladeWidthRandom: 0.001
     - _BumpScale: 1
     - _ClipXZ: 0.0001
