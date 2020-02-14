@@ -73,7 +73,7 @@ vertexOutput vert(appdata_full v)
 
 struct GroundType
 {
-	half3 albedo, worldNormal;
+	half3 albedo, normal, worldNormal;
 	half diffuse, specular, metallic, shininess;
 };
 
@@ -81,6 +81,7 @@ GroundType lerp(GroundType a, GroundType b, float t)
 {
 	GroundType c;
 	c.albedo = lerp(a.albedo, b.albedo, t);
+	c.normal = lerp(a.normal, b.normal, t);
 	c.worldNormal = lerp(a.worldNormal, b.worldNormal, t);
 	c.diffuse = lerp(a.diffuse, b.diffuse, t);
 	c.specular = lerp(a.specular, b.specular, t);
@@ -97,8 +98,8 @@ GroundType ground(vertexOutput input)
 
 	GroundType sand;
 	sand.albedo = tex2D(_SandAlbedo, TRANSFORM_TEX(input.uv, _SandAlbedo)).rgb;
-	half3 sandNormal = UnpackNormal(tex2D(_SandNormal, TRANSFORM_TEX(input.uv, _SandNormal)));
-	sand.worldNormal = half3(dot(input.tspace0, sandNormal), dot(input.tspace1, sandNormal), dot(input.tspace2, sandNormal));
+	sand.normal = UnpackNormal(tex2D(_SandNormal, TRANSFORM_TEX(input.uv, _SandNormal)));
+	sand.worldNormal = half3(dot(input.tspace0, sand.normal), dot(input.tspace1, sand.normal), dot(input.tspace2, sand.normal));
 	half4 sandMetallic = tex2D(_SandMetallic, TRANSFORM_TEX(input.uv, _SandMetallic));
 	sand.metallic = sandMetallic.r;
 	sand.shininess = sandMetallic.a;
@@ -108,8 +109,8 @@ GroundType ground(vertexOutput input)
 
 	GroundType rock;
 	rock.albedo = tex2D(_RockAlbedo, TRANSFORM_TEX(input.uv, _RockAlbedo)).rgb;
-	half3 rockNormal = UnpackNormal(tex2D(_RockNormal, TRANSFORM_TEX(input.uv, _RockNormal)));
-	rock.worldNormal = half3(dot(input.tspace0, rockNormal), dot(input.tspace1, rockNormal), dot(input.tspace2, rockNormal));
+	rock.normal = UnpackNormal(tex2D(_RockNormal, TRANSFORM_TEX(input.uv, _RockNormal)));
+	rock.worldNormal = half3(dot(input.tspace0, rock.normal), dot(input.tspace1, rock.normal), dot(input.tspace2, rock.normal));
 	half4 rockMetallic = tex2D(_RockMetallic, TRANSFORM_TEX(input.uv, _RockMetallic));
 	rock.metallic = rockMetallic.r;
 	rock.shininess = rockMetallic.a;
@@ -119,8 +120,8 @@ GroundType ground(vertexOutput input)
 
 	GroundType gras;
 	gras.albedo = tex2D(_GrassAlbedo, TRANSFORM_TEX(input.uv, _GrassAlbedo)).rgb;
-	half3 grasNormal = UnpackNormal(tex2D(_GrassNormal, TRANSFORM_TEX(input.uv, _GrassNormal)));
-	gras.worldNormal = half3(dot(input.tspace0, grasNormal), dot(input.tspace1, grasNormal), dot(input.tspace2, grasNormal));
+	gras.normal = UnpackNormal(tex2D(_GrassNormal, TRANSFORM_TEX(input.uv, _GrassNormal)));
+	gras.worldNormal = half3(dot(input.tspace0, gras.normal), dot(input.tspace1, gras.normal), dot(input.tspace2, gras.normal));
 	half4 grasMetallic = tex2D(_GrassMetallic, TRANSFORM_TEX(input.uv, _GrassMetallic));
 	gras.metallic = grasMetallic.r;
 	gras.shininess = grasMetallic.a;
@@ -130,8 +131,8 @@ GroundType ground(vertexOutput input)
 
 	GroundType dirt;
 	dirt.albedo = tex2D(_DirtAlbedo, TRANSFORM_TEX(input.uv, _DirtAlbedo)).rgb;
-	half3 dirtNormal = UnpackNormal(tex2D(_DirtNormal, TRANSFORM_TEX(input.uv, _DirtNormal)));
-	dirt.worldNormal = half3(dot(input.tspace0, dirtNormal), dot(input.tspace1, dirtNormal), dot(input.tspace2, dirtNormal));
+	dirt.normal = UnpackNormal(tex2D(_DirtNormal, TRANSFORM_TEX(input.uv, _DirtNormal)));
+	dirt.worldNormal = half3(dot(input.tspace0, dirt.normal), dot(input.tspace1, dirt.normal), dot(input.tspace2, dirt.normal));
 	half4 dirtMetallic = tex2D(_DirtMetallic, TRANSFORM_TEX(input.uv, _DirtMetallic));
 	dirt.metallic = dirtMetallic.r;
 	dirt.shininess = dirtMetallic.a;
@@ -141,6 +142,7 @@ GroundType ground(vertexOutput input)
 
 	GroundType snow;
 	snow.albedo = _SnowColor * _SnowIntensity;
+	snow.normal = input.normal;
 	snow.worldNormal = input.worldNormal;
 	snow.metallic = _SnowSpecular;
 	snow.shininess = _SnowShininess;
@@ -244,7 +246,7 @@ GroundType ground(vertexOutput input)
 	}
 
 	//Remove snow under/near water.
-	float snowAmount = saturate((_SnowColor.a - .4) / .2) * saturate((-temperature + _SnowBlending) / _SnowBlending);
+	float snowAmount = saturate((_SnowColor.a - .4) / .2) * saturate((-temperature + _SnowBlending) / _SnowBlending * .5);
 	if (input.worldPos.y < _WaterLevel)
 	{
 		snowAmount *= 0;

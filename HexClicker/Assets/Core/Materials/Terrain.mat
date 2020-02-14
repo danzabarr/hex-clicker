@@ -80,8 +80,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _GrassAlbedo:
-        m_Texture: {fileID: 2800000, guid: 016b6df461e944349855aecf3cc230f1, type: 3}
-        m_Scale: {x: 2, y: 2}
+        m_Texture: {fileID: 2800000, guid: 72f62263b761df14dbfeffcce018ee9d, type: 3}
+        m_Scale: {x: 0.1, y: 0.1}
         m_Offset: {x: 0, y: 0}
     - _GrassMetallic:
         m_Texture: {fileID: 2800000, guid: c74c9919a03c8b2438bb018ce486c9d1, type: 3}
@@ -113,7 +113,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _RockAlbedo:
         m_Texture: {fileID: 2800000, guid: 11233bd5d61b89142a4c0953120e6244, type: 3}
-        m_Scale: {x: 2, y: 2}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RockCol:
         m_Texture: {fileID: 2800000, guid: db71432df4431fe49be9ed7a9465c683, type: 3}
@@ -125,11 +125,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _RockMetallic:
         m_Texture: {fileID: 2800000, guid: e1ee082f75915f242ac34014b1922b36, type: 3}
-        m_Scale: {x: 2, y: 2}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RockNormal:
         m_Texture: {fileID: 2800000, guid: 9ce84f38db9968a42a39662bae5337fe, type: 3}
-        m_Scale: {x: 2, y: 2}
+        m_Scale: {x: 0.5, y: 0.5}
         m_Offset: {x: 0, y: 0}
     - _RockNrm:
         m_Texture: {fileID: 2800000, guid: 885a56b529f1fcd4aadf49b79af61193, type: 3}
@@ -137,7 +137,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _SandAlbedo:
         m_Texture: {fileID: 2800000, guid: 64ece382fe3dfc14ea4f6bfd48989313, type: 3}
-        m_Scale: {x: 3, y: 3}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SandCol:
         m_Texture: {fileID: 2800000, guid: 24bc2c1d211fcf049bafa6e24ee609fc, type: 3}
@@ -149,11 +149,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _SandMetallic:
         m_Texture: {fileID: 2800000, guid: 29483e91515936e4c9d9bf8df14f1ac4, type: 3}
-        m_Scale: {x: 3, y: 3}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SandNormal:
         m_Texture: {fileID: 2800000, guid: de3916b755a2a4c4ea5f786de172a6e9, type: 3}
-        m_Scale: {x: 3, y: 3}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SandNrm:
         m_Texture: {fileID: 2800000, guid: 2121a0921d9ac9c4280dd9156960bfc1, type: 3}
@@ -173,10 +173,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AltitudeTemperature: 0.6
-    - _Band0: -0.02
-    - _Band1: 0.03
-    - _Band2: 0.6
-    - _Band3: 0.2
+    - _Band0: -0.01
+    - _Band1: 0.2
+    - _Band2: 2
+    - _Band3: -0.15
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -191,7 +191,7 @@ Material:
     - _OffsetAltitude: 0
     - _OffsetLatitude: 0
     - _Parallax: 0.02
-    - _SlopeEnd: 0.087
+    - _SlopeEnd: 0.01
     - _SlopeStart: 0
     - _SmoothnessTextureChannel: 0
     - _SnowAmount: 1

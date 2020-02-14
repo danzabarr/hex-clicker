@@ -136,7 +136,6 @@ public class HexUtils
     }
 
     public delegate bool Match(HexTile original, HexTile tile);
-    public static bool SameType(HexTile original, HexTile tile) => original.Type == tile.Type;
 
     public static List<HexTile> RecursiveDepthFirstFloodFill(HexTile start, Match match)
     {

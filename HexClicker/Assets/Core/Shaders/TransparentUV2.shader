@@ -18,15 +18,15 @@
 		Fog { Mode Off }
 
 		CGPROGRAM
-		#pragma surface surf NoLighting noforwardadd alpha:fade
+		#pragma surface surf NoLighting noforwardadd nofog alpha:fade
 
 		sampler2D _MainTex;
 		float4 _Color;
 		float _Intensity;
 
-	fixed4 LightingNoLighting(SurfaceOutput s, fixed3 lightDir, fixed atten) {
-		return fixed4(s.Albedo, s.Alpha);
-	}
+		fixed4 LightingNoLighting(SurfaceOutput s, fixed3 lightDir, fixed atten) {
+			return fixed4(s.Albedo, s.Alpha);
+		}
 
 		struct Input
 		{

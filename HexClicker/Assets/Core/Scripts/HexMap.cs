@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 [System.Serializable]
+[ExecuteAlways]
 public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 {
     public static HexMap Instance { get; private set; }
@@ -14,7 +15,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     [HideInInspector]
     private HexTile[] tiles;
     private HexTile select;
-    private PathFinding.Path<HexTile> testPath;
     private Dictionary<int, HexRegion> regions;
 
     [Header("Map Settings")]
@@ -38,29 +38,21 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     public float Size => tileSize;
     public int TileCount => width * height;
 
-    [Header("Tile Elevation")]
-    [SerializeField]
-    private float tileHeightFrequency;
-    [SerializeField]
-    private AnimationCurve tileHeightCurve;
-    [SerializeField]
-    private AnimationCurve tileHeightFalloffCurve;
-
     [Header("Terrain Noise")]
     [SerializeField]
-    private Noise.NoiseSettings noiseSettings;
+    private Noise.NoiseSettings terrainNoiseSettings;
     [SerializeField]
-    private AnimationCurve noiseCurve;
-    [SerializeField]
-    private AnimationCurve noisePerTileHeightCurve;
+    private AnimationCurve terrainNoiseCurve;
 
     [Header("Trees")]
     [SerializeField]
-    private Material treeMaterial;
+    private Mesh treesMesh;
     [SerializeField]
-    private Mesh treeMesh;
+    private Material treesMaterial;
     [SerializeField]
-    private float treesFrequency;
+    private Gradient treesColor;
+    [SerializeField]
+    private Noise.NoiseSettings treesNoiseSettings;
     [SerializeField]
     [Range(0,1)]
     private float treesThreshold;
@@ -75,12 +67,9 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     [SerializeField]
     private float treesMaximumAltitude;
     [SerializeField]
-    private Gradient treesColor;
+    private float treesMinimumHeight, treesMaximumHeight;
     [SerializeField]
-    private float treeMinimumHeight, treeMaximumHeight;
-    [SerializeField]
-    private float treeMinimumScale, treeMaximumScale;
-
+    private float treesMinimumScale, treesMaximumScale;
     private InstancedRenderer treesRenderer;
 
     [Header("Grass")]
@@ -101,8 +90,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     [Header("Water")]
     [SerializeField]
     private Transform water;
-    [SerializeField]
-    private Mesh waterPlane;
     [SerializeField]
     private float waterLevel = 0f;
     [SerializeField]
@@ -136,6 +123,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     [Header("Navigation")]
     [SerializeField]
     private NavMeshBuildSettingsSerialized navMeshBuildSettings;
+    [SerializeField]
+    private Bounds navMeshArea;
 
     [System.Serializable]
     public struct NavMeshBuildSettingsSerialized
@@ -148,11 +137,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         public int tileSize;
         public float voxelSize;
     }
-
-    private Dictionary<Vector2Int, NavigationMesh.Node> navNodes;
-    private List<NavigationMesh.Edge> navEdges;
-    private PathFinding.Path<NavigationMesh.Node> navPath;
-
 
     [Header("Building")]
     public Building placingObject;
@@ -189,7 +173,15 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     /// </summary>
     public IEnumerator<HexTile> GetEnumerator() => ((IEnumerable<HexTile>)tiles).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    
+    /// <summary>
+    /// Returns the tile at a given index in the array. NO CHECKS!
+    /// </summary>
     public HexTile this[int index] => tiles[index];
+    
+    /// <summary>
+    /// Returns the number of tiles in the map.
+    /// </summary>
     public int Length => tiles.Length;
 
     /// <summary>
@@ -209,73 +201,16 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     }
 
     /// <summary>
-    /// The position on a plane with normal 0,1,0 at position 0,0,0 which when projected through the main camera is directly beneath the cursor, in world coordinates.
-    /// </summary>
-    public Vector3 MousePointOnXZ0Plane { get; private set; }
-
-    /// <summary>
-    /// The position on a plane with normal 0,1,0 at position 0,0,0 which when projected through the main camera is directly beneath the cursor, in hex coordinates.
-    /// </summary>
-    public Vector2 MouseHexagonOnXZ0Plane { get; private set; }
-
-    /// <summary>
-    /// The position on a plane with normal 0,1,0 at position 0,0,0 which when projected through the main camera is directly beneath the cursor, in hex coordinates rounded to the nearest tile.
-    /// </summary>
-    public Vector2Int MouseHexagonTileOnXZ0Plane { get; private set; }
-
-    /// <summary>
     /// Returns the height of the terrain at the supplied x and z coordinates. Does not necessarily return the height of the mesh according to resolution.
     /// Terrain height is influenced by the elevation of the tile, and the six surrounding tiles, and some additional contributions from noise.
     /// </summary>
-    public float SampleHeight(float x, float z, int tileX, int tileY)
-    {
-        return SampleNoise(x, z);
-        //Tile elevation for tileX, tileY
-        float tileHeight = SampleElevation(tileX, tileY);
-
-        //XZ world position of the sample
-        Vector2 cartesian = new Vector2(x, z);
-
-        //XZ world position of the center of the tile
-        Vector2 centerCartesian = HexUtils.HexToCartesian(tileX, tileY, Size);
-
-        //Distance from the sample to the tile
-        float centerDistance = Vector2.Distance(cartesian, centerCartesian);
-
-        //Calculate the influence of the main tile
-        float maxDistance = HexUtils.SQRT_3 * 1.1f;
-        float heightSum = tileHeight * tileHeightFalloffCurve.Evaluate((1f - Mathf.Clamp(centerDistance / maxDistance, 0, 1)));
-
-
-        //Loop through and add the relative influence of the six neighbouring tiles
-        for (int i = 0; i < 6; i++)
-        {
-            int nX = tileX + HexUtils.neighbourX[i];
-            int nY = tileY + HexUtils.neighbourY[i];
-
-            Vector2 neighbourCartesian = HexUtils.HexToCartesian(nX, nY, Size);
-            float distance = Vector2.Distance(cartesian, neighbourCartesian);
-            float neighbourTileHeight = SampleElevation(nX, nY);
-
-            heightSum += neighbourTileHeight * tileHeightFalloffCurve.Evaluate((1f - Mathf.Clamp(distance / maxDistance, 0, 1)));
-        }
-
-        //Sample noise
-        float noise = SampleNoise(x, z);
-
-        //Combine factors.
-        return heightSum + noisePerTileHeightCurve.Evaluate(heightSum) * (noise - .5f);
-    }
-
-    /// <summary>
-    /// Returns the height of the terrain at the supplied x and z coordinates. Does not necessarily return the height of the mesh according to resolution. Convenience method for if the tileX and tileY is not available within the scope.
-    /// </summary>
     public float SampleHeight(float x, float z)
     {
-        Vector2Int tile = HexUtils.HexRound(HexUtils.CartesianToHex(x, z, Size));
-        return SampleHeight(x, z, tile.x, tile.y);
+        return SampleNoise(x, z);
     }
-
+    /// <summary>
+    /// Returns true if there is a tile beneath the supplied x and z coordinates.
+    /// </summary>
     public bool SampleTile(float x, float z, out HexTile tile)
     {
         Vector2Int hex = HexUtils.HexRound(HexUtils.CartesianToHex(x, z, Size));
@@ -290,34 +225,15 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     public Vector3 OnTerrain(Vector3 p) => OnTerrain(p.x, p.z);
     
     /// <summary>
-    /// Returns the elevation value for the tile at the hex coordinates supplied. 
-    /// </summary>
-    public float SampleElevation(int x, int y)
-    {
-        Vector2 cartesian = HexUtils.HexToCartesian(x, y, Size);
-
-        float noise = Mathf.PerlinNoise((cartesian.x + SeedOffsetX) * tileHeightFrequency, (cartesian.y + SeedOffsetY) * tileHeightFrequency);
-
-        float elevation = tileHeightCurve.Evaluate(noise);
-
-        float middleValleyBias = Mathf.Clamp(Mathf.Abs(cartesian.x / 50), 0, 0.4f);
-
-        float southFlatnessBias =  Mathf.Clamp(cartesian.x / 50 + 1, .3f, 1f);
-
-        return elevation * southFlatnessBias + middleValleyBias;
-
-    }
-    
-    /// <summary>
     /// Samples some perlin noise at the supplied world XZ coordinates
     /// </summary>
-    public float SampleNoise(float x, float z) => noiseCurve.Evaluate(Noise.Perlin(x + SeedOffsetX, z + SeedOffsetY, noiseSettings));
+    public float SampleNoise(float x, float z) => terrainNoiseCurve.Evaluate(Noise.Perlin(x + SeedOffsetX, z + SeedOffsetY, terrainNoiseSettings));
 
     /// <summary>
     /// Samples a value used for determining whether a tree should grow at the supplied world XZ coordinates
     /// </summary>
-    public float SampleTree(float x, float z) => (Mathf.PerlinNoise((x + SeedOffsetX + 10000) * treesFrequency, (z + SeedOffsetY + 10000) * treesFrequency));
-
+    public float SampleTree(float x, float z) => Noise.Perlin(x + SeedOffsetX + 10000, z + SeedOffsetY + 10000, treesNoiseSettings);
+    
     /// <summary>
     /// Returns the 'temperature' value for a given world position.
     /// </summary>
@@ -374,334 +290,11 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         water.transform.position = new Vector3(0, waterLevel, 0);
     }
 
-    public void ControlModeUnits()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain", "Buildings", "Units")))
-            {
-                if (hitInfo.collider.GetComponent<HexTile>())
-                {
-                    selection = new List<Unit>();
-                }
-                Unit unit = hitInfo.collider.GetComponent<Unit>();
-                if (unit)
-                {
-                    selection = new List<Unit>();
-                    selection.Add(unit);
-                }
-            }
-        }
-        if (Input.GetMouseButtonDown(1) && selection.Count > 0)
-        {
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain", "Buildings", "Units")))
-            {
-                if (hitInfo.collider.GetComponent<HexTile>())
-                {
-                    foreach (Unit unit in selection)
-                        unit.SetDestination(hitInfo.point);
-                }
-            }
-        }
-    }
-
-    public void ControlModeBuild()
-    {
-        if (Input.GetKey(KeyCode.LeftArrow))
-            placingRotation--;
-        if (Input.GetKey(KeyCode.RightArrow))
-            placingRotation++;
-
-        if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")) && hitInfo.collider.GetComponent<HexTile>())
-        {
-            HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
-            Matrix4x4 parentTransform = Matrix4x4.TRS(hitInfo.point, Quaternion.Euler(0, placingRotation, 0), Vector3.one);
-
-            placingObject.ToTerrain(parentTransform, this);
-            if (mouse && mouse.RegionID == 1 && !placingObject.CheckCollisions(parentTransform, LayerMask.GetMask("Buildings", "Water")))
-            {
-                placingObject.Draw(parentTransform, LayerMask.NameToLayer("Placing"), null, true);
-
-                if (Input.GetMouseButtonDown(0))
-                {
-                    Instantiate(placingObject, hitInfo.point, Quaternion.Euler(0, placingRotation, 0));
-                }
-
-                return;
-            }
-            placingObject.Draw(parentTransform, LayerMask.NameToLayer("Placing"), cantBuildMaterial, false);
-        }
-    }
-
-    public void SetPlacingObject(Building placingObject)
-    {
-        this.placingObject = placingObject;
-        if (placingObject)
-            placingObject.ExtractParts();
-    }
-
-    private void ControlModeRegions()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
-            {
-                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
-                if (mouse)
-                {
-                    SetTileRegion(regionPlacing, mouse.Position.x, mouse.Position.y);
-                }
-            }
-        }
-        if (Input.GetMouseButtonDown(1))
-        {
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
-            {
-                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
-                if (mouse)
-                {
-                    SetTileRegion(0, mouse.Position.x, mouse.Position.y);
-                }
-            }
-        }
-    }
-
-    public void Update()
-    {
-        switch (controlMode)
-        {
-            case ControlMode.Regions:
-                ControlModeRegions();
-                break;
-            case ControlMode.Build:
-                ControlModeBuild();
-                break;
-            case ControlMode.Units:
-                ControlModeUnits();
-                break;
-        }
-
-        //HexTile oldStart = select;
-        //HexTile oldEnd = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
-
-        if (XZPlane.ScreenPointXZ0PlaneIntersection(camera, Input.mousePosition, out Vector3 intersection))
-            MousePointOnXZ0Plane = intersection;
-
-        MouseHexagonOnXZ0Plane = HexUtils.CartesianToHex(MousePointOnXZ0Plane.x, MousePointOnXZ0Plane.z, Size);
-        MouseHexagonTileOnXZ0Plane = HexUtils.HexRound(MouseHexagonOnXZ0Plane);
-
-        /*
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (select != null)
-            {
-                select = null;
-            }
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
-            {
-                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
-                if (mouse)
-                {
-                    select = mouse;
-                    Debug.Log(select);
-
-                    //foreach (HexTile tile in tiles)
-                    //    if (tile != null)
-                    //        tile.showTileBorder = false;
-                    //
-                    //foreach (HexTile tile in HexUtils.BreadthFirstFloodFill(select, HexUtils.SameType))
-                    //    tile.showTileBorder = true;
-
-                }
-            }
-        }
-
-
-        HexTile start = select;
-        HexTile end = this[MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y];
-
-        if (start != oldStart || end != oldEnd)
-        {
-            PathFinding.PathFind(start, end, 1000, 500, PathFinding.StandardCostFunction, out testPath);
-        }
-        */
-
-        RenderRegionBorders();
-
-        //DrawInstances();
-        if (treesRenderer != null)
-            treesRenderer.Draw(treeMesh, treeMaterial, LayerMask.NameToLayer("Trees"));
-
-        foreach (HexTile tile in tiles)
-            Graphics.DrawMesh(tile.Mesh, tile.transform.position, Quaternion.identity, grassMaterial, LayerMask.NameToLayer("Grass"), null, 0, null, grassShadowCasting);
-    }
-
-    [ContextMenu("Generate Navigation Mesh")]
-    public void GenerateNavigationMesh()
-    {
-        //NavigationMesh.GenerateMesh(this, out navNodes, out navEdges);
-
-        NavMeshBuildSettings buildSettings = new NavMeshBuildSettings
-        {
-            agentRadius = navMeshBuildSettings.agentRadius,
-            agentHeight = navMeshBuildSettings.agentHeight,
-            agentSlope = navMeshBuildSettings.agentSlope,
-            agentClimb = navMeshBuildSettings.agentClimb,
-            minRegionArea = navMeshBuildSettings.minRegionArea,
-            overrideTileSize = true,
-            tileSize = navMeshBuildSettings.tileSize,
-            overrideVoxelSize = true,
-            voxelSize = navMeshBuildSettings.voxelSize
-        };
-
-        List<NavMeshBuildSource> sources = new List<NavMeshBuildSource>();
-
-        foreach(HexTile tile in tiles)
-        {
-            sources.Add(new NavMeshBuildSource()
-            {
-                transform = tile.transform.localToWorldMatrix,
-                area = 0,
-                component = tile,
-                shape = NavMeshBuildSourceShape.Mesh,
-                sourceObject = tile.Mesh
-            });
-        }
-
-        sources.Add(new NavMeshBuildSource()
-        {
-            transform = water.localToWorldMatrix * Matrix4x4.Translate(new Vector3(0, -.1f, 0)),
-            area = 1,
-            shape = NavMeshBuildSourceShape.Mesh,
-            sourceObject = waterPlane
-        });
-
-        NavMeshData data = NavMeshBuilder.BuildNavMeshData(buildSettings, sources, new Bounds(Vector3.zero, Vector3.one * 20), Vector3.zero, Quaternion.identity);
-
-        NavMesh.RemoveAllNavMeshData();
-        NavMesh.AddNavMeshData(data);
-    }
-
-    public void OnDrawGizmos()
-    {
-
-        if (navNodes != null)
-        {
-            foreach (NavigationMesh.Node node in navNodes.Values)
-            {
-                //Handles.Label(node.Position, "" + node.Hex);
-                Gizmos.DrawSphere(node.Position, 0.01f);
-                foreach (NavigationMesh.Neighbour neighbour in node.Neighbours)
-                    Gizmos.DrawLine(node.Position, neighbour.Node.Position);
-            }
-        }
-        if (navEdges != null)
-        {
-            Gizmos.color = Color.red;
-            foreach (NavigationMesh.Edge edge in navEdges)
-            {
-                Gizmos.DrawLine(edge.Node1.Position, edge.Node2.Position);
-            }
-        }
-       
-        //DrawHexagon(MouseHexagonTileOnXZ0Plane.x, MouseHexagonTileOnXZ0Plane.y);
-
-        if (testPath != null && testPath.FoundPath)
-        {
-            for (int i = 0; i < testPath.Nodes.Count - 1; i++)
-            {
-                HexTile i0 = testPath[i];
-                HexTile i1 = testPath[i + 1];
-                Gizmos.DrawLine(i0.transform.position, i1.transform.position);
-            }
-        }
-
-        if (regions != null)
-        {
-            foreach (HexRegion region in regions.Values)
-                region.OnDrawGizmos();
-        }
-        int j = 0;
-        for (int x = 0; x < Width; x++)
-            for (int y = 0; y < Height; y++)
-            {
-                int i = x + y * Width;
-               // Handles.Label(tiles[i].transform.position, j + "");
-                j++;
-            }
-    }
-
-    /// <summary>
-    /// Clears the map in all respects. Nulls various fields so beware.
-    /// </summary>
-    [ContextMenu("Clear")]
-    public void Clear()
-    {
-        for (int i = transform.childCount - 1; i >= 0; i--)
-            DestroyImmediate(transform.GetChild(i).gameObject);
-        tiles = null;
-        SeedOffsetX = 0;
-        SeedOffsetY = 0;
-        if (treesRenderer != null)
-            treesRenderer.Clear();
-        treesRenderer = null;
-        regions = null;
-        navEdges = null;
-        navNodes = null;
-    }
-    
-    /// <summary>
-    /// Generates the map in all respects. Resets all regions and regenerates trees.
-    /// </summary>
-    [ContextMenu("Generate")]
-    public void Generate()
-    {
-        Clear();
-
-        tiles = new HexTile[width * height];
-        regions = new Dictionary<int, HexRegion>();
-
-        Random.InitState(seed);
-        SeedOffsetX = Random.value * 10000;
-        SeedOffsetY = Random.value * 10000;
-
-        for (int x = 0; x < width; x++)
-            for (int z = 0; z < height; z++)
-            {
-                tiles[x + z * width] = Instantiate(tilePrefab, transform);
-                int hexX = x - width / 2;
-                int hexY = z - height / 2 - x / 2 + width / 4;
-                tiles[x + z * width].GenerateMesh(this, hexX, hexY, true);
-            }
-
-        for (int x = 0; x < width; x++)
-            for (int z = 0; z < height; z++)
-            {
-                int hexX = x - width / 2;
-                int hexY = z - height / 2 - x / 2 + width / 4;
-                tiles[x + z * width].Neighbours = GetNeighbours(hexX, hexY);
-            }
-
-        SetupTrees();
-    }
-
-    /// <summary>
-    /// Renders all the region borders.
-    /// </summary>
-    private void RenderRegionBorders()
-    {
-        if (regions == null)
-            return;
-        int layer = LayerMask.NameToLayer("Regions");
-        foreach (HexRegion region in regions.Values)
-            Graphics.DrawMesh(region.Mesh, new Vector3(0,0.05f,0), Quaternion.identity, RegionMaterial(region.RegionID), layer, null, 0, null, false, false);
-    }
-
     /// <summary>
     /// Sets a tile to a certain region ID. 0 is no region. Existing regions affected by the change are updated accordingly, emptied regions are deleted. New regions are created if necessary.
     /// Returns true if the change was made successfully.
     /// </summary>
-    public bool SetTileRegion(int regionID, int x, int y)
+    public bool SetRegion(int regionID, int x, int y)
     {
         HexTile tile = this[x, y];
         if (tile == null)
@@ -772,53 +365,289 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         return true;
     }
 
-    private void SetupTrees()
+    /// <summary>
+    /// Clears the map in all respects. Nulls various fields so beware.
+    /// </summary>
+    [ContextMenu("Clear", false, 0)]
+    public void Clear()
     {
+        for (int i = transform.childCount - 1; i >= 0; i--)
+            DestroyImmediate(transform.GetChild(i).gameObject);
+
+        tiles = null;
+        SeedOffsetX = 0;
+        SeedOffsetY = 0;
+        if (treesRenderer != null)
+            treesRenderer.Clear();
+        treesRenderer = null;
+        regions = null;
+    }
+    
+    /// <summary>
+    /// Generates the map in all respects. Resets all regions and regenerates trees.
+    /// </summary>
+    [ContextMenu("Generate Map", false, 1)]
+    public void Generate()
+    {
+        #region Setup
+
+        Clear();
+
+        tiles = new HexTile[width * height];
+        regions = new Dictionary<int, HexRegion>();
+
+        Random.InitState(seed);
+        SeedOffsetX = Random.value * 10000;
+        SeedOffsetY = Random.value * 10000;
+        
+        #endregion
+        #region Generate Tiles
+
+        for (int x = 0; x < width; x++)
+            for (int z = 0; z < height; z++)
+                tiles[x + z * width] = Instantiate(tilePrefab, transform);
+
+        for (int x = 0; x < width; x++)
+            for (int z = 0; z < height; z++)
+            {
+                int hexX = x - width / 2;
+                int hexY = z - height / 2 - x / 2 + width / 4;
+                tiles[x + z * width].GenerateMesh(this, hexX, hexY, true);
+            }
+        #endregion
+        #region Generate Trees
+
         treesRenderer = new InstancedRenderer();
         Random.InitState(seed);
         foreach (HexTile tile in tiles)
-            SetupTrees(tile);
+        {
+            Vector3[] vertices = tile.Mesh.vertices;
+
+            for (int i = 0; i < vertices.Length - resolution * 3; i++)
+            {
+                Vector3 position = OnTerrain(tile.transform.position + vertices[i] + new Vector3((Random.value - 0.5f), 0, (Random.value - 0.5f)) * Size / resolution);
+
+                if (position.y < treesMinimumAltitude)
+                    continue;
+
+                if (position.y > treesMaximumAltitude)
+                    continue;
+
+                float treeSample = SampleTree(position.x, position.z);
+
+                if (treeSample < treesThreshold)
+                    continue;
+
+                float temperatureSample = SampleTemperature(position.x, position.y, position.z);
+
+                if (temperatureSample > treesMaximumTemperature)
+                    continue;
+
+                if (temperatureSample < treesMinimumTemperature)
+                    continue;
+
+                Quaternion rotation = Quaternion.Euler(0, 90, 0);// Quaternion.Euler(0, Random.Range(-180, 180), 0);
+                Vector3 scale = new Vector3(1, Random.Range(treesMinimumHeight, treesMaximumHeight), 1) * Random.Range(treesMinimumScale, treesMaximumScale) * treeSample;
+                Color color = treesColor.Evaluate(Random.value);
+                tile.TreesCount++;
+
+                treesRenderer.Add(Matrix4x4.TRS(position, rotation, scale), color);
+
+                // colors[i] = Color.Lerp(Color.red, Color.blue, Random.value);
+            }
+        }
+        #endregion
     }
 
-    private void SetupTrees(HexTile tile)
+    [ContextMenu("Generate Navigation Mesh", false, 2)]
+    public void GenerateNavigationMesh()
     {
-        // Vector4[] colors = new Vector4[population];
-
-        Vector3[] vertices = tile.Mesh.vertices;
-
-        for (int i = 0; i < vertices.Length - resolution * 3; i++)
+        NavMeshBuildSettings buildSettings = new NavMeshBuildSettings
         {
-            Vector3 position = OnTerrain(tile.transform.position + vertices[i] + new Vector3((Random.value - 0.5f), 0, (Random.value - 0.5f)) * 1f / resolution);
+            agentRadius = navMeshBuildSettings.agentRadius,
+            agentHeight = navMeshBuildSettings.agentHeight,
+            agentSlope = navMeshBuildSettings.agentSlope,
+            agentClimb = navMeshBuildSettings.agentClimb,
+            minRegionArea = navMeshBuildSettings.minRegionArea,
+            overrideTileSize = true,
+            tileSize = navMeshBuildSettings.tileSize,
+            overrideVoxelSize = true,
+            voxelSize = navMeshBuildSettings.voxelSize
+        };
 
-            if (position.y < treesMinimumAltitude)
-                continue;
+        List<NavMeshBuildSource> sources = new List<NavMeshBuildSource>();
 
-            if (position.y > treesMaximumAltitude)
-                continue;
-
-            float treeSample = SampleTree(position.x, position.z);
-
-            if (treeSample < treesThreshold)
-                continue;
-
-            float temperatureSample = SampleTemperature(position.x, position.y, position.z);
-
-            if (temperatureSample > treesMaximumTemperature)
-                continue;
-
-            if (temperatureSample < treesMinimumTemperature)
-                continue;
-
-            Quaternion rotation = Quaternion.Euler(0, 90, 0);// Quaternion.Euler(0, Random.Range(-180, 180), 0);
-            Vector3 scale = new Vector3(1, Random.Range(treeMinimumHeight, treeMaximumHeight), 1) * Random.Range(treeMinimumScale, treeMaximumScale) * treeSample;
-            Color color = treesColor.Evaluate(Random.value);
-            tile.TreesCount++;
-
-            treesRenderer.Add(Matrix4x4.TRS(position, rotation, scale), color);
-
-            // colors[i] = Color.Lerp(Color.red, Color.blue, Random.value);
+        foreach (HexTile tile in tiles)
+        {
+            sources.Add(new NavMeshBuildSource()
+            {
+                transform = tile.transform.localToWorldMatrix,
+                area = 0,
+                component = tile,
+                shape = NavMeshBuildSourceShape.Mesh,
+                sourceObject = tile.Mesh
+            });
         }
 
-        //block.SetVectorArray("_Colors", colors);
+        NavMeshData data = NavMeshBuilder.BuildNavMeshData(buildSettings, sources, navMeshArea, Vector3.zero, Quaternion.identity);
+        
+        NavMesh.RemoveAllNavMeshData();
+        NavMesh.AddNavMeshData(data);
+    }
+
+    public void Update()
+    {
+        switch (controlMode)
+        {
+            case ControlMode.Regions:
+                ControlModeRegions();
+                break;
+            case ControlMode.Build:
+                ControlModeBuild();
+                break;
+            case ControlMode.Units:
+                ControlModeUnits();
+                break;
+        }
+
+        
+        #region Render Trees
+        if (treesRenderer != null)
+        {
+            treesRenderer.Draw(treesMesh, treesMaterial, LayerMask.NameToLayer("Trees"));
+        }
+        #endregion
+        #region Render Grass
+        if (tiles != null)
+        {
+            foreach (HexTile tile in tiles)
+                Graphics.DrawMesh(tile.Mesh, tile.transform.position, Quaternion.identity, grassMaterial, LayerMask.NameToLayer("Grass"), null, 0, null, grassShadowCasting);
+        }
+        #endregion
+        #region Render Region Borders
+        if (regions != null)
+        {
+            int layer = LayerMask.NameToLayer("Regions");
+            foreach (HexRegion region in regions.Values)
+                Graphics.DrawMesh(region.Mesh, new Vector3(0, 0.05f, 0), Quaternion.identity, RegionMaterial(region.RegionID), layer, null, 0, null, false, false);
+        }
+        #endregion
+    }
+
+    private bool MousePickComponent<T>(int layermask, float maxDistance, out RaycastHit hitInfo, out T component) where T : Component
+    {
+        component = null;
+        if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hitInfo, maxDistance, layermask))
+            component = hitInfo.collider.GetComponent<T>();
+        return component != null;
+    }
+
+    private int MousePickComponent<A, B>(int layermask, float maxDistance, out RaycastHit hitInfo, out A componentA, out B componentB)
+        where A : Component
+        where B : Component
+    {
+        componentA = null;
+        componentB = null;
+        if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hitInfo, maxDistance, layermask))
+        {
+            componentA = hitInfo.collider.GetComponent<A>();
+            componentB = hitInfo.collider.GetComponent<B>();
+        }
+        int result = 0;
+
+        if (componentA != null)
+            result += 1;
+
+        if (componentB != null)
+            result += 2;
+
+        return result;
+    }
+
+    public void ControlModeUnits()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            switch (MousePickComponent<HexTile, Unit>(LayerMask.GetMask("Terrain", "Buildings", "Units"), 1000, out _, out _, out Unit unit))
+            {
+                case 1:
+                    selection = new List<Unit>();
+                    break;
+                case 2:
+                    selection = new List<Unit> { unit };
+                    break;
+                case 3:
+                    goto case 2;
+            }
+        }
+        if (Input.GetMouseButtonDown(1) && selection.Count > 0)
+        {
+            if (MousePickComponent(LayerMask.GetMask("Terrain", "Buildings", "Units"), 1000, out RaycastHit hitInfo, out HexTile tile))
+            {
+                foreach (Unit unit in selection)
+                    unit.SetDestination(hitInfo.point);
+            }
+        }
+    }
+
+    public void ControlModeBuild()
+    {
+        if (Input.GetKey(KeyCode.LeftArrow))
+            placingRotation--;
+        if (Input.GetKey(KeyCode.RightArrow))
+            placingRotation++;
+
+        if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")) && hitInfo.collider.GetComponent<HexTile>())
+        {
+            HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
+            Matrix4x4 parentTransform = Matrix4x4.TRS(hitInfo.point, Quaternion.Euler(0, placingRotation, 0), Vector3.one);
+
+            placingObject.ToTerrain(parentTransform, this);
+            if (mouse && mouse.RegionID == 1 && !placingObject.CheckCollisions(parentTransform, LayerMask.GetMask("Buildings", "Water")))
+            {
+                placingObject.Draw(parentTransform, LayerMask.NameToLayer("Placing"), null, true);
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    Instantiate(placingObject, hitInfo.point, Quaternion.Euler(0, placingRotation, 0));
+                }
+
+                return;
+            }
+            placingObject.Draw(parentTransform, LayerMask.NameToLayer("Placing"), cantBuildMaterial, false);
+        }
+    }
+
+    public void SetPlacingObject(Building placingObject)
+    {
+        this.placingObject = placingObject;
+        if (placingObject)
+            placingObject.ExtractParts();
+    }
+
+    private void ControlModeRegions()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            {
+                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
+                if (mouse)
+                {
+                    SetRegion(regionPlacing, mouse.Position.x, mouse.Position.y);
+                }
+            }
+        }
+        if (Input.GetMouseButtonDown(1))
+        {
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            {
+                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
+                if (mouse)
+                {
+                    SetRegion(0, mouse.Position.x, mouse.Position.y);
+                }
+            }
+        }
     }
 }

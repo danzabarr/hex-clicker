@@ -31,6 +31,8 @@ public class CameraController : MonoBehaviour
     private float zoomAmount = 0.5f;
     private DepthOfField depthOfField;
 
+    public float focusDistanceOffset;
+
     private void Awake()
     {
         postProcessing.profile.TryGetSettings(out depthOfField);
@@ -80,16 +82,25 @@ public class CameraController : MonoBehaviour
         zoomAmount = Mathf.Clamp(zoomAmount - zoomVelocity, 0, 1);
 
         pitch.localRotation = Quaternion.Euler(zoomAmount * 50 + 40, pitch.localRotation.eulerAngles.y, pitch.localRotation.eulerAngles.z);
-        zoom.localPosition = Vector3.forward * -(zoomAmount * 22);
+        zoom.localPosition = Vector3.forward * -(zoomAmount * 20);
+
+        if (Physics.Raycast(camera.ScreenPointToRay(new Vector3(Screen.width/ 2, Screen.height/2)), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+        {
+            depthOfField.focusDistance.value = hitInfo.distance + focusDistanceOffset;
+            depthOfField.focalLength.value = (hitInfo.distance - .5f) / 10f * 220f + 80f;
+        }
+
+        
 
         zoomVelocity *= Mathf.Pow(zoomDampening, Time.deltaTime);
-        depthOfField.focusDistance.value = Mathf.Min(zoomAmount * 17 + 2, 20);
-        depthOfField.focalLength.value = 10 + (zoomAmount * 22 - 1) * 10;
+        //depthOfField.focusDistance.value = zoomAmount * 10 - 0.25f;
+       // depthOfField.focalLength.value = zoomAmount * 5;
 
         camera.transform.localPosition = Vector3.zero;
 
         float terrain = HexMap.Instance.SampleHeight(camera.transform.position.x, camera.transform.position.z) + minimumHeightAboveTerrain;
         camera.transform.position = new Vector3(camera.transform.position.x, Mathf.Max(terrain, camera.transform.position.y), camera.transform.position.z);
 
+        Shader.SetGlobalVector("_CameraFocalPoint", transform.position);
     }
 }

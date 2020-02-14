@@ -4,43 +4,8 @@ using UnityEditor;
 using UnityEngine;
 
 [System.Serializable]
-public class HexTile : MonoBehaviour, PathFinding.INode
+public class HexTile : MonoBehaviour
 {
-    public enum ElevationType
-    {
-        Water,
-        Plain,
-        Hill,
-        Mountain
-    }
-
-    //Static convert a (float) height to one of the ElevationType types
-    public static ElevationType GetType(float height)
-    {
-        if (height < 0) return ElevationType.Water;
-        if (height < 1) return ElevationType.Plain;
-       // if (height < .8f) return ElevationType.Hill;
-        return ElevationType.Mountain;
-    }
-
-    //Static returns the pathing movement cost of an ElevationType
-    public static int GetCost(ElevationType type)
-    {
-        switch (type)
-        {
-            case ElevationType.Water:
-                return 0;
-            case ElevationType.Plain:
-                return 0;
-            case ElevationType.Hill:
-                return 1;
-            case ElevationType.Mountain:
-                return 100;
-            default:
-                return 0;
-        }
-    }
-
     [SerializeField]
     private MeshFilter meshFilter;
     [SerializeField]
@@ -51,8 +16,6 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     private Material border;
     public Mesh Mesh => meshFilter.sharedMesh;
     public Vector2Int Position { get; private set; }
-    public float Elevation { get; private set; }
-    public ElevationType Type { get; set; }
     public int TreesCount { get; set; }
     public float Temperature { get; private set; }
     public int RegionID { get; set; }
@@ -60,6 +23,8 @@ public class HexTile : MonoBehaviour, PathFinding.INode
     public bool showTileBorder;
 
     public Dictionary<Vector2Int, NavigationMesh.Node> nodes;
+
+    public HexTile[] Neighbours { get; private set; }
 
     #region Helper Fields
     /*
@@ -174,8 +139,6 @@ public class HexTile : MonoBehaviour, PathFinding.INode
                 }
     }
 
-    public override string ToString() => "HexTile " + Position + "\n Type: " + Type + "\n Altitude: " + string.Format("{0:0.00}", Elevation) + "\n Temperature: " + string.Format("{0:0.00}", Temperature) + "\n Trees: " + TreesCount; 
-
     //Generate the mesh for this tile.
     public void GenerateMesh(HexMap map, int x, int y, bool fixNormalsAtSeams)
     {
@@ -184,14 +147,7 @@ public class HexTile : MonoBehaviour, PathFinding.INode
         Vector2 centerCartesian = HexUtils.HexToCartesian(x, y, map.Size);
         transform.position = new Vector3(centerCartesian.x, 0, centerCartesian.y);
 
-        //Sample the elevation for the tile
-        Elevation = map.SampleElevation(x, y);
-        
-        //Store the ElevationType for the elevation
-        Type = GetType(Elevation);
-
-        //Store the temperature for the tile
-        Temperature = map.SampleTemperature(x, Elevation, y);
+        Neighbours = map.GetNeighbours(x, y);
 
         int res = map.Resolution;
 
@@ -206,7 +162,7 @@ public class HexTile : MonoBehaviour, PathFinding.INode
         int[] triangles = new int[trianglesCount];
 
         //Calculate the center point in the mesh
-        float centerHeight = map.SampleHeight(centerCartesian.x, centerCartesian.y, x, y);
+        float centerHeight = map.SampleHeight(centerCartesian.x, centerCartesian.y);
         vertices[0] = new Vector3(0, centerHeight, 0);
         uv[0] = centerCartesian;
         uv2[0] = Vector2.zero;
@@ -241,7 +197,7 @@ public class HexTile : MonoBehaviour, PathFinding.INode
                     //Convert to global by adding the center position
                     Vector2 globalCartesian = centerCartesian + localCartesian;
                     //Sample the height for this vertex
-                    float height = map.SampleHeight(globalCartesian.x, globalCartesian.y, x, y);
+                    float height = map.SampleHeight(globalCartesian.x, globalCartesian.y);
                     //Get the angle and construct the radial coordinates used for the uv2 of this vertex
                     float angle = Mathf.Atan2(localCartesian.x, localCartesian.y);
                     float radialX = (angle + Mathf.PI) / (Mathf.PI * 2);
@@ -313,7 +269,7 @@ public class HexTile : MonoBehaviour, PathFinding.INode
                 {
                     float pX = centerPoint.x + HexUtils.sinAngles[p] * radius;
                     float pZ = centerPoint.z + HexUtils.cosAngles[p] * radius;
-                    radialPoints[p] = new Vector3(pX, map.SampleHeight(pX, pZ, x, y), pZ);
+                    radialPoints[p] = map.OnTerrain(pX, pZ);
                 }
 
                 Vector3 surfaceNormalSum = Vector3.zero;
@@ -377,26 +333,4 @@ public class HexTile : MonoBehaviour, PathFinding.INode
 
         return normal;
     }
-
-
-    #region PathFinding
-    public float Cost => GetCost(Type);
-    public PathFinding.INode PathParent { get; set; }
-    public float PathDistance { get; set; }
-    public float PathCrowFliesDistance { get; set; }
-    public float PathCost { get; set; }
-    public int PathSteps { get; set; }
-    public int PathTurns { get; set; }
-    public int PathEndDirection { get; set; }
-    public bool Accessible => Type != ElevationType.Water;
-    public int NeighboursCount => 6;
-    [SerializeField]
-    public HexTile[] Neighbours;
-    public PathFinding.INode Neighbour(int neighbourIndex) => Neighbours[neighbourIndex];
-    public float NeighbourDistance(int neighbourIndex) => 1;
-    public float NeighbourCost(int neighbourIndex) => Neighbours[neighbourIndex].Cost;
-    public bool NeighbourAccessible(int neighbourIndex) => Neighbours[neighbourIndex].Accessible;
-    public float Distance(PathFinding.INode node) => Vector2.Distance(Position, (node as HexTile).Position);
-
-    #endregion
 }

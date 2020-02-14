@@ -20,9 +20,9 @@
 
 		[Space][Space]
 		_Band0("Dirt Height", Float) = 0
-		_Band1("Dirt/Grass Blending", Range(0,1)) = 1
-		_Band2("Grass Height", Range(0,1)) = 1
-		_Band3("Grass/Rock Blending", Range(0,1)) = 1
+		_Band1("Dirt/Grass Blending", Float) = 1
+		_Band2("Grass Height", Float) = 1
+		_Band3("Grass/Rock Blending", Float) = 1
 
 		[Space][Space]
 		//_SlopeStart("Slope Start", Range(0, 1)) = .2

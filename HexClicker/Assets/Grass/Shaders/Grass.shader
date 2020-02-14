@@ -25,13 +25,17 @@ Shader "Roystan/Grass"
 		[Header(Altitude Culling)]
 		_MinAlt("Minimum Altitude", Float) = 10
 		_MaxAlt("Maximum Altitude", Float) = 90
-		_MaxSlope("Maximum Slope", Range(0, 2)) = .03
+		_AltBlending("Altitude Blending", Range(0, 1)) = .2
+		_MaxSlope("Maximum Slope", Range(0, 1)) = .03
+		_SlopeBlending("Slope Blending", Range(0, 1)) = .2
 		[Header(Temperature Culling)]
 		_MinTemp("Minimum Temperature", Range(-10,10)) = 0.1
 		_MaxTemp("Maximum Temperature", Range(-10,10)) = 0.9
 		[Header(Masking)]
 		_GrassMask("Mask", 2D) = "white" {}
 		_MaskThreshold("Mask Threshold", Range(0, 1)) = 0.5
+		_MaskBlending("Mask Blending", Range(0, 1)) = 0.5
+		_MaskMinimum("Mask Minimum", Range(0, 1)) = 0.5
 		_DistanceCulling("Distance Culling", Float) = 500
     }
 
@@ -75,11 +79,12 @@ Shader "Roystan/Grass"
                 half atten = SHADOW_ATTENUATION(i);
 
 				col *= max((diffuse + specular) * atten  * _LightColor0, UNITY_LIGHTMODEL_AMBIENT);
+				col = saturate(col);
 
 				UNITY_APPLY_FOG(i.fogCoord, col);
 
-				return saturate(float4(col, 1));
-            }
+				return float4(col, 1);
+			}
 
             ENDCG
         }
@@ -176,6 +181,8 @@ Shader "Roystan/Grass"
 				);
 
 				result = clamp(result, 0, 1);
+
+				
 
 				return result;
 			}

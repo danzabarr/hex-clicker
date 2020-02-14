@@ -263,7 +263,7 @@ public class HexRegion
 
                 Vector3 insidePoint;
 
-                HexTile n = t.Neighbour((e + 1) % 6) as HexTile;
+                HexTile n = t.Neighbours[(e + 1) % 6] as HexTile;
                 if (n != null && n.inFloodFillSet)
                 {
                     if (outwardEdge)

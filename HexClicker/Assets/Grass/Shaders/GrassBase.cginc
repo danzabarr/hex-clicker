@@ -6,8 +6,13 @@
 #include "Autolight.cginc"
 #include "CustomTessellation.cginc"
 	            
-uniform float _LatitudeScale, _WaterLevel, _AltitudeTemperature, _Temperature, _Wetness;
+uniform float _LatitudeScale;
+uniform float _WaterLevel;
+uniform float _AltitudeTemperature;
+uniform float _Temperature;
+uniform float _Wetness;
 uniform float3 _WorldOffset;
+uniform float3 _CameraFocalPoint;
 
 struct geometryOutput
 {
@@ -118,8 +123,10 @@ float _WindStrength;
 float2 _WindFrequency;
 
 float _MaxAlt,_MinAlt;
+float _AltBlending;
 
 float _MaxSlope, _HighSlope, _HighSlopeBladeSize;
+float _SlopeBlending;
 
 float _MinTemp, _LowTemp, HighTemp, _MaxTemp;
 
@@ -127,9 +134,12 @@ float _MinTempBladeWidth, _MinTempBladeHeight;
 float _LowTempBladeWidth, _LowTempBladeHeight;
 float _HighTempBladeWidth, _HiTempBladeHeight;
 float _MaxTempBladeWidth, _MaxTempBladeHeight;
+
 float _ClipXZ, _DistanceCulling;
 
 float _MaskThreshold;
+float _MaskBlending;
+float _MaskMinimum;
 
 float _Smoothness;
 
@@ -141,31 +151,39 @@ float _Smoothness;
 void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triStream)
 {
 	float3 pos = IN[0].vertex.xyz;
-
 	float3 world = mul(unity_ObjectToWorld, float4(pos.xyz, 1.0)).xyz;
 
-	float3 camera = _WorldSpaceCameraPos;
+	if (dot(world - _WorldSpaceCameraPos, world - _WorldSpaceCameraPos) > _DistanceCulling * _DistanceCulling * 2)
+		return;
 
-	float2 cameraDistance = world.xz - _WorldSpaceCameraPos.xz;
+	if (dot(world - _CameraFocalPoint, world - _CameraFocalPoint) > _DistanceCulling * _DistanceCulling)
+		return;
 
-	if (dot(cameraDistance, cameraDistance) > _DistanceCulling * _DistanceCulling)
+	float3 viewDir = mul((float3x3)unity_CameraToWorld, float3(0, 0, 1));
+
+	if (dot(viewDir, _WorldSpaceCameraPos - world) > 0)
 		return;
 
 	world -= _WorldOffset;
 
-	float3 mask = tex2Dlod(_GrassMask, float4(IN[0].uv, 0, 0)).rgb;
+	float3 maskSample = tex2Dlod(_GrassMask, float4(IN[0].uv, 0, 0)).rgb;
+	float mask = (maskSample.x + maskSample.y + maskSample.z) / 3;
 
-	if ((mask.x + mask.y + mask.z) / 3 < _MaskThreshold)
+	if (mask < _MaskThreshold)
 		return;
 	
 	//Removes weird flickery grass in the very corner
 	//if (pos.x < _ClipXZ && pos.z < _ClipXZ) return;
 
-	if (world.y < _WaterLevel + _MinAlt) return;
-	if (world.y > _MaxAlt) return;
+	if (world.y < _WaterLevel + _MinAlt)
+		return;
+
+	if (world.y > _MaxAlt)
+		return;
 
 	float slope = 1.0f - IN[0].normal.y;
-	if (slope > _MaxSlope) return;
+	if (slope > _MaxSlope)
+		return;
 
 	float temperature = _Temperature + 0.5;
 	temperature += world.x / _LatitudeScale;
@@ -179,16 +197,29 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	float heightLo = (.25 + 1) / 2;
 	float heightHi = (.85 + 1) / 2;
-
 	
-	if (temperature < _MinTemp || temperature > _MaxTemp) return;
+	if (temperature < _MinTemp || temperature > _MaxTemp)
+		return;
 
 	float bladeSize = 1;
-	if (slope + .02 > _MaxSlope) {
-		bladeSize = lerp(.5, 1, 1 - (slope + .02 - _MaxSlope) / .02);
-	}
+	
+	bladeSize *= saturate((mask - _MaskThreshold) / _MaskBlending);
 
-	if (bladeSize <= 0) return;
+	if (bladeSize <= _MaskMinimum)
+		return;
+
+	if (slope + _SlopeBlending > _MaxSlope)
+		bladeSize *= lerp(0.2, 1, 1 - (slope + _SlopeBlending - _MaxSlope) / _SlopeBlending);
+
+	if (world.y + _AltBlending > _MaxAlt)
+		bladeSize *= lerp(0.2, 1, 1 - (world.y + _AltBlending - _MaxAlt) / _AltBlending);
+
+	if (world.y - _AltBlending < _MinAlt)
+		bladeSize *= lerp(0.2, 1, (world.y - _MinAlt) / _AltBlending);
+
+	if (bladeSize < 0)
+		return;
+
 	float t = (temperature + 1) / 2;
 
 	float bladeWidth = 1;
@@ -213,7 +244,8 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 		bladeHeight = lerp(0.25, 1, 1 - saturate((temperature - heightHi) / (max - heightHi)));
 	}
-	
+
+
 	// Each blade of grass is constructed in tangent space with respect
 	// to the emitting vertex's normal and tangent vectors, where the width
 	// lies along the X axis and the height along Z.
@@ -232,7 +264,7 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	// Construct a matrix to transform our blade from tangent space
 	// to local space; this is the same process used when sampling normal maps.
-	float3 vNormal = float3(0, 1, 0);//IN[0].normal;
+	float3 vNormal = IN[0].normal;//float3(0, 1, 0);//IN[0].normal;
 	float4 vTangent = IN[0].tangent;
 	float3 vBinormal = cross(vNormal, vTangent) * vTangent.w;
 
