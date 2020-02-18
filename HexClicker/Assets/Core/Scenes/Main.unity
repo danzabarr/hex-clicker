@@ -437,6 +437,7 @@ GameObject:
   - component: {fileID: 375412087}
   - component: {fileID: 375412086}
   - component: {fileID: 375412088}
+  - component: {fileID: 375412089}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -460,10 +461,8 @@ MonoBehaviour:
   tilePrefab: {fileID: 1074967575922730038, guid: 383fb86b05abe97448062b77ac03dd7e,
     type: 3}
   seed: 6
-  width: 16
+  width: 8
   height: 8
-  resolution: 8
-  tileSize: 4
   terrainNoiseSettings:
     frequency: 0.03
     octaves: 8
@@ -553,26 +552,26 @@ MonoBehaviour:
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
   treesNoiseSettings:
-    frequency: 0.1
+    frequency: 0.05
     octaves: 8
     lacunarity: 4
-    persistence: 0.5
+    persistence: 0.6
   treesThreshold: 0.5
   treesMinimumTemperature: -0.25
   treesMaximumTemperature: 4
   treesMinimumAltitude: 0.174
-  treesMaximumAltitude: 1
+  treesMaximumAltitude: 1.5
   treesMinimumHeight: 1
   treesMaximumHeight: 1.5
-  treesMinimumScale: 1
-  treesMaximumScale: 1.5
+  treesMinimumScale: 0.25
+  treesMaximumScale: 0.5
+  treesRandomPosition: 0.6
   grassMaterial: {fileID: 2100000, guid: dc23b46c0890b774bb9bbeb2aa16645d, type: 2}
   grassShadowCasting: 0
   temperature: 1
   latitudeScale: 15
   altitudeTemperature: 0.5
   water: {fileID: 1870857161214383443}
-  waterPlane: {fileID: 4300002, guid: 681e41ee1260343b395ca58745c94870, type: 3}
   waterLevel: 0
   waterBlending: 0.062
   waterColor: {r: 0.011764699, g: 0.23619843, b: 0.43529412, a: 0.7607843}
@@ -592,17 +591,9 @@ MonoBehaviour:
   - {fileID: 2100000, guid: a88e5609de377d74ea3dbc85d91336c8, type: 2}
   - {fileID: 2100000, guid: 70e81c210cb3f9a42937d6608aca0809, type: 2}
   regionPlacing: 1
-  navMeshBuildSettings:
-    agentRadius: 0.025
-    agentHeight: 2
-    agentSlope: 45
-    agentClimb: 0.1
-    minRegionArea: 0.1
-    tileSize: 1
-    voxelSize: 0.01
-  navMeshArea:
-    m_Center: {x: -3, y: 0.5, z: -2}
-    m_Extent: {x: 50, y: 0.5, z: 30}
+  navigationDrawGraph: 0
+  navigationRaycastModifier: 1
+  testUnit: {fileID: 790344294}
   placingObject: {fileID: 5364032980645103825, guid: 6111d4b7248c181498eeb4b5fa891e8f,
     type: 3}
   cantBuildMaterial: {fileID: 2100000, guid: 009ddc8f30d593d42834d2f527230f66, type: 2}
@@ -635,6 +626,35 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 100, y: 1, z: 60}
   m_Center: {x: -3, y: 0.5, z: -2}
+--- !u!114 &375412089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 375412085}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AgentTypeID: 0
+  m_CollectObjects: 0
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 140288
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 1
+  m_TileSize: 16
+  m_OverrideVoxelSize: 1
+  m_VoxelSize: 0.05
+  m_BuildHeightMesh: 0
+  m_NavMeshData: {fileID: 0}
 --- !u!1001 &487128113
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1209,7 +1229,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 790344288}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.675, y: 0.418, z: -0.477}
+  m_LocalPosition: {x: -5.99, y: 0.506, z: -3.524}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1222,11 +1242,11 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 790344288}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: 0
   m_Radius: 0.5
   m_Speed: 1
-  m_Acceleration: 5
+  m_Acceleration: 100
   avoidancePriority: 50
   m_AngularSpeed: 360
   m_StoppingDistance: 0
@@ -1235,7 +1255,7 @@ NavMeshAgent:
   m_AutoRepath: 1
   m_Height: 2
   m_BaseOffset: 1
-  m_WalkableMask: 1
+  m_WalkableMask: 25
   m_ObstacleAvoidanceType: 4
 --- !u!136 &790344291
 CapsuleCollider:
@@ -1867,7 +1887,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1379498954
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2941,9 +2961,9 @@ Canvas:
   m_GameObject: {fileID: 2106171110}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
+  m_RenderMode: 1
+  m_Camera: {fileID: 963194227}
+  m_PlaneDistance: 1
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0

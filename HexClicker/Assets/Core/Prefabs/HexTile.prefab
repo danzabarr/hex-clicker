@@ -100,7 +100,6 @@ MonoBehaviour:
   edgesVisited: 000000000000
   inFloodFillSet: 0
   state: 0
-  Neighbours: []
 --- !u!64 &9076195393788734775
 MeshCollider:
   m_ObjectHideFlags: 0

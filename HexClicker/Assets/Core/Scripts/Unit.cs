@@ -1,24 +1,42 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
-[RequireComponent(typeof(NavMeshAgent))]
 public class Unit : MonoBehaviour
 {
-    private NavMeshAgent agent;
-    void Awake()
+    private Navigation.PathFindThreaded pathFindThread;
+    public PathFinding.Path<Navigation.Node> Path { get; private set; }
+    public void SetPath(PathFinding.Path<Navigation.Node> path)
     {
-        agent = GetComponent<NavMeshAgent>();
+        if (pathFindThread != null && !pathFindThread.Completed)
+            pathFindThread.Abort();
+        pathFindThread = null;
+        Path = path;
     }
 
-    private void Start()
+    public void SetDestination(Vector3 destination)
     {
-        agent.enabled = false;
-        agent.enabled = true;
+        if (pathFindThread != null && !pathFindThread.Completed)
+            pathFindThread.Abort();
+        pathFindThread = new Navigation.PathFindThreaded(transform.position, destination, 5000, 20000, PathFinding.StandardCostFunction, HexMap.TileSize / HexMap.NavigationResolution * .5f);
     }
 
-    public void SetDestination(Vector3 position) => agent.SetDestination(position);
+    public void Update()
+    {
+        if (pathFindThread != null && pathFindThread.Completed)
+        {
+            if (pathFindThread.Result == PathFinding.Result.Success)
+                Path = pathFindThread.Path;
+            else
+                Path = null;
 
+            pathFindThread = null;
+        }
+    }
 
+    public void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Navigation.DrawPath(Path, false);
+    }
 }

@@ -72,11 +72,11 @@ Material:
     - _BendRotationRandom: 0.4
     - _BladeCurve: 4
     - _BladeForward: 0.02
-    - _BladeHeight: 0.2
+    - _BladeHeight: 0.1
     - _BladeHeightRandom: 0.01
     - _BladeRandomAmount: 0.5
     - _BladeSegments: 3
-    - _BladeWidth: 0.015
+    - _BladeWidth: 0.01
     - _BladeWidthRandom: 0
     - _BumpScale: 1
     - _ClipXZ: 0.0001
@@ -95,17 +95,17 @@ Material:
     - _LowTemp: 0
     - _LowTempBladeHeight: 0
     - _LowTempBladeWidth: 0
-    - _MaskBlending: 0.216
-    - _MaskMinimum: 0.2
+    - _MaskBlending: 0.1
+    - _MaskMinimum: 0.4
     - _MaskThreshold: 0.1
     - _MaxAlt: 1
-    - _MaxSlope: 0.05
+    - _MaxSlope: 0.1
     - _MaxTemp: 4
     - _MaxTempBladeHeight: 0
     - _MaxTempBladeWidth: 0
     - _Metallic: 0
     - _MinAlt: 0.01
-    - _MinTemp: 0.1
+    - _MinTemp: 0.05
     - _MinTempBladeHeight: 0
     - _MinTempBladeWidth: 0
     - _Mode: 0
@@ -118,7 +118,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _TessellationUniform: 32
+    - _TessellationUniform: 16
     - _TranslucentGain: 0.7
     - _UVSec: 0
     - _WindScale: 1

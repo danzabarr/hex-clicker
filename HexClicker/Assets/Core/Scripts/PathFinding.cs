@@ -5,8 +5,9 @@ using UnityEngine;
 public class PathFinding 
 {
     public delegate float CostFunction(float distance, float cost, float crowFliesDistance, int steps, int turns);
-    public static float StandardCostFunction(float distance, float cost, float crowFliesDistance, int steps, int turns) => distance + cost + crowFliesDistance + turns;
-    public static float NoAdditionalsCostFunction(float distance, float cost, float crowFliesDistance, int steps, int turns) => distance + crowFliesDistance;
+    public static float StandardCostFunction(float distance, float cost, float crowFliesDistance, int steps, int turns) => distance + cost + crowFliesDistance;
+    public static float NoAdditionalCosts(float distance, float cost, float crowFliesDistance, int steps, int turns) => distance + crowFliesDistance;
+    public static float StraightPaths(float distance, float cost, float crowFliesDistance, int steps, int turns) => distance + cost + crowFliesDistance + turns;
 
     public enum Result
     {
@@ -19,27 +20,34 @@ public class PathFinding
 
     public interface INode
     {
-        INode PathParent { get; set; }
+        int PathParent { get; set; }
+        int PathIndex { get; set; }
         float PathDistance { get; set; }   
         float PathCrowFliesDistance { get; set; }
         float PathCost  { get; set; }
         int PathSteps { get; set; }
         int PathTurns { get; set; }
+        
         int PathEndDirection { get; set; }
         bool Accessible { get; }
         int NeighboursCount { get; }
-        INode Neighbour(int neighbourIndex);
-        float NeighbourDistance(int neighbourIndex);
-        float NeighbourCost(int neighbourIndex);
-        bool NeighbourAccessible(int neighbourIndex);
-        float Distance(INode node);
+        INode Neighbour(int i);
+        float NeighbourDistance(int i);
+        float NeighbourCost(int i);
+        bool NeighbourAccessible(int i);
+        float EuclideanDistance(INode node);
+        float XZEuclideanDistance(INode node);
+        bool Open { get; set; }
+        bool Closed { get; set; }
     }
+    public static float TotalCost(INode node, CostFunction function) => function(node.PathDistance, node.PathCost, node.PathCrowFliesDistance, node.PathSteps, node.PathTurns);
 
     [System.Serializable]
     public class Path<T> where T : INode
     {
         public bool FoundPath { get; private set; }
         public List<T> Nodes { get; private set; }
+        public int Length => Nodes.Count;
         public T this[int index] => Nodes[index];
         public float Distance { get; private set; }
         public float Cost { get; private set; }
@@ -62,9 +70,10 @@ public class PathFinding
         }
     }
 
-    public static Result PathFind<T>(T start, T end, float maxDistance, int maxTries, CostFunction costFunction, out Path<T> path) where T : INode
+    public static Result PathFind<T>(T start, T end, float maxDistance, int maxTries, CostFunction costFunction, out Path<T> path, out List<T> visited, bool cleanUpOnSuccess = true) where T : INode
     {
         path = null;
+        visited = new List<T>();
 
         if (start == null || end == null)
             return Result.FailureNoPath;
@@ -75,20 +84,22 @@ public class PathFinding
         if (start.Equals(end))
             return Result.AtDestination;
 
-        float d = start.Distance(end);
+        float d = start.EuclideanDistance(end);
 
         if (d > maxDistance)
             return Result.FailureTooFar;
 
-        List<T> visited = new List<T>();
         List<T> open = new List<T>();
-        List<T> closed = new List<T>();
+        //List<T> closed = new List<T>();
 
         start.PathDistance = 0;
         start.PathCrowFliesDistance = d;
 
         open.Add(start);
+        start.Open = true;
+
         visited.Add(start);
+        start.PathIndex = 0;
 
         int tries = 0;
         while (true)
@@ -117,19 +128,11 @@ public class PathFinding
 
             foreach (T node in open)
             {
-                if (currentNode == null)
+                float cost = costFunction(node.PathDistance, node.PathCost, node.PathCrowFliesDistance, node.PathSteps, node.PathTurns);
+                if (currentNode == null || cost < currentCost)
                 {
                     currentNode = node;
-                    currentCost = costFunction(currentNode.PathDistance, currentNode.PathCost, currentNode.PathCrowFliesDistance, currentNode.PathSteps, currentNode.PathTurns);
-                }
-                else
-                {
-                    float nodeCost = costFunction(node.PathDistance, node.PathCost, node.PathCrowFliesDistance, node.PathSteps, node.PathTurns);
-                    if (nodeCost < currentCost)
-                    {
-                        currentCost = nodeCost;
-                        currentNode = node;
-                    }
+                    currentCost = cost;
                 }
             }
 
@@ -147,8 +150,10 @@ public class PathFinding
             }
 
             open.Remove(currentNode);
-            closed.Add(currentNode);
+            currentNode.Open = false;
 
+            //closed.Add(currentNode);
+            currentNode.Closed = true;
 
             for (int i = 0; i < currentNode.NeighboursCount; i++)
             {
@@ -165,7 +170,7 @@ public class PathFinding
 
                 float distance = currentNode.NeighbourDistance(i);
                 float nextPathDistance = currentNode.PathDistance + distance;
-                float nextPathCrowFliesDistance = neighbour.Distance(end);
+                float nextPathCrowFliesDistance = neighbour.EuclideanDistance(end);
                 float nextPathCost = currentNode.PathCost + currentNode.NeighbourCost(i);
                 int nextPathSteps = currentNode.PathSteps + 1;
                 int nextPathTurns = currentNode.PathTurns + ((currentNode.PathSteps == 0 || currentNode.PathEndDirection == i) ? 0 : 1);
@@ -175,10 +180,13 @@ public class PathFinding
                 if (nextTotalCost < costFunction(neighbour.PathDistance, neighbour.PathCost, neighbour.PathCrowFliesDistance, neighbour.PathSteps, neighbour.PathTurns))
                 {
                     open.Remove(neighbour);
-                    closed.Remove(neighbour);
+                    neighbour.Open = false;
+
+                    //closed.Remove(neighbour);
+                    neighbour.Closed = false;
                 }
 
-                if (!open.Contains(neighbour) && !closed.Contains(neighbour))
+                if (!neighbour.Open && !neighbour.Closed)
                 {
                     neighbour.PathDistance = nextPathDistance;
                     neighbour.PathCrowFliesDistance = nextPathCrowFliesDistance;
@@ -186,24 +194,29 @@ public class PathFinding
                     neighbour.PathSteps = nextPathSteps;
                     neighbour.PathTurns = nextPathTurns;
 
-                    neighbour.PathParent = currentNode;
+                    neighbour.PathParent = currentNode.PathIndex;
                     neighbour.PathEndDirection = i;
 
                     open.Add(neighbour);
-                    if (!visited.Contains(neighbour))
+                    neighbour.Open = true;
+
+                    if (neighbour.PathIndex == -1)
+                    {
+                        neighbour.PathIndex = visited.Count;
                         visited.Add(neighbour);
+                    }
                 }
             }
         }
 
         List<T> nodes = new List<T>();
         T current = end;
-        while (current.PathParent != null)
+        while (current.PathParent != -1)
         {
             nodes.Insert(0, current);
             //nodes.Add(current);
             //this is backwards.
-            current = (T)current.PathParent;
+            current = visited[current.PathParent];
         }
         nodes.Insert(0, start);
         //nodes.Add(start);
@@ -211,20 +224,26 @@ public class PathFinding
 
         path = new Path<T>(nodes, end.PathDistance, end.PathCrowFliesDistance, end.PathCost, end.PathSteps, end.PathTurns);
 
-        foreach (T p in visited)
-            ClearPathFindingData(p);
+        if (cleanUpOnSuccess)
+        {
+            foreach (T p in visited)
+                ClearPathFindingData(p);
+        }
 
         return Result.Success;
     }
 
-    private static void ClearPathFindingData(INode node)
+    public static void ClearPathFindingData(INode node)
     {
-        node.PathParent = null;
+        node.PathParent = -1;
+        node.PathIndex = -1;
         node.PathDistance = 0;
         node.PathCrowFliesDistance = 0;
         node.PathCost = 0;
         node.PathSteps = 0;
         node.PathTurns = 0;
         node.PathEndDirection = 0;
+        node.Open = false;
+        node.Closed = false;
     }
 }

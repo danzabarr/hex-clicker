@@ -46,6 +46,74 @@ public class HexUtils
     public static Vector2Int CubeToHex(Vector3Int cube) => new Vector2Int(cube.x, cube.y);
     public static Vector3 HexToCube(Vector2 hex) => new Vector3(hex.x, hex.y, -hex.x - hex.y);
     public static Vector3Int HexToCube(Vector2Int hex) => new Vector3Int(hex.x, hex.y, -hex.x - hex.y);
+    public static Vector2 CartesianToVertex(float x, float z, float size, int resolution) => new Vector2(x - z * SQRT_3 / 3f, 2f / 3f * z * SQRT_3) / (size / resolution);//new Vector2(-x + z / SQRT_3, z * 2f / SQRT_3) / (size / resolution );////new Vector2(-x + z / SQRT_3, z / SQRT_3 * 2f) / (size / resolution);
+    public static Vector2Int NearestVertex(Vector3 position, float size, int resolution) => NearestVertex(position.x, position.z, size, resolution);
+    public static Vector2Int NearestVertex(float x, float z, float size, int resolution) => HexRound(CartesianToVertex(x, z, size, resolution));
+    public static Vector2 VertexToCartesian(float x, float z, float size, int resolution)
+    {
+
+        
+
+
+        float cZ = z * (size / resolution) / (2f / 3f * SQRT_3);
+        float cX = x * (size / resolution) + cZ * SQRT_3 / 3f;
+
+        return new Vector2(cX, cZ);
+
+
+
+
+        float cartZ = z * (size / resolution) * SQRT_3 / 2f;
+        float cartX = -(x * (size / resolution) - cartZ / SQRT_3);
+        return new Vector2(cartX, cartZ);
+
+
+
+    }
+    public static int CubeDistance(Vector3Int a, Vector3Int b) => (Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs(a.z - b.z)) / 2;
+    public static int HexDistance(Vector2Int a, Vector2Int b) => (Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs((a.x - a.y) - (b.x - b.y))) / 2;
+    public static float HexDistance(Vector2 a, Vector2 b) => (Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs((a.x - a.y) - (b.x - b.y))) / 2f;
+
+    public static float[] CosSixths =
+    {
+        Mathf.Cos(0 * Mathf.PI / 3f),
+        Mathf.Cos(1 * Mathf.PI / 3f),
+        Mathf.Cos(2 * Mathf.PI / 3f),
+        Mathf.Cos(3 * Mathf.PI / 3f),
+        Mathf.Cos(4 * Mathf.PI / 3f),
+        Mathf.Cos(5 * Mathf.PI / 3f),
+    };
+
+    public static float[] SinSixths =
+    {
+        Mathf.Sin(0 * Mathf.PI / 3f),
+        Mathf.Sin(1 * Mathf.PI / 3f),
+        Mathf.Sin(2 * Mathf.PI / 3f),
+        Mathf.Sin(3 * Mathf.PI / 3f),
+        Mathf.Sin(4 * Mathf.PI / 3f),
+        Mathf.Sin(5 * Mathf.PI / 3f),
+    };
+
+
+    public static Vector2Int[] NearestThreeVertices(Vector3 position, float size, int res)
+    {
+        Vector2Int[] nearest = new Vector2Int[3];
+
+        nearest[0] = NearestVertex(position.x, position.z, size, res);
+
+        Vector2 v0 = VertexToCartesian(nearest[0].x, nearest[0].y, size, res);
+
+        int angle = Mathf.RoundToInt((Mathf.PI - Mathf.Atan2(v0.x - position.x, v0.y - position.z)) / (Mathf.PI * 2) * 6);
+
+        Vector2 v1 = new Vector2(v0.x + CosSixths[(angle + 1) % 6] * (size / res), v0.y + SinSixths[(angle + 1) % 6] * (size / res));
+        Vector2 v2 = new Vector2(v0.x + CosSixths[(angle + 2) % 6] * (size / res), v0.y + SinSixths[(angle + 2) % 6] * (size / res));
+
+        nearest[1] = NearestVertex(v1.x, v1.y, size, res);
+        nearest[2] = NearestVertex(v2.x, v2.y, size, res);
+
+        return nearest;
+    }
+
     public static Vector3Int CubeRound(Vector3 cube)
     {
         int rx = Mathf.RoundToInt(cube.x);

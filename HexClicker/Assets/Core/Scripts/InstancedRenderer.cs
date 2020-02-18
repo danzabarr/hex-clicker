@@ -3,10 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class InstancedRenderer
+public class InstancedRenderer : IEnumerable<Matrix4x4>
 {
     private List<Batch> batches = new List<Batch>();
     private Batch current;
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public IEnumerator<Matrix4x4> GetEnumerator()
+    {
+        foreach (Batch batch in batches)
+            for (int i = 0; i < batch.Count; i++)
+                yield return batch.Matrices[i];
+    }
 
     public void Add(Matrix4x4 matrix, Color color)
     {

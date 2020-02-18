@@ -246,16 +246,16 @@ public class HexRegion
             for (int i = 0; i < 7; i++)
             {
                 int startIndex = vertices.Count;
-                int insideLength = map.Resolution;
+                int insideLength = HexMap.TileResolution;
 
-                Vector3 outsidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * map.Size);
+                Vector3 outsidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * HexMap.TileSize);
                 if (!firstEdge)
                 {
                     Vector3 previousOutsidePoint = outside[outside.Count - 1];
 
-                    for (int j = 1; j < map.Resolution; j++)
+                    for (int j = 1; j < HexMap.TileResolution; j++)
                     {
-                        Vector3 intermediatePoint = map.OnTerrain(Vector3.Lerp(new Vector3(previousOutsidePoint.x, 0, previousOutsidePoint.z), new Vector3(outsidePoint.x, 0, outsidePoint.z), (float) j / map.Resolution));
+                        Vector3 intermediatePoint = map.OnTerrain(Vector3.Lerp(new Vector3(previousOutsidePoint.x, 0, previousOutsidePoint.z), new Vector3(outsidePoint.x, 0, outsidePoint.z), (float) j / HexMap.TileResolution));
                         outside.Add(intermediatePoint);
                     }
                 }
@@ -268,12 +268,12 @@ public class HexRegion
                 {
                     if (outwardEdge)
                     {
-                        insidePoint = map.OnTerrain(t.transform.position + Vector3.LerpUnclamped(new Vector3(cosAngles[e], 0, sinAngles[e]), new Vector3(cosAngles[(e + 1) % 6], 0, sinAngles[(e + 1) % 6]), -1f / map.Resolution) * map.Size);
+                        insidePoint = map.OnTerrain(t.transform.position + Vector3.LerpUnclamped(new Vector3(cosAngles[e], 0, sinAngles[e]), new Vector3(cosAngles[(e + 1) % 6], 0, sinAngles[(e + 1) % 6]), -1f / HexMap.TileResolution) * HexMap.TileSize);
 
                         if (!firstEdge)
                         {
                             Vector3 previousInsidePoint = inside[inside.Count - 1];
-                            insideLength = map.Resolution;
+                            insideLength = HexMap.TileResolution;
                             if (turnedOutward)
                                 insideLength--;
                             for (int j = 1; j < insideLength; j++)
@@ -286,12 +286,12 @@ public class HexRegion
                     }
                     else
                     {
-                        insidePoint = map.OnTerrain(t.transform.position + Vector3.Lerp(new Vector3(cosAngles[e], 0, sinAngles[e]), new Vector3(cosAngles[(e + 1) % 6], 0, sinAngles[(e + 1) % 6]), 1f / map.Resolution) * map.Size);
+                        insidePoint = map.OnTerrain(t.transform.position + Vector3.Lerp(new Vector3(cosAngles[e], 0, sinAngles[e]), new Vector3(cosAngles[(e + 1) % 6], 0, sinAngles[(e + 1) % 6]), 1f / HexMap.TileResolution) * HexMap.TileSize);
 
                         if (!firstEdge)
                         {
                             Vector3 previousInsidePoint = inside[inside.Count - 1];
-                            insideLength = map.Resolution;
+                            insideLength = HexMap.TileResolution;
                             if (turnedOutward)
                                 insideLength++;
                             for (int j = 1; j < insideLength; j++)
@@ -330,13 +330,13 @@ public class HexRegion
 
                 if (outwardEdge)
                 {
-                    insidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * map.Size * (1 + 1f / map.Resolution));
+                    insidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * HexMap.TileSize * (1 + 1f / HexMap.TileResolution));
 
                     if (!firstEdge)
                     {
                         Vector3 previousInsidePoint = inside[inside.Count - 1];
 
-                        insideLength = map.Resolution + 1;
+                        insideLength = HexMap.TileResolution + 1;
                         if (turnedOutward)
                             insideLength--;
                         for (int j = 1; j < insideLength; j++)
@@ -350,13 +350,13 @@ public class HexRegion
                 }
                 else
                 {
-                    insidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * map.Size * (1 - 1f / map.Resolution));
+                    insidePoint = map.OnTerrain(t.transform.position + new Vector3(cosAngles[e], 0, sinAngles[e]) * HexMap.TileSize * (1 - 1f / HexMap.TileResolution));
 
                     if (!firstEdge)
                     {
                         Vector3 previousInsidePoint = inside[inside.Count - 1];
 
-                        insideLength = map.Resolution - 1;
+                        insideLength = HexMap.TileResolution - 1;
                         if (turnedOutward)
                             insideLength++;
                         for (int j = 1; j < insideLength; j++)
@@ -420,7 +420,7 @@ public class HexRegion
                     triangles.Add(outsideIndex + o + 0);
                 }
 
-                int len = map.Resolution * 2 - 2;
+                int len = HexMap.TileResolution * 2 - 2;
 
                 if (!prevTurn)
                     len+=2;
@@ -449,7 +449,7 @@ public class HexRegion
                     triangles.Add(t2);
                 }
 
-                o += map.Resolution;
+                o += HexMap.TileResolution;
                 i += insideEdgeLengths[turn];
             }
         }
@@ -473,7 +473,7 @@ public class HexRegion
                     triangles.Add(insideIndex + i + 1);
                 }
 
-                for (int j = 0; j < map.Resolution * 2 - 1; j++)
+                for (int j = 0; j < HexMap.TileResolution * 2 - 1; j++)
                 {
                     int t0;
                     int t1;
@@ -497,7 +497,7 @@ public class HexRegion
                     triangles.Add(t2);
                 }
 
-                o += map.Resolution;
+                o += HexMap.TileResolution;
                 i += insideEdgeLengths[turn];
             }
         }

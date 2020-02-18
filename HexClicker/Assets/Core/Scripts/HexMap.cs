@@ -1,14 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Profiling;
 
 [System.Serializable]
 [ExecuteAlways]
 public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 {
     public static HexMap Instance { get; private set; }
+
+    public static readonly int TileResolution = 16;
+    public static readonly float TileSize = 4.0f;
+    public static readonly int NavigationResolution = 16;
+    public static readonly float NavigationMinHeight = 0.0f;
+    public static readonly float NavigationMaxHeight = 1.25f;
 
     private new Camera camera;
     [SerializeField]
@@ -20,22 +28,17 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     [Header("Map Settings")]
     [SerializeField]
     private HexTile tilePrefab;
+
     [SerializeField]
     private int seed;
     [SerializeField]
     private int width;
     [SerializeField]
     private int height;
-    [SerializeField]
-    private int resolution;
-    [SerializeField]
-    private float tileSize;
     public float SeedOffsetX { get; private set; }
     public float SeedOffsetY { get; private set; }
     public int Width => width;
     public int Height => height;
-    public int Resolution => resolution;
-    public float Size => tileSize;
     public int TileCount => width * height;
 
     [Header("Terrain Noise")]
@@ -70,6 +73,9 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     private float treesMinimumHeight, treesMaximumHeight;
     [SerializeField]
     private float treesMinimumScale, treesMaximumScale;
+    [SerializeField]
+    [Range(0, 1)]
+    private float treesRandomPosition;
     private InstancedRenderer treesRenderer;
 
     [Header("Grass")]
@@ -121,11 +127,20 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     private int regionPlacing = 1;
 
     [Header("Navigation")]
+
     [SerializeField]
-    private NavMeshBuildSettingsSerialized navMeshBuildSettings;
+    private bool navigationDrawGraph;
+    [SerializeField]
+    private bool navigationRaycastModifier;
+    [SerializeField]
+    private Unit testUnit;
+    //    public Transform start, end;
+
+    /*
     [SerializeField]
     private Bounds navMeshArea;
-
+    [SerializeField]
+    private NavMeshBuildSettingsSerialized navMeshBuildSettings;
     [System.Serializable]
     public struct NavMeshBuildSettingsSerialized
     {
@@ -138,6 +153,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         public float voxelSize;
     }
 
+    private NavMeshSurface navMeshSurface;
+    */
     [Header("Building")]
     public Building placingObject;
     public Material cantBuildMaterial;
@@ -200,9 +217,11 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         };
     }
 
+    public delegate float SampleFloat(float x, float z);
+    public delegate bool SampleBool(float x, float z);
+
     /// <summary>
     /// Returns the height of the terrain at the supplied x and z coordinates. Does not necessarily return the height of the mesh according to resolution.
-    /// Terrain height is influenced by the elevation of the tile, and the six surrounding tiles, and some additional contributions from noise.
     /// </summary>
     public float SampleHeight(float x, float z)
     {
@@ -213,15 +232,22 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     /// </summary>
     public bool SampleTile(float x, float z, out HexTile tile)
     {
-        Vector2Int hex = HexUtils.HexRound(HexUtils.CartesianToHex(x, z, Size));
+        Vector2Int hex = HexUtils.HexRound(HexUtils.CartesianToHex(x, z, TileSize));
         tile = this[hex.x, hex.y];
         return tile != null;
+    }
+
+    public bool SampleTile(float x, float z)
+    {
+        Vector2Int hex = HexUtils.HexRound(HexUtils.CartesianToHex(x, z, TileSize));
+        return this[hex.x, hex.y] != null;
     }
 
     /// <summary>
     /// Returns the world position which is at the height of the terrain, for the x and z coordinates of the supplied position.
     /// </summary>
     public Vector3 OnTerrain(float x, float z) => new Vector3(x, SampleHeight(x, z), z);
+    public Vector3 OnTerrain(Vector2 p) => OnTerrain(p.x, p.y);
     public Vector3 OnTerrain(Vector3 p) => OnTerrain(p.x, p.z);
     
     /// <summary>
@@ -265,7 +291,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         Instance = this;
         camera = Camera.main;
         Generate();
-        GenerateNavigationMesh();
+        GenerateNavigationGraph();
         SetPlacingObject(placingObject);
     }
 
@@ -381,6 +407,8 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             treesRenderer.Clear();
         treesRenderer = null;
         regions = null;
+        Navigation.Clear();
+        //NavMesh.RemoveAllNavMeshData();
     }
     
     /// <summary>
@@ -412,7 +440,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             {
                 int hexX = x - width / 2;
                 int hexY = z - height / 2 - x / 2 + width / 4;
-                tiles[x + z * width].GenerateMesh(this, hexX, hexY, true);
+                tiles[x + z * width].GenerateMesh(hexX, hexY, true);
             }
         #endregion
         #region Generate Trees
@@ -423,9 +451,9 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         {
             Vector3[] vertices = tile.Mesh.vertices;
 
-            for (int i = 0; i < vertices.Length - resolution * 3; i++)
+            for (int i = 0; i < vertices.Length - TileResolution * 3; i++)
             {
-                Vector3 position = OnTerrain(tile.transform.position + vertices[i] + new Vector3((Random.value - 0.5f), 0, (Random.value - 0.5f)) * Size / resolution);
+                Vector3 position = OnTerrain(tile.transform.position + vertices[i] + new Vector3(Random.value - 0.5f, 0, Random.value - 0.5f) * TileSize / TileResolution * treesRandomPosition);
 
                 if (position.y < treesMinimumAltitude)
                     continue;
@@ -447,7 +475,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
                     continue;
 
                 Quaternion rotation = Quaternion.Euler(0, 90, 0);// Quaternion.Euler(0, Random.Range(-180, 180), 0);
-                Vector3 scale = new Vector3(1, Random.Range(treesMinimumHeight, treesMaximumHeight), 1) * Random.Range(treesMinimumScale, treesMaximumScale) * treeSample;
+                Vector3 scale = new Vector3(1, Random.Range(treesMinimumHeight, treesMaximumHeight), 1) * Random.Range(treesMinimumScale, treesMaximumScale);
                 Color color = treesColor.Evaluate(Random.value);
                 tile.TreesCount++;
 
@@ -459,40 +487,74 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         #endregion
     }
 
-    [ContextMenu("Generate Navigation Mesh", false, 2)]
-    public void GenerateNavigationMesh()
+    
+
+    /*
+     public void GenerateNavigationMesh()
+     {
+
+         List<NavMeshBuildSource> sources = navMeshSurface.CollectSources();
+
+         int treeArea = NavMesh.GetAreaFromName("Tree");
+         Vector3 treeSize = new Vector3(.5f, 1f, .5f);
+
+
+         foreach (Matrix4x4 transform in treesRenderer)
+         {
+             sources.Add(new NavMeshBuildSource()
+             {
+                 transform = transform,
+                 area = treeArea,
+                 shape = NavMeshBuildSourceShape.ModifierBox,
+                 size = treeSize
+             });
+         }
+         navMeshSurface.BuildNavMesh(sources);
+
+         */
+
+    /*
+    NavMeshBuildSettings buildSettings = new NavMeshBuildSettings
     {
-        NavMeshBuildSettings buildSettings = new NavMeshBuildSettings
+        agentRadius = navMeshBuildSettings.agentRadius,
+        agentHeight = navMeshBuildSettings.agentHeight,
+        agentSlope = navMeshBuildSettings.agentSlope,
+        agentClimb = navMeshBuildSettings.agentClimb,
+        minRegionArea = navMeshBuildSettings.minRegionArea,
+        overrideTileSize = true,
+        tileSize = navMeshBuildSettings.tileSize,
+        overrideVoxelSize = true,
+        voxelSize = navMeshBuildSettings.voxelSize
+    };
+
+    List<NavMeshBuildSource> sources = new List<NavMeshBuildSource>();
+
+    foreach (HexTile tile in tiles)
+    {
+        sources.Add(new NavMeshBuildSource()
         {
-            agentRadius = navMeshBuildSettings.agentRadius,
-            agentHeight = navMeshBuildSettings.agentHeight,
-            agentSlope = navMeshBuildSettings.agentSlope,
-            agentClimb = navMeshBuildSettings.agentClimb,
-            minRegionArea = navMeshBuildSettings.minRegionArea,
-            overrideTileSize = true,
-            tileSize = navMeshBuildSettings.tileSize,
-            overrideVoxelSize = true,
-            voxelSize = navMeshBuildSettings.voxelSize
-        };
+            transform = tile.transform.localToWorldMatrix,
+            area = 0,
+            component = tile,
+            shape = NavMeshBuildSourceShape.Mesh,
+            sourceObject = tile.Mesh
+        });
+    }
 
-        List<NavMeshBuildSource> sources = new List<NavMeshBuildSource>();
+    NavMeshData data = NavMeshBuilder.BuildNavMeshData(buildSettings, sources, navMeshArea, Vector3.zero, Quaternion.identity);
 
-        foreach (HexTile tile in tiles)
-        {
-            sources.Add(new NavMeshBuildSource()
-            {
-                transform = tile.transform.localToWorldMatrix,
-                area = 0,
-                component = tile,
-                shape = NavMeshBuildSourceShape.Mesh,
-                sourceObject = tile.Mesh
-            });
-        }
+    NavMesh.RemoveAllNavMeshData();
+    NavMesh.AddNavMeshData(data);
+    
+}
+*/
 
-        NavMeshData data = NavMeshBuilder.BuildNavMeshData(buildSettings, sources, navMeshArea, Vector3.zero, Quaternion.identity);
-        
-        NavMesh.RemoveAllNavMeshData();
-        NavMesh.AddNavMeshData(data);
+
+    
+    public void OnDrawGizmos()
+    {
+        if (navigationDrawGraph)
+            Navigation.OnDrawGizmos();
     }
 
     public void Update()
@@ -580,12 +642,11 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
                     goto case 2;
             }
         }
-        if (Input.GetMouseButtonDown(1) && selection.Count > 0)
+        if (Input.GetMouseButtonDown(1))
         {
-            if (MousePickComponent(LayerMask.GetMask("Terrain", "Buildings", "Units"), 1000, out RaycastHit hitInfo, out HexTile tile))
+            if (MousePickComponent<HexTile>(LayerMask.GetMask("Terrain", "Buildings", "Units"), 1000, out RaycastHit hitInfo, out _))
             {
-                foreach (Unit unit in selection)
-                    unit.SetDestination(hitInfo.point);
+                testUnit.SetDestination(hitInfo.point);
             }
         }
     }
@@ -649,5 +710,12 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
                 }
             }
         }
+    }
+
+
+    [ContextMenu("Generate Navigation Graph", false, 2)]
+    public void GenerateNavigationGraph()
+    {
+        Navigation.GenerateNavigationGraph();
     }
 }

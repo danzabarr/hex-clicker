@@ -22,8 +22,6 @@ public class HexTile : MonoBehaviour
     public int ContigRegionID { get; set; }
     public bool showTileBorder;
 
-    public Dictionary<Vector2Int, NavigationMesh.Node> nodes;
-
     public HexTile[] Neighbours { get; private set; }
 
     #region Helper Fields
@@ -42,114 +40,20 @@ public class HexTile : MonoBehaviour
     public int state;
     #endregion
 
-    public void OnDrawGizmosSelected()
-    {
-        return;
-        int res = 3;// HexMap.Instance.Resolution;
-
-        //Vector2Int neighbourX = new Vector2Int(Position.x - 1, Position.y + 1);
-        //Vector2Int neighbourY = new Vector2Int(Position.x, Position.y - 1);
-        //Vector2Int neighbourZ = new Vector2Int(Position.x - 1, Position.y);
-
-        nodes = new Dictionary<Vector2Int, NavigationMesh.Node>();
-
-        int nodesLength = 3 * (res + 1) * (res) + 1 - (res * 3 + 1);
-
-        HexTile neighbourX = Neighbours[2];
-        HexTile neighbourZ = Neighbours[3];
-        HexTile neighbourY = Neighbours[4];
-
-        Vector3 Vertex(int x, int y, int z) => transform.position.AddXZ((-x + -y / 2f) / res, (-y * HexUtils.SQRT_3 / 2f) / res);//HexMap.Instance.OnTerrain(transform.position.x + (x + y / 2f) / res, transform.position.z + (y * HexUtils.SQRT_3 / 2f) / res);
-
-        float size = HexMap.Instance.Size;
-
-        void DrawNeighbourDot(HexTile n, Color color)
-        {
-            if (n == null)
-                return;
-            Vector3 center = Vector3.zero.AddXZ(HexUtils.HexToCartesian(n.Position, size));
-            Gizmos.color = color;
-            Gizmos.DrawSphere(center, .1f);
-        }
-
-        DrawNeighbourDot(neighbourX, Color.red);
-        DrawNeighbourDot(neighbourY, Color.green);
-        DrawNeighbourDot(neighbourZ, Color.blue);
-
-        for (int x = -res; x <= res; x++)
-            for (int y = -res; y <= res; y++)
-                for (int z = -res; z <= res; z++)
-                {
-                    if (x + y + z != 0)
-                        continue;
-
-                    Vector3 world = Vertex(x, y, z);
-                    Gizmos.color = Color.white;
-                    Vector2Int global = new Vector2Int(x + (-Position.x + Position.y) * res, y + (-Position.x - Position.y * 2) * res);
-
-
-                    if (z < -res + 1 && neighbourZ != null)
-                    {
-                        continue;
-                        int nX = x - res;
-                        int nY = y - res;
-                        int nZ = -z;
-
-                        Gizmos.color = Color.blue;
-                        Handles.Label(world, "NZ [" + nX + "," + nY + "," + nZ + "] " + global);
-                    }
-
-                    else if (x >= res && neighbourX != null)
-                    {
-                        continue;
-                        int nX = -x;
-                        int nY = y + 3;
-                        int nZ = z + 3;
-
-                        Gizmos.color = Color.red;
-                        Handles.Label(world, "NX [" + nX + "," + nY + "," + nZ + "] " + global);
-                    }
-
-                    else if (y >= res && neighbourY != null)
-                    {
-                        continue;
-                        int nX = x + 3;
-                        int nY = -y;
-                        int nZ = z + 3;
-
-                        Gizmos.color = Color.green;
-                        Handles.Label(world, "NY [" + nX + "," + nY + "," + nZ + "] " + global);
-                    }
-
-                    else
-                    {
-                        Handles.Label(world, "" + global);
-                        continue;
-                        Handles.Label(world, "[" + x + "," + y + "," + z + "] " + global);
-                    }
-                    //Vector3Int cube = new Vector3Int(x, y, z);
-                    //
-                    //float cX = cube.x + cube.y / 2f;
-                    //float cZ = cube.y * HexUtils.SQRT_3 / 2f;
-                    //
-                    //Vector3 world = transform.position + new Vector3(cX / res, 0, cZ / res);//HexMap.Instance.OnTerrain(transform.position.AddXZ(cartesian));
-
-                    Gizmos.DrawSphere(world, 0.01f);
-                    
-                }
-    }
-
     //Generate the mesh for this tile.
-    public void GenerateMesh(HexMap map, int x, int y, bool fixNormalsAtSeams)
+    public void GenerateMesh(int x, int y, bool fixNormalsAtSeams)
     {
+        HexMap map = HexMap.Instance;
+        int res = HexMap.TileResolution;
+        float size = HexMap.TileSize;
+
         //Set position
         Position = new Vector2Int(x, y);
-        Vector2 centerCartesian = HexUtils.HexToCartesian(x, y, map.Size);
+        Vector2 centerCartesian = HexUtils.HexToCartesian(x, y, size);
         transform.position = new Vector3(centerCartesian.x, 0, centerCartesian.y);
 
         Neighbours = map.GetNeighbours(x, y);
 
-        int res = map.Resolution;
 
         //Setting up the mesh arrays
         //uv is just global XZ coordinates
@@ -178,7 +82,7 @@ public class HexTile : MonoBehaviour
         //For each hexagon ring, starting from the inside working out
         for (int r = 0; r < res; r++)
         {
-            float radius = map.Size * (1 + r) / res;
+            float radius = size * (1 + r) / res;
             int trianglesPerEdge = (r * 2) + 1;
             int k = 1;
 
@@ -292,7 +196,7 @@ public class HexTile : MonoBehaviour
             {
                 //Conveniently use the local vertex position stored in the array, and add the transform.position for global position
                 //The radius to sample at is 1 / resolution, which replicates the positions of the six surrounding mesh vertices, whether they exist in this mesh or not
-                normals[i] = CalculateVectorNormal(transform.position + vertices[i], map.Size / res);
+                normals[i] = CalculateVectorNormal(transform.position + vertices[i], size / res);
                 i++;
             }
 
