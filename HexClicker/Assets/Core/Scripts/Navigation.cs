@@ -667,13 +667,16 @@ public class Navigation
 
         void Run()
         {
-            Result = PathFind(start, end, maxDistance, maxTries, costFunction, out PathFinding.Path<Node> path, out List<Node> visited);
+            Result = PathFind(start, end, maxDistance, maxTries, costFunction, out PathFinding.Path<Node> path, out List<Node> visited, !raycastModifier);
             Path = path;
             Visited = visited;
 
             if (raycastModifier)
             {
                 RaycastModifier(path, sampleFrequency);
+
+                foreach (Node node in visited)
+                    PathFinding.ClearPathFindingData(node);
             }
 
             Completed = true;
@@ -686,7 +689,7 @@ public class Navigation
         }
     }
 
-    public static PathFinding.Result PathFind(Vector3 start, Vector3 end, float maxDistance, int maxTries, PathFinding.CostFunction costFunction, out PathFinding.Path<Node> path, out List<Node> visited)
+    public static PathFinding.Result PathFind(Vector3 start, Vector3 end, float maxDistance, int maxTries, PathFinding.CostFunction costFunction, out PathFinding.Path<Node> path, out List<Node> visited, bool cleanUpOnSuccess = true)
     {
         path = null;
         visited = new List<Node>();
@@ -714,7 +717,7 @@ public class Navigation
         foreach (Node neighbour in endNeighbours)
             Connect(neighbour, endNode, out _, false);
 
-        PathFinding.Result result = PathFinding.PathFind(startNode, endNode, maxDistance, maxTries, costFunction, out path, out visited, true);
+        PathFinding.Result result = PathFinding.PathFind(startNode, endNode, maxDistance, maxTries, costFunction, out path, out visited, cleanUpOnSuccess);
 
         foreach (Node neighbour in endNeighbours)
             neighbour.RemoveLastAddedNeighbour();
@@ -737,19 +740,30 @@ public class Navigation
         {
             for (int i = path.Length - 1; i > startIndex; i--)
             {
-                //float pathDistance = path[i].PathDistance - path[startIndex].PathDistance;
+                float pathDistance = path[i].PathDistance - path[startIndex].PathDistance;
+                Debug.Log(pathDistance);
 
                 float xzDistance = Vector2.Distance(path[startIndex].Position.xz(), path[i].Position.xz());
 
                 bool valid = true;
 
                 List<Vector3> points = new List<Vector3>();
+                float shortCutDistance = 0;
+                Vector3 lastPoint = path[startIndex].Position;
 
                 for (float s = 0; s < xzDistance; s += sampleFrequency)
                 {
                     Vector2 lerp = Vector2.Lerp(path[startIndex].Position.xz(), path[i].Position.xz(), s / xzDistance);
                     Vector3 onTerrain = new Vector3(lerp.x, map.SampleHeight(lerp.x, lerp.y), lerp.y);
                     points.Add(onTerrain);
+                    shortCutDistance += Vector3.Distance(lastPoint, onTerrain);
+                    lastPoint = onTerrain;
+
+                    if (shortCutDistance > pathDistance)
+                    {
+                        valid = false;
+                        break;
+                    }
 
                     if (!map.SampleTile(lerp.x, lerp.y))
                     {
@@ -767,6 +781,11 @@ public class Navigation
                 if (valid)
                 {
                     path.Nodes.RemoveRange(startIndex + 1, i - startIndex - 1);
+                    foreach(Vector3 p in points)
+                    {
+                        startIndex++;
+                        path.Nodes.Insert(startIndex, new Node(p));
+                    }
                     break;
                 }
             }

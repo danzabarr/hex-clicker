@@ -18,7 +18,7 @@ public class Unit : MonoBehaviour
     {
         if (pathFindThread != null && !pathFindThread.Completed)
             pathFindThread.Abort();
-        pathFindThread = new Navigation.PathFindThreaded(transform.position, destination, 5000, 20000, PathFinding.StandardCostFunction, HexMap.TileSize / HexMap.NavigationResolution * .5f);
+        pathFindThread = new Navigation.PathFindThreaded(transform.position, destination, 5000, 20000, PathFinding.StandardCostFunction, HexMap.TileSize / HexMap.NavigationResolution);
     }
 
     public void Update()

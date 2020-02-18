@@ -68,6 +68,8 @@ public class PathFinding
             Steps = pathSteps;
             Turns = pathTurns;
         }
+
+        public Path<T> Duplicate() => new Path<T>(new List<T>(Nodes), Distance, CrowFliesDistance, Cost, Steps, Turns);
     }
 
     public static Result PathFind<T>(T start, T end, float maxDistance, int maxTries, CostFunction costFunction, out Path<T> path, out List<T> visited, bool cleanUpOnSuccess = true) where T : INode

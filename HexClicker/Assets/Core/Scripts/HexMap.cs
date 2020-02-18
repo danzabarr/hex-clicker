@@ -551,11 +551,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
 
     
-    public void OnDrawGizmos()
-    {
-        if (navigationDrawGraph)
-            Navigation.OnDrawGizmos();
-    }
 
     public void Update()
     {
@@ -626,6 +621,26 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         return result;
     }
 
+    private PathFinding.Path<Navigation.Node> testPath;
+    private PathFinding.Path<Navigation.Node> testPathRaycast;
+    public void OnDrawGizmos()
+    {
+        if (navigationDrawGraph)
+            Navigation.OnDrawGizmos();
+
+
+        if (testPath != null)
+        {
+            Gizmos.color = Color.white;
+            Navigation.DrawPath(testPath, false);
+        }
+        if (testPathRaycast != null)
+        {
+            Gizmos.color = Color.blue;
+            Navigation.DrawPath(testPathRaycast, true);
+        }
+    }
+
     public void ControlModeUnits()
     {
         if (Input.GetMouseButtonDown(0))
@@ -646,6 +661,18 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         {
             if (MousePickComponent<HexTile>(LayerMask.GetMask("Terrain", "Buildings", "Units"), 1000, out RaycastHit hitInfo, out _))
             {
+                /*
+                if (Navigation.PathFind(OnTerrain(testUnit.transform.position), hitInfo.point, 5000, 20000, PathFinding.StandardCostFunction, out testPath, out List<Navigation.Node> visited, false) == PathFinding.Result.Success)
+                {
+                    testPathRaycast = testPath.Duplicate();
+
+                    Navigation.RaycastModifier(testPathRaycast, TileSize / NavigationResolution);
+
+                    foreach(Navigation.Node node in visited)
+                        PathFinding.ClearPathFindingData(node);
+                }
+                 */
+
                 testUnit.SetDestination(hitInfo.point);
             }
         }
