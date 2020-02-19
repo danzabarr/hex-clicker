@@ -41,9 +41,8 @@ public class HexTile : MonoBehaviour
     #endregion
 
     //Generate the mesh for this tile.
-    public void GenerateMesh(int x, int y, bool fixNormalsAtSeams)
+    public void GenerateMesh(HexMap map, int x, int y, bool fixNormalsAtSeams)
     {
-        HexMap map = HexMap.Instance;
         int res = HexMap.TileResolution;
         float size = HexMap.TileSize;
 

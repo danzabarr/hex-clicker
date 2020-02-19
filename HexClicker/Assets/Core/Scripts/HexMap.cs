@@ -14,7 +14,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
     public static readonly int TileResolution = 16;
     public static readonly float TileSize = 4.0f;
-    public static readonly int NavigationResolution = 16;
+    public static readonly int NavigationResolution = 32;
     public static readonly float NavigationMinHeight = 0.0f;
     public static readonly float NavigationMaxHeight = 1.25f;
 
@@ -286,6 +286,12 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         return regionMaterials[regionID];
     }
 
+    public void OnEnable()
+    {
+        Instance = this;
+        camera = Camera.main;
+    }
+
     public void Awake()
     {
         Instance = this;
@@ -440,7 +446,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             {
                 int hexX = x - width / 2;
                 int hexY = z - height / 2 - x / 2 + width / 4;
-                tiles[x + z * width].GenerateMesh(hexX, hexY, true);
+                tiles[x + z * width].GenerateMesh(this, hexX, hexY, true);
             }
         #endregion
         #region Generate Trees
@@ -632,12 +638,12 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         if (testPath != null)
         {
             Gizmos.color = Color.white;
-            Navigation.DrawPath(testPath, false);
+            Navigation.DrawPath(testPath, true, false, true);
         }
         if (testPathRaycast != null)
         {
             Gizmos.color = Color.blue;
-            Navigation.DrawPath(testPathRaycast, true);
+            Navigation.DrawPath(testPathRaycast, true, false, true);
         }
     }
 
@@ -661,18 +667,17 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         {
             if (MousePickComponent<HexTile>(LayerMask.GetMask("Terrain", "Buildings", "Units"), 1000, out RaycastHit hitInfo, out _))
             {
-                /*
-                if (Navigation.PathFind(OnTerrain(testUnit.transform.position), hitInfo.point, 5000, 20000, PathFinding.StandardCostFunction, out testPath, out List<Navigation.Node> visited, false) == PathFinding.Result.Success)
-                {
-                    testPathRaycast = testPath.Duplicate();
 
-                    Navigation.RaycastModifier(testPathRaycast, TileSize / NavigationResolution);
-
-                    foreach(Navigation.Node node in visited)
-                        PathFinding.ClearPathFindingData(node);
-                }
-                 */
-
+                //if (Navigation.PathFind(OnTerrain(testUnit.transform.position), hitInfo.point, 5000, 20000, PathFinding.StandardCostFunction, out testPath, out List<Navigation.Node> visited, false) == PathFinding.Result.Success)
+                //{
+                //    testPathRaycast = testPath.Duplicate();
+                //
+                //    Navigation.RaycastModifier(testPathRaycast, TileSize / NavigationResolution);
+                //
+                //    foreach(Navigation.Node node in visited)
+                //        PathFinding.ClearPathFindingData(node);
+                //}
+                testUnit.transform.position = OnTerrain(testUnit.transform.position);
                 testUnit.SetDestination(hitInfo.point);
             }
         }

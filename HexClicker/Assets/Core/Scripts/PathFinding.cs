@@ -27,7 +27,6 @@ public class PathFinding
         float PathCost  { get; set; }
         int PathSteps { get; set; }
         int PathTurns { get; set; }
-        
         int PathEndDirection { get; set; }
         bool Accessible { get; }
         int NeighboursCount { get; }
@@ -40,15 +39,15 @@ public class PathFinding
         bool Open { get; set; }
         bool Closed { get; set; }
     }
-    public static float TotalCost(INode node, CostFunction function) => function(node.PathDistance, node.PathCost, node.PathCrowFliesDistance, node.PathSteps, node.PathTurns);
 
     [System.Serializable]
-    public class Path<T> where T : INode
+    public class Path<T> : IEnumerable<T> where T : INode
     {
-        public bool FoundPath { get; private set; }
         public List<T> Nodes { get; private set; }
-        public int Length => Nodes.Count;
+        public int Count => Nodes.Count;
         public T this[int index] => Nodes[index];
+        public IEnumerator<T> GetEnumerator() => Nodes.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public float Distance { get; private set; }
         public float Cost { get; private set; }
         public float CrowFliesDistance { get; private set; }
@@ -57,10 +56,8 @@ public class PathFinding
         public T Start => Nodes != null && Nodes.Count > 0 ? Nodes[0] : default;
         public T End => Nodes != null && Nodes.Count > 0 ? Nodes[Nodes.Count - 1] : default;
         public float TotalCost(CostFunction function) => function(Distance, Cost, CrowFliesDistance, Steps, Turns);
-
         public Path(List<T> nodes, float pathDistance, float pathCrowFliesDistance, float pathCost, int pathSteps, int pathTurns)
         {
-            FoundPath = true;
             Nodes = nodes;
             Distance = pathDistance;
             CrowFliesDistance = pathCrowFliesDistance;
@@ -106,7 +103,6 @@ public class PathFinding
         int tries = 0;
         while (true)
         {
-            //Debug.Log("Try #" + tries);
             tries++;
             if (tries > maxTries)
             {
@@ -154,7 +150,6 @@ public class PathFinding
             open.Remove(currentNode);
             currentNode.Open = false;
 
-            //closed.Add(currentNode);
             currentNode.Closed = true;
 
             for (int i = 0; i < currentNode.NeighboursCount; i++)
@@ -184,7 +179,6 @@ public class PathFinding
                     open.Remove(neighbour);
                     neighbour.Open = false;
 
-                    //closed.Remove(neighbour);
                     neighbour.Closed = false;
                 }
 

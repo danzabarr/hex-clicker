@@ -264,7 +264,7 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	// Construct a matrix to transform our blade from tangent space
 	// to local space; this is the same process used when sampling normal maps.
-	float3 vNormal = IN[0].normal;//float3(0, 1, 0);//IN[0].normal;
+	float3 vNormal = float3(0, 1, 0);//IN[0].normal;
 	float4 vTangent = IN[0].tangent;
 	float3 vBinormal = cross(vNormal, vTangent) * vTangent.w;
 

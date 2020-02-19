@@ -40,39 +40,27 @@ public class Navigation
                             continue;
 
                         if (z < -res + 1 && neighbourZ != null)
-                        {
                             continue;
-                        }
 
-                        else if (x >= res && neighbourX != null)
-                        {
+                        if (x >= res && neighbourX != null)
                             continue;
-                        }
 
-                        else if (y >= res && neighbourY != null)
-                        {
+                        if (y >= res && neighbourY != null)
                             continue;
-                        }
 
-                        else
-                        {
-                            Vector2Int hex = new Vector2Int(-x + (tile.Position.x - tile.Position.y) * res, -y + (tile.Position.x + tile.Position.y * 2) * res);
-                            Vector3 world = map.OnTerrain(tile.transform.position.x + (-x + -y / 2f) * size / res, tile.transform.position.z + (-y * HexUtils.SQRT_3 / 2f) * size / res);
+                        Vector3 world = map.OnTerrain(tile.transform.position.x + (-x + -y / 2f) * size / res, tile.transform.position.z + (-y * HexUtils.SQRT_3 / 2f) * size / res);
 
-                            if (world.y < HexMap.NavigationMinHeight || world.y > HexMap.NavigationMaxHeight)
-                                continue;
-
-                            i++;
-
-                            nodes.Add(hex, new Node(hex, world));
-
+                        if (world.y < HexMap.NavigationMinHeight || world.y > HexMap.NavigationMaxHeight)
                             continue;
-                        }
+
+                        Vector2Int hex = new Vector2Int(-x + (tile.Position.x - tile.Position.y) * res, -y + (tile.Position.x + tile.Position.y * 2) * res);
+                        i++;
+
+                        nodes.Add(hex, new Node(hex, world));
                     }
         }
 
         Profiler.EndSample();
-
 
         Profiler.BeginSample("Join Nodes");
         foreach (Node node in nodes.Values)
@@ -105,7 +93,6 @@ public class Navigation
 
         //RemoveNodesMinNeighbours(nodes, edges, 2);
         //AddConnections(map, nodes, edges, 0, .3f, .25f);
-
     }
 
     [System.Serializable]
@@ -128,10 +115,10 @@ public class Navigation
         public int NeighboursCount => Neighbours.Count;
         PathFinding.INode PathFinding.INode.Neighbour(int i) => Neighbours[i].Node;
         public float NeighbourDistance(int i) => Neighbours[i].Distance;
-        public float NeighbourCost(int i) => 0;
+        public float NeighbourCost(int i) => Neighbours[i].Distance * Neighbours[i].Edge.CostMultiplier;
         public bool NeighbourAccessible(int i) => true;
-        public float EuclideanDistance(PathFinding.INode node) => CalculateDistance(this, (Node)node);
-        public float XZEuclideanDistance(PathFinding.INode node) => CalculateXZDistance(this, (Node)node);
+        public float EuclideanDistance(PathFinding.INode node) => Vector3.Distance(Position, ((Node)node).Position);
+        public float XZEuclideanDistance(PathFinding.INode node) => Vector2.Distance(Position.xz(), ((Node)node).Position.xz());
 
         public Node(Vector2Int hex, Vector3 position)
         {
@@ -156,6 +143,7 @@ public class Navigation
         public Node Node1 { get; private set; }
         public Node Node2 { get; private set; }
         public float Length { get; private set; }
+        public float CostMultiplier { get; set; }
         public Edge(Node n1, Node n2, float precalculatedLength)
         {
             Node1 = n1;
@@ -210,8 +198,6 @@ public class Navigation
         return true;
     }
 
-
-
     public static bool Connected(Node n1, Node n2, out Edge edge)
     {
         edge = null;
@@ -224,9 +210,7 @@ public class Navigation
         return false;
     }
 
-    public static float CalculateDistance(Node n1, Node n2) => Vector3.Distance(n1.Position, n2.Position);
-    public static float CalculateXZDistance(Node n1, Node n2) => Vector2.Distance(n1.Position.xz(), n2.Position.xz());
-    public static void DrawPath(PathFinding.Path<Node> path, bool drawSpheres)
+    public static void DrawPath(PathFinding.Path<Node> path, bool drawSpheres = false, bool labelNodes = false, bool labelEdges = false)
     {
         if (path == null)
             return;
@@ -234,9 +218,21 @@ public class Navigation
         for (int i = 0; i < path.Nodes.Count - 1; i++)
             Gizmos.DrawLine(path.Nodes[i].Position, path.Nodes[i + 1].Position);
 
+        if (labelEdges)
+            for (int i = 0; i < path.Nodes.Count - 1; i++)
+            {
+                Vector3 midPoint = (path.Nodes[i].Position + path.Nodes[i + 1].Position) / 2f;
+                float length = path.Nodes[i].EuclideanDistance(path.Nodes[i + 1]);
+                Handles.Label(midPoint, length + "");
+            }
+
         if (drawSpheres)
-            for (int i = 0; i < path.Nodes.Count; i++)
-                Gizmos.DrawSphere(path.Nodes[i].Position, 0.02f);
+            foreach(Node node in path.Nodes)
+                Gizmos.DrawSphere(node.Position, 0.02f);
+
+        if (labelNodes)
+            foreach (Node node in path.Nodes)
+                Handles.Label(node.Position, node.Position + "");
     }
 
     /*
@@ -350,7 +346,6 @@ public class Navigation
 
         return false;
     }
-
 
     private static void RemoveNodesColinearNeighbours(List<Node> nodes, List<Edge> edges)
     {
@@ -467,9 +462,6 @@ public class Navigation
     }
 
     /*
-    
-    
-    
     private static bool PathIntersectsEdge(Node start, Node end, List<Edge> edges, out Vector2 intersection, out Edge edge)
     {
         intersection = default;
@@ -624,6 +616,176 @@ public class Navigation
             transform.transform.position = node.Position;
     }
 
+    [System.Serializable]
+    public class PathIterator
+    {
+        private Vector3[] points;
+        private float[] distances;
+        private int i;
+        private float d0, d1;
+        public float TotalDistance { get; private set; }
+        public float CurrentDistance { get; private set; }
+        public float T => Mathf.Clamp(CurrentDistance / TotalDistance, 0, 1);
+        public Vector3 CurrentPosition { get; private set; }
+        public PathIterator(PathFinding.Path<Node> path)
+        {
+            points = new Vector3[path.Count];
+            for (int i = 0; i < path.Nodes.Count; i++)
+                points[i] = path.Nodes[i].Position;
+
+            distances = new float[path.Nodes.Count - 1];
+            for (int i = 0; i < path.Nodes.Count - 1; i++)
+            {
+                distances[i] = Vector3.Distance(path.Nodes[i].Position, path.Nodes[i + 1].Position);
+                TotalDistance += distances[i];
+            }
+            CurrentPosition = CalculatePosition(0);
+            d0 = 0;
+            if (distances.Length > 0)
+                d1 = distances[0];
+        }
+
+        public void SetTime(float t) => SetDistance(t * TotalDistance);
+
+        public void SetDistance(float distance)
+        {
+            if (distance == CurrentDistance)
+                return;
+
+            if (points.Length == 0)
+            {
+                i = 0;
+                d0 = 0;
+                d1 = 0;
+                CurrentDistance = 0;
+                CurrentPosition = Vector3.zero;
+                return;
+            }
+
+            if (points.Length == 1 || distance < 0)
+            {
+                i = 0;
+                d0 = 0;
+                d1 = 0;
+                CurrentDistance = 0;
+                CurrentPosition = points[0];
+                return;
+            }
+
+            if (distance >= TotalDistance)
+            {
+                i = points.Length - 1;
+                d0 = TotalDistance - distances[distances.Length - 1];
+                d1 = TotalDistance;
+                CurrentDistance = TotalDistance;
+                CurrentPosition = points[points.Length - 1];
+                return;
+            }
+
+            CurrentDistance = distance;
+            float sum = 0;
+            for (int i = 0; i < points.Length - 1; i++)
+            {
+                float d = distances[i];
+                d0 = sum;
+                d1 = sum + d;
+                if (distance < sum + d)
+                {
+                    float t = (distance - sum) / d;
+                    CurrentPosition = Vector3.Lerp(points[i], points[i + 1], t);
+                    this.i = i;
+                    return;
+                }
+                sum += d;
+            }
+
+            CurrentPosition = points[points.Length - 1];
+        }
+
+        public void AdvanceDistance(float amount)
+        {
+            if (amount == 0)
+                return;
+
+            if (points.Length <= 1)
+                return;
+
+            float distance = Mathf.Clamp(CurrentDistance + amount, 0, TotalDistance);
+            if (distance == CurrentDistance)
+                return;
+            CurrentDistance = distance;
+
+            if (amount > 0)
+            {
+                float sum = d0;
+                for (; i < distances.Length; i++)
+                {
+                    float d = distances[i];
+                    d0 = sum;
+                    d1 = sum + d;
+                    if (distance < sum + d)
+                    {
+                        float t = (distance - sum) / d;
+                        CurrentPosition = Vector3.Lerp(points[i], points[i + 1], t);
+                        return;
+                    }
+                    sum += d;
+                }
+                i--;
+                CurrentPosition = points[points.Length - 1];
+            }
+
+            else if (amount < 0)
+            {
+                float sum = d1;
+                for (; i >= 0; i--)
+                {
+                    float d = distances[i];
+                    d0 = sum - d;
+                    d1 = sum;
+                    if (distance >= sum - d)
+                    {
+                        float t = (sum - distance) / d;
+                        CurrentPosition = Vector3.Lerp(points[i], points[i + 1], 1 - t);
+                        return;
+                    }
+                    sum -= d;
+                }
+                CurrentPosition = points[0];
+            }
+        }
+
+        public Vector3 CalculatePosition(float distance)
+        {
+            if (points.Length == 0)
+                return Vector3.zero;
+
+            if (points.Length == 1)
+                return points[0];
+
+            if (distance < 0)
+                return points[0];
+
+            if (distance >= TotalDistance)
+                return points[points.Length - 1];
+
+            float sum = 0;
+
+            for (int i = 0; i < points.Length - 1; i++)
+            {
+                float d = distances[i];
+                if (distance < sum + d)
+                {
+                    float t = (distance - sum) / d;
+
+                    return Vector3.Lerp(points[i], points[i + 1], t);
+                }
+                sum += d;
+            }
+
+            return points[points.Length - 1];
+        }
+    }
 
     public class PathFindThreaded
     {
@@ -638,7 +800,6 @@ public class Navigation
         public PathFinding.Path<Node> Path { get; private set; }
         public List<Node> Visited { get; private set; }
         public PathFinding.Result Result { get; private set; }
-        
         public PathFindThreaded(Vector3 start, Vector3 end, float maxDistance, int maxTries, PathFinding.CostFunction costFunction)
         {
             this.start = start;
@@ -730,18 +891,20 @@ public class Navigation
         if (path == null)
             return;
 
-        if (path.Length <= 2)
+        if (path.Count <= 2)
             return;
 
         HexMap map = HexMap.Instance;
 
         int startIndex = 0;
-        while (path.Length > startIndex)
+
+        float step = sampleFrequency * HexMap.TileSize / HexMap.NavigationResolution;
+
+        while (path.Count > startIndex)
         {
-            for (int i = path.Length - 1; i > startIndex; i--)
+            for (int i = path.Count - 1; i > startIndex; i--)
             {
                 float pathDistance = path[i].PathDistance - path[startIndex].PathDistance;
-                Debug.Log(pathDistance);
 
                 float xzDistance = Vector2.Distance(path[startIndex].Position.xz(), path[i].Position.xz());
 
@@ -751,7 +914,7 @@ public class Navigation
                 float shortCutDistance = 0;
                 Vector3 lastPoint = path[startIndex].Position;
 
-                for (float s = 0; s < xzDistance; s += sampleFrequency)
+                for (float s = step; s < xzDistance; s += step)
                 {
                     Vector2 lerp = Vector2.Lerp(path[startIndex].Position.xz(), path[i].Position.xz(), s / xzDistance);
                     Vector3 onTerrain = new Vector3(lerp.x, map.SampleHeight(lerp.x, lerp.y), lerp.y);
@@ -778,8 +941,14 @@ public class Navigation
                     }
                 }
 
+
+                shortCutDistance += Vector3.Distance(lastPoint, path[i].Position);
+                if (shortCutDistance > pathDistance)
+                    valid = false;
+
                 if (valid)
                 {
+                    //Debug.Log("(" + startIndex + "-" + i + ") Path distance: " + pathDistance + " Shortcut distance: " + shortCutDistance);
                     path.Nodes.RemoveRange(startIndex + 1, i - startIndex - 1);
                     foreach(Vector3 p in points)
                     {
