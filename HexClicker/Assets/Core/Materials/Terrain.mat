@@ -27,6 +27,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: ad8d222b4bb397445bee42d2e5e54b84, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _CameraMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -41,7 +45,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _DirtAlbedo:
         m_Texture: {fileID: 2800000, guid: ac6ff12db3a84ce4db36933b187b6eee, type: 3}
-        m_Scale: {x: 8, y: 8}
+        m_Scale: {x: 4, y: 4}
         m_Offset: {x: 0, y: 0}
     - _DirtCol:
         m_Texture: {fileID: 2800000, guid: efafb7978f3fdd24db22220701d80567, type: 3}
@@ -53,11 +57,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _DirtMetallic:
         m_Texture: {fileID: 2800000, guid: eb97044da507f344abd2463db3e74ad1, type: 3}
-        m_Scale: {x: 8, y: 8}
+        m_Scale: {x: 4, y: 4}
         m_Offset: {x: 0, y: 0}
     - _DirtNormal:
         m_Texture: {fileID: 2800000, guid: ff314a27a42b6644699bafa87725a99e, type: 3}
-        m_Scale: {x: 8, y: 8}
+        m_Scale: {x: 4, y: 4}
         m_Offset: {x: 0, y: 0}
     - _DirtNrm:
         m_Texture: {fileID: 2800000, guid: d13fc2f6fbdf7684db1ff6146681303c, type: 3}
@@ -81,7 +85,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _GrassAlbedo:
         m_Texture: {fileID: 2800000, guid: 72f62263b761df14dbfeffcce018ee9d, type: 3}
-        m_Scale: {x: 0.1, y: 0.1}
+        m_Scale: {x: 0.05, y: 0.05}
         m_Offset: {x: 0, y: 0}
     - _GrassMetallic:
         m_Texture: {fileID: 2800000, guid: c74c9919a03c8b2438bb018ce486c9d1, type: 3}
@@ -110,6 +114,18 @@ Material:
     - _ParallaxMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PathAlbedo:
+        m_Texture: {fileID: 2800000, guid: 72f62263b761df14dbfeffcce018ee9d, type: 3}
+        m_Scale: {x: 0.05, y: 0.05}
+        m_Offset: {x: 0, y: 0}
+    - _PathMetallic:
+        m_Texture: {fileID: 2800000, guid: c74c9919a03c8b2438bb018ce486c9d1, type: 3}
+        m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _PathNormal:
+        m_Texture: {fileID: 2800000, guid: 882f51bd39f2a8946afdaa09215a8437, type: 3}
+        m_Scale: {x: 2, y: 2}
         m_Offset: {x: 0, y: 0}
     - _RockAlbedo:
         m_Texture: {fileID: 2800000, guid: 11233bd5d61b89142a4c0953120e6244, type: 3}

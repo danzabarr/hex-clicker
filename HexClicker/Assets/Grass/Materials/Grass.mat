@@ -23,6 +23,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _CameraMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -68,16 +72,16 @@ Material:
         m_Scale: {x: 0.01, y: 0.01}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _AltBlending: 0.108
-    - _BendRotationRandom: 0.4
+    - _AltBlending: 0.02
+    - _BendRotationRandom: 0.6
     - _BladeCurve: 4
     - _BladeForward: 0.02
-    - _BladeHeight: 0.1
-    - _BladeHeightRandom: 0.01
+    - _BladeHeight: 0.15
+    - _BladeHeightRandom: 0.02
     - _BladeRandomAmount: 0.5
     - _BladeSegments: 3
     - _BladeWidth: 0.01
-    - _BladeWidthRandom: 0
+    - _BladeWidthRandom: 0.01
     - _BumpScale: 1
     - _ClipXZ: 0.0001
     - _Cutoff: 0.5
@@ -104,8 +108,8 @@ Material:
     - _MaxTempBladeHeight: 0
     - _MaxTempBladeWidth: 0
     - _Metallic: 0
-    - _MinAlt: 0.01
-    - _MinTemp: 0.05
+    - _MinAlt: 0.15
+    - _MinTemp: 0.01
     - _MinTempBladeHeight: 0
     - _MinTempBladeWidth: 0
     - _Mode: 0
@@ -118,7 +122,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _TessellationUniform: 8
+    - _TessellationUniform: 14
     - _TranslucentGain: 0.7
     - _UVSec: 0
     - _WindScale: 1

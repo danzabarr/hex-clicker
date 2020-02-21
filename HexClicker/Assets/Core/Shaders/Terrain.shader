@@ -55,6 +55,13 @@
 		_SandAlbedo("Sand Albedo", 2D) = "white" {}
 		_SandMetallic("Sand Metallic", 2D) = "black" {}
 		_SandNormal("Sand Normal", 2D) = "bump" {}
+
+		[Space][Space][Space][Space][Space][Space][Space][Space]
+		_PathAlbedo("Path Albedo", 2D) = "white" {}
+		_PathMetallic("Path Metallic", 2D) = "black" {}
+		_PathNormal("Path Normal", 2D) = "bump" {}
+		//[Space][Space][Space][Space][Space][Space][Space][Space]
+		//_CameraMask("Camera Mask", 2D) = "white" {}
 	}
 
 	SubShader
@@ -120,7 +127,7 @@
 			#include "UnityPBSLighting.cginc"
 			#include "TerrainBase.cginc"
 
-			#pragma target 3.0
+			#pragma target 3.5
 
 			#pragma vertex vert
 			#pragma fragment pointLightFrag

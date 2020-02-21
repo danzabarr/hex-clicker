@@ -51,24 +51,10 @@ public class HexUtils
     public static Vector2Int NearestVertex(float x, float z, float size, int resolution) => HexRound(CartesianToVertex(x, z, size, resolution));
     public static Vector2 VertexToCartesian(float x, float z, float size, int resolution)
     {
-
-        
-
-
         float cZ = z * (size / resolution) / (2f / 3f * SQRT_3);
         float cX = x * (size / resolution) + cZ * SQRT_3 / 3f;
 
         return new Vector2(cX, cZ);
-
-
-
-
-        float cartZ = z * (size / resolution) * SQRT_3 / 2f;
-        float cartX = -(x * (size / resolution) - cartZ / SQRT_3);
-        return new Vector2(cartX, cartZ);
-
-
-
     }
     public static int CubeDistance(Vector3Int a, Vector3Int b) => (Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs(a.z - b.z)) / 2;
     public static int HexDistance(Vector2Int a, Vector2Int b) => (Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs((a.x - a.y) - (b.x - b.y))) / 2;

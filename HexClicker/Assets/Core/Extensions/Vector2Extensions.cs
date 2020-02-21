@@ -13,4 +13,7 @@ public static class Vector2Extensions
     {
         return Vector2.Dot(vec, other);
     }
+
+    public static Vector3 x0z(this Vector2 vector) => new Vector3(vector.x, 0, vector.y);
+    public static Vector3 xyz(this Vector2 vector, float y) => new Vector3(vector.x, y, vector.y);
 }

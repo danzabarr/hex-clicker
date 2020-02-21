@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class XZPlane : MonoBehaviour
+public class XZPlane
 {
     private static Plane XZ0Plane = new Plane(Vector3.up, Vector3.zero);
 

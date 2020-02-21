@@ -6,22 +6,24 @@ using UnityEngine;
 [System.Serializable]
 public class HexTile : MonoBehaviour
 {
-    [SerializeField]
-    private MeshFilter meshFilter;
-    [SerializeField]
-    private MeshRenderer meshRenderer;
-    [SerializeField]
-    private MeshCollider meshCollider;
-    [SerializeField]
-    private Material border;
+    [SerializeField] private MeshFilter meshFilter;
+    [SerializeField] private MeshRenderer meshRenderer;
+    [SerializeField] private MeshCollider meshCollider;
+    [SerializeField] private Material border;
+    [SerializeField] private Camera maskCamera;
+    [SerializeField] private int grassMaskResolution;
+    [SerializeField] private MeshRenderer maskCoverer;
+    [SerializeField] private Material grassMaterial;
+
+    public RenderTexture maskTexture;
+    private Material tileGrassMaterial;
+
     public Mesh Mesh => meshFilter.sharedMesh;
     public Vector2Int Position { get; private set; }
     public int TreesCount { get; set; }
     public float Temperature { get; private set; }
     public int RegionID { get; set; }
     public int ContigRegionID { get; set; }
-    public bool showTileBorder;
-
     public HexTile[] Neighbours { get; private set; }
 
     #region Helper Fields
@@ -32,13 +34,47 @@ public class HexTile : MonoBehaviour
         If you change them, you must set them to zero/false after use!
     */
 
-    [HideInInspector]
-    public bool[] edgesVisited = new bool[6];
-    [HideInInspector]
-    public bool inFloodFillSet;
-    [HideInInspector]
-    public int state;
+    [HideInInspector] public bool[] edgesVisited = new bool[6];
+    [HideInInspector] public bool inFloodFillSet;
+    [HideInInspector] public int state;
     #endregion
+
+    void Awake()
+    {
+        maskCamera.orthographicSize = HexMap.TileSize;
+        maskCoverer.transform.localScale = Vector3.one * HexMap.TileSize * .2f;
+    }
+
+    [ContextMenu("Update Mask")]
+    public void UpdateMask(bool cover)
+    {
+        if (maskTexture == null)
+        {
+            maskTexture = new RenderTexture(grassMaskResolution, grassMaskResolution, 0);
+            maskCamera.targetTexture = maskTexture;
+        }
+
+        if (tileGrassMaterial == null)
+        {
+            tileGrassMaterial = new Material(grassMaterial);
+            tileGrassMaterial.SetTexture("_CameraMask", maskTexture);
+            meshRenderer.material.SetTexture("_CameraMask", maskTexture);
+        }
+
+        if (cover) maskCoverer.enabled = true;
+        maskCamera.Render();
+        if (cover) maskCoverer.enabled = false;
+    }
+
+    private void Update()
+    {
+        Graphics.DrawMesh(Mesh, transform.position, Quaternion.identity, tileGrassMaterial, LayerMask.NameToLayer("Grass"), null, 0, null, false);
+    }
+
+    void OnDestroy()
+    {
+        DestroyImmediate(Mesh);
+    }
 
     //Generate the mesh for this tile.
     public void GenerateMesh(HexMap map, int x, int y, bool fixNormalsAtSeams)

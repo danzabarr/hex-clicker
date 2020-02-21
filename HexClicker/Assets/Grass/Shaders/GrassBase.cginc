@@ -13,6 +13,7 @@ uniform float _Temperature;
 uniform float _Wetness;
 uniform float3 _WorldOffset;
 uniform float3 _CameraFocalPoint;
+uniform float _TileSize;
 
 struct geometryOutput
 {
@@ -141,6 +142,9 @@ float _MaskThreshold;
 float _MaskBlending;
 float _MaskMinimum;
 
+sampler2D _CameraMask;
+float4 _CameraMask_ST;
+
 float _Smoothness;
 
 #define BLADE_SEGMENTS 3
@@ -171,7 +175,10 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	if (mask < _MaskThreshold)
 		return;
-	
+
+	float3 cameraMaskSample = tex2Dlod(_CameraMask, float4(pos.xz / (_TileSize * 2) + .5, 0, 0)).rgb;
+	float cameraMask = (cameraMaskSample.x + cameraMaskSample.y + cameraMaskSample.z) / 3;
+
 	//Removes weird flickery grass in the very corner
 	//if (pos.x < _ClipXZ && pos.z < _ClipXZ) return;
 
@@ -192,11 +199,11 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 	float min = .2;
 	float max = .5;
 
-	float widthLo = (.25 + 1) / 2;
-	float widthHi = (.5 + 1) / 2;
+	float widthLo = .625;
+	float heightLo = .625;
 
-	float heightLo = (.25 + 1) / 2;
-	float heightHi = (.85 + 1) / 2;
+	float widthHi = .85;
+	float heightHi = .925;
 	
 	if (temperature < _MinTemp || temperature > _MaxTemp)
 		return;
@@ -204,7 +211,7 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 	float bladeSize = 1;
 	
 	bladeSize *= saturate((mask - _MaskThreshold) / _MaskBlending);
-
+	bladeSize *= 1 - cameraMask;
 	if (bladeSize <= _MaskMinimum)
 		return;
 
@@ -216,6 +223,9 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	if (world.y - _AltBlending < _MinAlt)
 		bladeSize *= lerp(0.2, 1, (world.y - _MinAlt) / _AltBlending);
+
+
+	
 
 	if (bladeSize < 0)
 		return;

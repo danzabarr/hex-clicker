@@ -8,16 +8,29 @@
 uniform half4 _WaterColor, _SnowColor;
 uniform float _LatitudeScale, _WaterLevel, _WaterBlending, _AltitudeTemperature, _Temperature, _SnowBlending, _SnowShininess, _SnowIntensity, _SnowSpecular, _SnowSlopeMax;
 uniform float _OffsetAltitude, _OffsetLatitude;
+uniform float _TileSize;
 
-sampler2D  _SandAlbedo, _SandNormal, _SandMetallic;
-sampler2D  _DirtAlbedo, _DirtNormal, _DirtMetallic;
-sampler2D  _RockAlbedo, _RockNormal, _RockMetallic;
-sampler2D _GrassAlbedo, _GrassNormal, _GrassMetallic;
 
-float4  _SandAlbedo_ST, _SandNormal_ST, _SandMetallic_ST;
-float4  _DirtAlbedo_ST, _DirtNormal_ST, _DirtMetallic_ST;
-float4  _RockAlbedo_ST, _RockNormal_ST, _RockMetallic_ST;
+SamplerState sampler_DirtAlbedo;
+SamplerState sampler_GrassAlbedo;
+SamplerState sampler_RockAlbedo;
+SamplerState sampler_SandAlbedo;
+SamplerState sampler_PathAlbedo;
+
+Texture2D _DirtAlbedo, _DirtNormal, _DirtMetallic;
+Texture2D _GrassAlbedo, _GrassNormal, _GrassMetallic;
+Texture2D _RockAlbedo, _RockNormal, _RockMetallic;
+Texture2D _SandAlbedo, _SandNormal, _SandMetallic;
+Texture2D _PathAlbedo, _PathNormal, _PathMetallic;
+
+float4 _DirtAlbedo_ST, _DirtNormal_ST, _DirtMetallic_ST;
 float4 _GrassAlbedo_ST, _GrassNormal_ST, _GrassMetallic_ST;
+float4 _RockAlbedo_ST, _RockNormal_ST, _RockMetallic_ST;
+float4 _SandAlbedo_ST, _SandNormal_ST, _SandMetallic_ST;
+float4 _PathAlbedo_ST, _PathNormal_ST, _PathMetallic_ST;
+
+sampler2D _CameraMask;
+float4 _CameraMask_ST;
 
 float _SlopeStart, _SlopeEnd;
 
@@ -29,6 +42,7 @@ struct vertexOutput
 	float3 worldPos : TEXCOORD0;
 	half3 worldNormal : TEXCOORD1;
 	float2 uv : TEXCOORD2;
+	float3 vertex : TEXCOORD3;
 
 	half3 tspace0 : TEXCOORD4; // tangent.x, bitangent.x, normal.x
 	half3 tspace1 : TEXCOORD5; // tangent.y, bitangent.y, normal.y
@@ -38,7 +52,7 @@ struct vertexOutput
 	half3 normal : TEXCOORD8;
 
 	SHADOW_COORDS(9)
-		UNITY_FOG_COORDS(10)
+	UNITY_FOG_COORDS(10)
 };
 
 vertexOutput vert(appdata_full v)
@@ -47,8 +61,10 @@ vertexOutput vert(appdata_full v)
 
 	output.pos = UnityObjectToClipPos(v.vertex);
 	output.uv = v.texcoord;
+	output.vertex = v.vertex;
 	output.viewDir = normalize(ObjSpaceViewDir(v.vertex));
 	output.normal = v.normal;
+
 
 	half3 wNormal = UnityObjectToWorldNormal(v.normal);
 	half3 wTangent = UnityObjectToWorldDir(v.tangent.xyz);
@@ -95,50 +111,45 @@ GroundType ground(vertexOutput input)
 	half3 lightDir = normalize(UnityWorldSpaceLightDir(input.worldPos.xyz));
 	float diffuse = dot(lightDir.xyz, input.normal);
 
-
 	GroundType sand;
-	sand.albedo = tex2D(_SandAlbedo, TRANSFORM_TEX(input.uv, _SandAlbedo)).rgb;
-	sand.normal = UnpackNormal(tex2D(_SandNormal, TRANSFORM_TEX(input.uv, _SandNormal)));
+	sand.albedo = _SandAlbedo.Sample(sampler_SandAlbedo, TRANSFORM_TEX(input.uv, _SandAlbedo)).rgb;
+	sand.normal = UnpackNormal(_SandNormal.Sample(sampler_SandAlbedo, TRANSFORM_TEX(input.uv, _SandNormal)));
 	sand.worldNormal = half3(dot(input.tspace0, sand.normal), dot(input.tspace1, sand.normal), dot(input.tspace2, sand.normal));
-	half4 sandMetallic = tex2D(_SandMetallic, TRANSFORM_TEX(input.uv, _SandMetallic));
+	half4 sandMetallic = _SandMetallic.Sample(sampler_SandAlbedo, TRANSFORM_TEX(input.uv, _SandMetallic));
 	sand.metallic = sandMetallic.r;
 	sand.shininess = sandMetallic.a;
 	sand.diffuse = saturate(dot(lightDir.xyz, sand.worldNormal));
 	sand.specular = saturate(pow(max(0.0, dot(reflect(-lightDir, sand.worldNormal), input.viewDir)), max(1, sand.shininess * 50)) * sand.metallic);
 
-
 	GroundType rock;
-	rock.albedo = tex2D(_RockAlbedo, TRANSFORM_TEX(input.uv, _RockAlbedo)).rgb;
-	rock.normal = UnpackNormal(tex2D(_RockNormal, TRANSFORM_TEX(input.uv, _RockNormal)));
+	rock.albedo = _RockAlbedo.Sample(sampler_RockAlbedo, TRANSFORM_TEX(input.uv, _RockAlbedo)).rgb;
+	rock.normal = UnpackNormal(_RockNormal.Sample(sampler_RockAlbedo, TRANSFORM_TEX(input.uv, _RockNormal)));
 	rock.worldNormal = half3(dot(input.tspace0, rock.normal), dot(input.tspace1, rock.normal), dot(input.tspace2, rock.normal));
-	half4 rockMetallic = tex2D(_RockMetallic, TRANSFORM_TEX(input.uv, _RockMetallic));
+	half4 rockMetallic = _RockMetallic.Sample(sampler_RockAlbedo, TRANSFORM_TEX(input.uv, _RockMetallic));
 	rock.metallic = rockMetallic.r;
 	rock.shininess = rockMetallic.a;
 	rock.diffuse = saturate(dot(lightDir.xyz, rock.worldNormal));
 	rock.specular = saturate(pow(max(0.0, dot(reflect(-lightDir, rock.worldNormal), input.viewDir)), max(1, rock.shininess * 50)) * rock.metallic);
 
-
 	GroundType gras;
-	gras.albedo = tex2D(_GrassAlbedo, TRANSFORM_TEX(input.uv, _GrassAlbedo)).rgb;
-	gras.normal = UnpackNormal(tex2D(_GrassNormal, TRANSFORM_TEX(input.uv, _GrassNormal)));
+	gras.albedo = _GrassAlbedo.Sample(sampler_GrassAlbedo, TRANSFORM_TEX(input.uv, _GrassAlbedo)).rgb;
+	gras.normal = UnpackNormal(_GrassNormal.Sample(sampler_GrassAlbedo, TRANSFORM_TEX(input.uv, _GrassNormal)));
 	gras.worldNormal = half3(dot(input.tspace0, gras.normal), dot(input.tspace1, gras.normal), dot(input.tspace2, gras.normal));
-	half4 grasMetallic = tex2D(_GrassMetallic, TRANSFORM_TEX(input.uv, _GrassMetallic));
+	half4 grasMetallic = _GrassMetallic.Sample(sampler_GrassAlbedo, TRANSFORM_TEX(input.uv, _GrassMetallic));
 	gras.metallic = grasMetallic.r;
 	gras.shininess = grasMetallic.a;
 	gras.diffuse = saturate(dot(lightDir.xyz, gras.worldNormal));
 	gras.specular = saturate(pow(max(0.0, dot(reflect(-lightDir, gras.worldNormal), input.viewDir)), max(1, gras.shininess * 50)) * gras.metallic);
 
-
 	GroundType dirt;
-	dirt.albedo = tex2D(_DirtAlbedo, TRANSFORM_TEX(input.uv, _DirtAlbedo)).rgb;
-	dirt.normal = UnpackNormal(tex2D(_DirtNormal, TRANSFORM_TEX(input.uv, _DirtNormal)));
+	dirt.albedo = _DirtAlbedo.Sample(sampler_DirtAlbedo, TRANSFORM_TEX(input.uv, _DirtAlbedo)).rgb;
+	dirt.normal = UnpackNormal(_DirtNormal.Sample(sampler_DirtAlbedo, TRANSFORM_TEX(input.uv, _DirtNormal)));
 	dirt.worldNormal = half3(dot(input.tspace0, dirt.normal), dot(input.tspace1, dirt.normal), dot(input.tspace2, dirt.normal));
-	half4 dirtMetallic = tex2D(_DirtMetallic, TRANSFORM_TEX(input.uv, _DirtMetallic));
+	half4 dirtMetallic = _DirtMetallic.Sample(sampler_DirtAlbedo, TRANSFORM_TEX(input.uv, _DirtMetallic));
 	dirt.metallic = dirtMetallic.r;
 	dirt.shininess = dirtMetallic.a;
 	dirt.diffuse = saturate(dot(lightDir.xyz, dirt.worldNormal));
 	dirt.specular = saturate(pow(max(0.0, dot(reflect(-lightDir, dirt.worldNormal), input.viewDir)), max(1, dirt.shininess * 50)) * dirt.metallic);
-
 
 	GroundType snow;
 	snow.albedo = _SnowColor * _SnowIntensity;
@@ -148,6 +159,16 @@ GroundType ground(vertexOutput input)
 	snow.shininess = _SnowShininess;
 	snow.diffuse = saturate(dot(lightDir.xyz, snow.worldNormal));
 	snow.specular = saturate(pow(max(0.0, dot(reflect(-lightDir, snow.worldNormal), input.viewDir)), max(1, _SnowShininess * 50)) * _SnowSpecular);
+
+	GroundType path;
+	path.albedo = _PathAlbedo.Sample(sampler_PathAlbedo, TRANSFORM_TEX(input.uv, _PathAlbedo)).rgb;
+	path.normal = UnpackNormal(_PathAlbedo.Sample(sampler_PathAlbedo, TRANSFORM_TEX(input.uv, _PathNormal)));
+	path.worldNormal = half3(dot(input.tspace0, path.normal), dot(input.tspace1, path.normal), dot(input.tspace2, path.normal));
+	half4 pathMetallic = _PathMetallic.Sample(sampler_PathAlbedo, TRANSFORM_TEX(input.uv, _PathMetallic));
+	path.metallic = pathMetallic.r;
+	path.shininess = pathMetallic.a;
+	path.diffuse = saturate(dot(lightDir.xyz, path.worldNormal));
+	path.specular = saturate(pow(max(0.0, dot(reflect(-lightDir, path.worldNormal), input.viewDir)), max(1, path.shininess * 50)) * path.metallic);
 
 	GroundType result, slope, hi, mid, low, dirtSand;
 
@@ -244,6 +265,10 @@ GroundType ground(vertexOutput input)
 	{
 		result = lerp(result, slope, (slopeAmount - _SlopeStart) * (1 / (_SlopeEnd - _SlopeStart)));
 	}
+
+	float3 cameraMaskSample = tex2Dlod(_CameraMask, float4(input.vertex.xz / (_TileSize * 2) + .5, 0, 0)).rgb;
+	float cameraMask = (cameraMaskSample.x + cameraMaskSample.y + cameraMaskSample.z) / 3;
+	result = lerp(result, path, saturate(cameraMask));
 
 	//Remove snow under/near water.
 	float snowAmount = saturate((_SnowColor.a - .4) / .2) * saturate((-temperature + _SnowBlending) / _SnowBlending * .5);

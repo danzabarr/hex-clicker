@@ -37,6 +37,8 @@ Shader "Roystan/Grass"
 		_MaskBlending("Mask Blending", Range(0, 1)) = 0.5
 		_MaskMinimum("Mask Minimum", Range(0, 1)) = 0.5
 		_DistanceCulling("Distance Culling", Float) = 500
+
+		_CameraMask("Camera Mask", 2D) = "black" {}
     }
 
     SubShader

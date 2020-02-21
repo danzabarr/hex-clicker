@@ -8,24 +8,18 @@ public class HexRegion
 {
     private List<HexTile> members;
     private List<List<HexTile>> holes;
-
-    //These lists of points are generated but can be moved to local scope if not used for anything.
-    private List<Vector3> edgeOutside, edgeInside;
-    private List<List<Vector3>> holeOutsides, holeInsides;
-    //
-
+    //private List<Vector3> edgeOutside, edgeInside;
+    //private List<List<Vector3>> holeOutsides, holeInsides;
     public Mesh Mesh { get; private set; }
     public int RegionID { get; private set; }
     public int ContigRegionID { get; private set; }
     public int Size => members.Count;
-
     public HexRegion(int regionID, int contigRegionID)
     {
         RegionID = regionID;
         ContigRegionID = contigRegionID;
         members = new List<HexTile>();
     }
-
     /// <summary>
     /// Method for safely adding tiles to the region such that THIS region will remain contiguous
     /// </summary>
@@ -61,7 +55,6 @@ public class HexRegion
 
         return true;
     }
-
     /// <summary>
     /// Method for safely removing tiles to the region such that THIS region will remain contiguous
     /// </summary>
@@ -92,7 +85,6 @@ public class HexRegion
 
         return true;
     }
-
     public bool RemoveMember(HexTile tile, out List<HexRegion> newRegions)
     {
         newRegions = default;
@@ -121,7 +113,6 @@ public class HexRegion
 
         return true;
     }
-
     public bool JoinRegion(HexRegion region)
     {
         if (RegionID != region.RegionID)
@@ -150,28 +141,27 @@ public class HexRegion
         return true;
 
     }
-
     private void GenerateMesh()
     {
-        edgeOutside = new List<Vector3>();
-        edgeInside = new List<Vector3>();
+        //edgeOutside = new List<Vector3>();
+        //edgeInside = new List<Vector3>();
         
         List<Vector3> vertices = new List<Vector3>();
         List<Vector2> uv = new List<Vector2>();
         List<int> triangles = new List<int>();
 
-        Trace(members, false, out edgeInside, out edgeOutside, vertices, uv, triangles);
+        Trace(members, false, out _/*edgeInside*/, out _/*edgeOutside*/, vertices, uv, triangles);
 
         holes = IdentifyHoles(members);
 
-        holeInsides = new List<List<Vector3>>();
-        holeOutsides = new List<List<Vector3>>();
+        //holeInsides = new List<List<Vector3>>();
+        //holeOutsides = new List<List<Vector3>>();
 
         foreach(List<HexTile> hole in holes)
         {
             Trace(hole, true, out List<Vector3> insides, out List<Vector3> outsides, vertices, uv, triangles);
-            holeInsides.Add(insides);
-            holeOutsides.Add(outsides);
+            //holeInsides.Add(insides);
+            //holeOutsides.Add(outsides);
         }
 
         Mesh mesh = new Mesh()
@@ -187,7 +177,6 @@ public class HexRegion
 
         Mesh = mesh;
     }
-
     private List<HexRegion> SeparateIslands()
     {
         List<List<HexTile>> islands = HexUtils.IdentifyIslands(members);
@@ -207,7 +196,6 @@ public class HexRegion
 
         return newRegions;
     }
-
     //Don't make me comment this method. I won't.
     private static void Trace(List<HexTile> region, bool outwardEdge, out List<Vector3> edgeInside, out List<Vector3> edgeOutside, List<Vector3> vertices, List<Vector2> uv, List<int> triangles)
     {
@@ -371,7 +359,6 @@ public class HexRegion
                 e++;
                 e %= 6;
 
-
                 turnedOutward = false;
                 if (!firstEdge)
                 {
@@ -502,7 +489,6 @@ public class HexRegion
             }
         }
 
-
         vertices.AddRange(outside);
         vertices.AddRange(inside);
 
@@ -520,9 +506,7 @@ public class HexRegion
 
         edgeInside = inside;
         edgeOutside = outside;
-
     }
-
     public static List<List<HexTile>> IdentifyHoles(List<HexTile> region)
     {
         List<List<HexTile>> holes = new List<List<HexTile>>();
@@ -620,7 +604,6 @@ public class HexRegion
 
         return holes;
     }
-
     public void OnDrawGizmos()
     {
         /*
@@ -680,7 +663,6 @@ public class HexRegion
         }
 
     }
-
     public static readonly float[] angles =
    {
         Mathf.PI / 2f + Mathf.PI * 2f / 6f * -0.5f,
@@ -690,7 +672,6 @@ public class HexRegion
         Mathf.PI / 2f + Mathf.PI * 2f / 6f * 3.5f,
         Mathf.PI / 2f + Mathf.PI * 2f / 6f * 4.5f,
     };
-
     public static readonly float[] sinAngles =
     {
         Mathf.Sin(angles[0]),
@@ -700,7 +681,6 @@ public class HexRegion
         Mathf.Sin(angles[4]),
         Mathf.Sin(angles[5]),
     };
-
     public static readonly float[] cosAngles =
     {
         Mathf.Cos(angles[0]),

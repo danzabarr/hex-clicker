@@ -29,8 +29,8 @@ vertexInput vert(vertexInput v)
 }
 
 
-	sampler2D _GrassMask;
-	float4 _GrassMask_ST;
+sampler2D _GrassMask;
+float4 _GrassMask_ST;
 
 vertexOutput tessVert(vertexInput v)
 {

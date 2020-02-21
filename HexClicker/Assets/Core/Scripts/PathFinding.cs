@@ -8,7 +8,6 @@ public class PathFinding
     public static float StandardCostFunction(float distance, float cost, float crowFliesDistance, int steps, int turns) => distance + cost + crowFliesDistance;
     public static float NoAdditionalCosts(float distance, float cost, float crowFliesDistance, int steps, int turns) => distance + crowFliesDistance;
     public static float StraightPaths(float distance, float cost, float crowFliesDistance, int steps, int turns) => distance + cost + crowFliesDistance + turns;
-
     public enum Result
     {
         Success,
@@ -17,7 +16,6 @@ public class PathFinding
         FailureTooManyTries,
         FailureTooFar,
     }
-
     public interface INode
     {
         int PathParent { get; set; }
@@ -39,7 +37,6 @@ public class PathFinding
         bool Open { get; set; }
         bool Closed { get; set; }
     }
-
     [System.Serializable]
     public class Path<T> : IEnumerable<T> where T : INode
     {
@@ -68,7 +65,6 @@ public class PathFinding
 
         public Path<T> Duplicate() => new Path<T>(new List<T>(Nodes), Distance, CrowFliesDistance, Cost, Steps, Turns);
     }
-
     public static Result PathFind<T>(T start, T end, float maxDistance, int maxTries, CostFunction costFunction, out Path<T> path, out List<T> visited, bool cleanUpOnSuccess = true) where T : INode
     {
         path = null;
@@ -228,7 +224,6 @@ public class PathFinding
 
         return Result.Success;
     }
-
     public static void ClearPathFindingData(INode node)
     {
         node.PathParent = -1;
