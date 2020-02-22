@@ -5,15 +5,14 @@ using UnityEngine;
 public class Unit : MonoBehaviour
 {
     [SerializeField] private float speed;
-    [SerializeField] private bool raycastModifier;
-    [SerializeField] private float pathCreation;
-    [SerializeField] private MeshRenderer maskRevealer;
+    [SerializeField] private bool requestRaycastModifiedPaths;
+    [SerializeField] private float nodeCostInfluence;
 
-    private Vector2Int nearestVertex;
+    private Vector2Int nearestNode;
 
-    private Navigation.PathFindThreaded pathFinder;
+    private Navigation.PathRequest pathRequest;
     private PathFinding.Path<Navigation.Node> path;
-    private Navigation.PathIterator pathIterator;
+    private PathIterator pathIterator;
 
     public enum Status
     {
@@ -21,6 +20,7 @@ public class Unit : MonoBehaviour
         Stopped,
         Pathing
     }
+
     public Status status;
 
     public Vector3 Destination { get; private set; }
@@ -36,7 +36,7 @@ public class Unit : MonoBehaviour
         this.path = path;
         if (path != null)
         {
-            pathIterator = new Navigation.PathIterator(path);
+            pathIterator = new PathIterator(path);
             Destination = path.End.Position;
         }
     }
@@ -48,8 +48,8 @@ public class Unit : MonoBehaviour
     {
         Stop();
         Destination = destination;
-        pathFinder = new Navigation.PathFindThreaded(transform.position, destination, 1000, 50000, PathFinding.StandardCostFunction, raycastModifier);
-        Navigation.Enqueue(pathFinder);
+        pathRequest = new Navigation.PathRequest(transform.position, destination, 1000, 50000, PathFinding.StandardCostFunction, requestRaycastModifiedPaths);
+        Navigation.Enqueue(pathRequest);
         status = Status.Waiting;
     }
 
@@ -59,21 +59,20 @@ public class Unit : MonoBehaviour
     public void Stop()
     {
         pathIterator = null;
-        if (pathFinder != null)
-            pathFinder.Cancel();
-        pathFinder = null;
+        if (pathRequest != null)
+            pathRequest.Cancel();
+        pathRequest = null;
         status = Status.Stopped;
     }
-
     public void Update()
     {
         //Create a new path iterator when a path has been found
-        if (pathFinder != null && pathFinder.Completed)
+        if (pathRequest != null && pathRequest.Completed)
         {
-            if (pathFinder.Result == PathFinding.Result.Success)
+            if (pathRequest.Result == PathFinding.Result.Success)
             {
-                path = pathFinder.Path;
-                pathIterator = new Navigation.PathIterator(path);
+                path = pathRequest.Path;
+                pathIterator = new PathIterator(path);
                 status = Status.Pathing;
             }
             else
@@ -81,50 +80,35 @@ public class Unit : MonoBehaviour
                 path = null;
                 pathIterator = null;
             }
-            pathFinder = null;
+            pathRequest = null;
         }
 
-        //Move along the path
-        float maskRevealerAlpha = 0;
         if (pathIterator != null)
         {
-            float movementDelta = Mathf.Abs(pathIterator.AdvanceDistance(speed * Time.deltaTime));
+            pathIterator.AdvanceDistance(speed * Time.deltaTime);
             transform.position = pathIterator.CurrentPosition;
-            maskRevealerAlpha = pathCreation * 5 * movementDelta / speed;
         }
 
-        //Adjust revealer appropriate to current speed
-        maskRevealer.material.color = new Color(1, 1, 1, maskRevealerAlpha);
-
         //Apply path to navigation nodes
-        Vector2Int nearestVertex = Vector2Int.RoundToInt((transform.position * HexMap.NavigationResolution / HexMap.TileSize).xz());
-        if (this.nearestVertex != nearestVertex)
+        Vector2Int nearestNode = Vector2Int.RoundToInt((transform.position * Navigation.Resolution / HexMap.TileSize).xz());
+        if (this.nearestNode != nearestNode)
         {
-            this.nearestVertex = nearestVertex;
-            if (Navigation.TryGetNode(nearestVertex, out Navigation.Node node))
-            {
-                node.dynamicMovementCost = Mathf.Max(node.dynamicMovementCost - pathCreation, 0);
-            }
+            this.nearestNode = nearestNode;
+            if (Navigation.TryGetNode(nearestNode, out Navigation.Node node))
+                node.DesirePathCost += nodeCostInfluence;
         }
 
         MoveRandomly();
+        //MoveMouseClick();
     }
-
     public void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
         Navigation.DrawPath(path, true, false, false);
-
-        //Gizmos.color = Color.red;
-        //if (Navigation.NearestSquareNode(transform.position, out Navigation.Node node))
-        //{
-        //    Gizmos.DrawSphere(node.Position, .03f);
-        //}
     }
-
     private void MoveRandomly()
     {
-        if ((pathFinder == null && pathIterator == null) || AtDestination)
+        if ((pathRequest == null && pathIterator == null) || AtDestination)
         {
             float range = Random.Range(3f, 6f);
 
@@ -132,4 +116,15 @@ public class Unit : MonoBehaviour
             SetDestination(HexMap.Instance.OnTerrain(randomPosition));
         }
     }
+    private void MoveMouseClick()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            {
+                SetDestination(hitInfo.point);
+            }
+        }
+    }
+
 }

@@ -14,15 +14,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     public static readonly int TileResolution = 16;
     public static readonly float TileSize = 4.0f;
 
-    public static readonly int NavigationResolution = 64;
-    public static readonly float NavigationMinHeight = 0.0f;
-    public static readonly float NavigationMaxHeight = 1.25f;
-    public static readonly float NavigationStandardMovementCost = 10;
-
-    public static readonly int PathMaskUpdatesPerSecond = 30;
-    public static readonly float PathMaskCoverIntervalSeconds = 3;
-
-    private static float pathMaskUpdateCounter;
+    public static readonly float PathMaskCoverIntervalSeconds = 5;
     private static float pathMaskCoverCounter;
 
     private new Camera camera;
@@ -83,7 +75,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
     [Header("Navigation")]
     [SerializeField] private bool navigationDrawGraph;
-    [SerializeField] private bool navigationRaycastModifier;
     [SerializeField] private Unit[] testUnit;
 
     [Header("Building")]
@@ -199,26 +190,20 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         {
             int layer = LayerMask.NameToLayer("Regions");
             foreach (HexRegion region in regions.Values)
-                Graphics.DrawMesh(region.Mesh, new Vector3(0, 0.05f, 0), Quaternion.identity, RegionMaterial(region.RegionID), layer, null, 0, null, false, false);
+                Graphics.DrawMesh(region.Mesh, Vector3.zero, Quaternion.identity, RegionMaterial(region.RegionID), layer, null, 0, null, false, false);
         }
         #endregion
         #region Path Mask
-        pathMaskUpdateCounter += Time.deltaTime;
         pathMaskCoverCounter += Time.deltaTime;
-
-        if (pathMaskUpdateCounter >= 1f / PathMaskUpdatesPerSecond)
+        bool cover = pathMaskCoverCounter >= PathMaskCoverIntervalSeconds;
+        if (cover)
         {
-            pathMaskUpdateCounter -= 1f / PathMaskUpdatesPerSecond;
-            bool cover = pathMaskCoverCounter >= PathMaskCoverIntervalSeconds;
-            if (cover)
-            {
-                pathMaskCoverCounter -= PathMaskCoverIntervalSeconds;
-                Navigation.FadeOutPaths(.01f);
-            }
-
-            foreach (HexTile tile in tiles)
-                tile.UpdateMask(cover);
+            pathMaskCoverCounter -= PathMaskCoverIntervalSeconds;
+            Navigation.FadeOutPaths(.01f);
         }
+
+        foreach (HexTile tile in tiles)
+            tile.UpdateMask(cover);
 
         #endregion;
     }
@@ -447,14 +432,14 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         }
         #endregion
     }
-    private bool MousePickComponent<T>(int layermask, float maxDistance, out RaycastHit hitInfo, out T component) where T : Component
+    public static bool MousePickComponent<T>(Camera camera, int layermask, float maxDistance, out RaycastHit hitInfo, out T component) where T : Component
     {
         component = null;
         if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hitInfo, maxDistance, layermask))
             component = hitInfo.collider.GetComponent<T>();
         return component != null;
     }
-    private int MousePickComponent<A, B>(int layermask, float maxDistance, out RaycastHit hitInfo, out A componentA, out B componentB)
+    public static int MousePickComponent<A, B>(Camera camera, int layermask, float maxDistance, out RaycastHit hitInfo, out A componentA, out B componentB)
         where A : Component
         where B : Component
     {
@@ -540,7 +525,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     [ContextMenu("Generate Navigation Graph", false, 2)]
     public void GenerateNavigationGraph()
     {
-        Navigation.GenerateNavigationGraph();
+        Navigation.GenerateNavigationGraph(this);
     }
 
     #region Unused
