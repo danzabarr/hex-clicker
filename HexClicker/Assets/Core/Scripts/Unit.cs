@@ -120,11 +120,10 @@ public class Unit : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            if (ScreenCast.MouseTerrain.Cast(out RaycastHit hitInfo))
             {
                 SetDestination(hitInfo.point);
             }
         }
     }
-
 }

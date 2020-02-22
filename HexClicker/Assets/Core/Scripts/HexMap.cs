@@ -432,34 +432,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         }
         #endregion
     }
-    public static bool MousePickComponent<T>(Camera camera, int layermask, float maxDistance, out RaycastHit hitInfo, out T component) where T : Component
-    {
-        component = null;
-        if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hitInfo, maxDistance, layermask))
-            component = hitInfo.collider.GetComponent<T>();
-        return component != null;
-    }
-    public static int MousePickComponent<A, B>(Camera camera, int layermask, float maxDistance, out RaycastHit hitInfo, out A componentA, out B componentB)
-        where A : Component
-        where B : Component
-    {
-        componentA = null;
-        componentB = null;
-        if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hitInfo, maxDistance, layermask))
-        {
-            componentA = hitInfo.collider.GetComponent<A>();
-            componentB = hitInfo.collider.GetComponent<B>();
-        }
-        int result = 0;
-
-        if (componentA != null)
-            result += 1;
-
-        if (componentB != null)
-            result += 2;
-
-        return result;
-    }
     private void ControlModeUnits()
     {
         
@@ -471,7 +443,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         if (Input.GetKey(KeyCode.RightArrow))
             placingRotation++;
 
-        if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")) && hitInfo.collider.GetComponent<HexTile>())
+        if (ScreenCast.MouseTerrain.Cast(out RaycastHit hitInfo))//Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")) && hitInfo.collider.GetComponent<HexTile>())
         {
             HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
             Matrix4x4 parentTransform = Matrix4x4.TRS(hitInfo.point, Quaternion.Euler(0, placingRotation, 0), Vector3.one);
@@ -501,24 +473,16 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            if (ScreenCast.MouseTerrain.Cast(out HexTile mouse))
             {
-                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
-                if (mouse)
-                {
-                    SetRegion(regionPlacing, mouse.Position.x, mouse.Position.y);
-                }
+                SetRegion(regionPlacing, mouse.Position.x, mouse.Position.y);
             }
         }
         if (Input.GetMouseButtonDown(1))
         {
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+            if (ScreenCast.MouseTerrain.Cast(out HexTile mouse))
             {
-                HexTile mouse = hitInfo.collider.GetComponent<HexTile>();
-                if (mouse)
-                {
-                    SetRegion(0, mouse.Position.x, mouse.Position.y);
-                }
+                SetRegion(0, mouse.Position.x, mouse.Position.y);
             }
         }
     }

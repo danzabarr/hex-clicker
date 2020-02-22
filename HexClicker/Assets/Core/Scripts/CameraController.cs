@@ -5,71 +5,128 @@ using UnityEngine.Rendering.PostProcessing;
 
 public class CameraController : MonoBehaviour
 {
+    public static CameraController Instance { get; private set; }
 
-    public new Camera camera;
-    public Transform pitch;
-    public Transform zoom;
-    public PostProcessVolume postProcessing;
+    [SerializeField] private new Camera camera;
+    [SerializeField] private Transform pitch;
+    [SerializeField] private Transform zoom;
+    [SerializeField] private PostProcessVolume postProcessing;
 
-    public float speed;
-    public float acceleration;
-    public float dampening;
+    [Header("Movement")]
+    
+    [SerializeField] private bool keepCameraAboveTerrain = true;
+    [SerializeField] private float minimumHeightAboveTerrain = .5f;
+    [SerializeField] private float moveSpeed = 1;
+    [SerializeField] private float moveAcceleration = 1;
+    [SerializeField] private float moveDampening = .00001f;
 
-    public float rotationSpeed;
-    public float rotationAcceleration;
-    public float rotationDampening;
+    [Header("Rotation")]
+    [SerializeField] private float rotationSpeed = 3;
+    [SerializeField] private float rotationAcceleration = 20;
+    [SerializeField] private float rotationDampening = .00001f;
 
-    public float zoomSpeed;
-    public float zoomAcceleration;
-    public float zoomDampening;
+    [Header("Zoom")]
+    [SerializeField] private float zoomSpeed = .01f;
+    [SerializeField] private float zoomAcceleration = .05f;
+    [SerializeField] private float zoomDampening = .01f;
+    [SerializeField] private float depthOfFieldFocusDistanceOffset = 0;
 
-    public float minimumHeightAboveTerrain;
+    [Header("Focus")]
+    [SerializeField] private float focusDuration;
 
-    private Vector3 velocity;
+    [Header("Edge Scrolling")]
+    [SerializeField] private bool enableEdgeScrolling = false;
+    [SerializeField] private Vector2 edgeScrollInsets = new Vector2(10, 10);
+    [SerializeField] private Vector2 edgeScrollSensitivity = Vector2.one;
+
+    private Vector3 movementVelocity;
     private float rotationVelocity;
     private float zoomVelocity;
     private float zoomAmount = 0.5f;
-    private DepthOfField depthOfField;
+    public Transform Focus { get; private set; }
+    private bool atFocus;
+    private Coroutine focusRoutine;
 
-    public float focusDistanceOffset;
+    private DepthOfField depthOfField;
 
     private void Awake()
     {
+        Instance = this;
         postProcessing.profile.TryGetSettings(out depthOfField);
     }
-
-    // Update is called once per frame
-    void Update()
+    
+    void LateUpdate()
     {
-        Vector3 input = Vector2.zero;
+        if (Input.GetMouseButtonDown(0) && ScreenCast.MouseScene.Cast(out Unit unit))
+        {
+            SetFocus(unit.transform, .05f);
+        }
+
+        Vector3 inputMovement = Vector2.zero;
         float inputRotation = 0;
         float inputZoom = Input.mouseScrollDelta.y;
+        Vector2 inputEdgeScroll = Vector2.zero;
 
         if (Input.GetKey(KeyCode.W))
-            input.z++;
+        {
+            inputMovement.z++;
+            ClearFocus();
+        }
         if (Input.GetKey(KeyCode.A))
-            input.x--;
+        {
+            inputMovement.x--;
+            ClearFocus();
+        }
         if (Input.GetKey(KeyCode.S))
-            input.z--;
+        {
+            inputMovement.z--;
+            ClearFocus();
+        }
         if (Input.GetKey(KeyCode.D))
-            input.x++;
+        {
+            inputMovement.x++;
+            ClearFocus();
+        }
         //if (Input.GetKey(KeyCode.Space))
         //    input.y++;
         //if (Input.GetKey(KeyCode.X))
         //    input.y--;
 
-        input.Normalize();
+        inputMovement.Normalize();
+
+        if (enableEdgeScrolling)
+        {
+            if (Input.mousePosition.x < edgeScrollInsets.x || Input.mousePosition.x > Screen.width  - edgeScrollInsets.x
+             || Input.mousePosition.y < edgeScrollInsets.y || Input.mousePosition.y > Screen.height - edgeScrollInsets.y)
+            {
+                inputEdgeScroll.x += Input.mousePosition.x - Screen.width / 2f;
+                inputEdgeScroll.y += Input.mousePosition.y - Screen.height / 2;
+                inputEdgeScroll.Normalize();
+                ClearFocus();
+            }
+        }
 
         if (Input.GetKey(KeyCode.Q))
             inputRotation++;
         if (Input.GetKey(KeyCode.E))
             inputRotation--;
 
-
-        velocity += (transform.right * input.x + transform.up * input.y + transform.forward * input.z) * acceleration * Time.deltaTime;
-        velocity = Vector3.ClampMagnitude(velocity, speed);
-        transform.position += velocity;
-        velocity *= Mathf.Pow(dampening, Time.deltaTime);
+        if (Focus != null)
+        {
+            if (atFocus || focusRoutine == null)
+            {
+                transform.position = Focus.position;
+                focusRoutine = null;
+            }
+        }
+        else
+        {
+            movementVelocity += (transform.right * inputMovement.x + transform.up * inputMovement.y + transform.forward * inputMovement.z) * moveAcceleration * Time.deltaTime;
+            movementVelocity += (transform.right * inputEdgeScroll.x * edgeScrollSensitivity.x + transform.forward * inputEdgeScroll.y * edgeScrollSensitivity.y) * moveAcceleration * Time.deltaTime;
+            movementVelocity = Vector3.ClampMagnitude(movementVelocity, moveSpeed);
+            transform.position += movementVelocity;
+        }
+        movementVelocity *= Mathf.Pow(moveDampening, Time.deltaTime);
 
         rotationVelocity += inputRotation * rotationAcceleration * Time.deltaTime;
         rotationVelocity = Mathf.Clamp(rotationVelocity, -rotationSpeed, +rotationSpeed);
@@ -78,29 +135,103 @@ public class CameraController : MonoBehaviour
 
         zoomVelocity += inputZoom * zoomAcceleration * Time.deltaTime;
         zoomVelocity = Mathf.Clamp(zoomVelocity, -zoomSpeed, zoomSpeed);
-
         zoomAmount = Mathf.Clamp(zoomAmount - zoomVelocity, 0, 1);
-
-        pitch.localRotation = Quaternion.Euler(zoomAmount * 50 + 40, pitch.localRotation.eulerAngles.y, pitch.localRotation.eulerAngles.z);
         zoom.localPosition = Vector3.forward * -(zoomAmount * 20);
+        pitch.localRotation = Quaternion.Euler(zoomAmount * 50 + 40, pitch.localRotation.eulerAngles.y, pitch.localRotation.eulerAngles.z);
+        zoomVelocity *= Mathf.Pow(zoomDampening, Time.deltaTime);
 
-        if (Physics.Raycast(camera.ScreenPointToRay(new Vector3(Screen.width/ 2, Screen.height/2)), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")))
+        if (ScreenCast.CenterTerrain.Cast(out RaycastHit hitInfo))
         {
-            depthOfField.focusDistance.value = hitInfo.distance + focusDistanceOffset;
+            depthOfField.focusDistance.value = hitInfo.distance + depthOfFieldFocusDistanceOffset;
             depthOfField.focalLength.value = (hitInfo.distance - .5f) / 10f * 220f + 80f;
         }
 
-        
-
-        zoomVelocity *= Mathf.Pow(zoomDampening, Time.deltaTime);
-        //depthOfField.focusDistance.value = zoomAmount * 10 - 0.25f;
-       // depthOfField.focalLength.value = zoomAmount * 5;
-
         camera.transform.localPosition = Vector3.zero;
-
         float terrain = HexMap.Instance.SampleHeight(camera.transform.position.x, camera.transform.position.z) + minimumHeightAboveTerrain;
         camera.transform.position = new Vector3(camera.transform.position.x, Mathf.Max(terrain, camera.transform.position.y), camera.transform.position.z);
 
+
+        //Used for culling grass a certain distance away from the camera focal point.
         Shader.SetGlobalVector("_CameraFocalPoint", transform.position);
+    }
+
+    /// <summary>
+    /// Sets the transform for the camera to follow, and an initial zoom level from 0-1 where 1 is furthest away, and 0 is closest to the subject.
+    /// </summary>
+    public void SetFocus(Transform focus, float targetZoom)
+    {
+        Focus = focus;
+        if (focus != null)
+            ZoomTo(focus, targetZoom);
+    }
+
+    public void ClearFocus()
+    {
+        Focus = null;
+        if (focusRoutine != null)
+            StopCoroutine(focusRoutine);
+        focusRoutine = null;
+    }
+
+    /// <summary>
+    /// Begins a routine where the camera will center and zoom into a target position and zoom level.
+    /// </summary>
+    public void ZoomTo(Vector3 targetPosition, float targetZoom)
+    {
+        if (focusRoutine != null)
+            StopCoroutine(focusRoutine);
+        focusRoutine = StartCoroutine(ZoomRoutine(targetPosition, targetZoom, focusDuration));
+    }
+
+    /// <summary>
+    /// Begins a routine where the camera will center and zoom into a target position and zoom level.
+    /// </summary>
+    public void ZoomTo(Transform targetPosition, float targetZoom)
+    {
+        if (focusRoutine != null)
+            StopCoroutine(focusRoutine);
+        focusRoutine = StartCoroutine(ZoomRoutine(targetPosition, targetZoom, focusDuration));
+    }
+    IEnumerator ZoomRoutine(Vector3 targetPosition, float targetZoom, float duration)
+    {
+        targetZoom = Mathf.Clamp(targetZoom, 0, 1);
+
+        if (duration > 0)
+        {
+            float speed = 1f / duration;
+            atFocus = false;
+            float oldZoom = zoomAmount;
+            Vector3 oldPosition = transform.position;
+            for (float t = 0; t < 1; t += Time.deltaTime * speed)
+            {
+                zoomAmount = Mathf.Lerp(oldZoom, targetZoom, t);
+                transform.position = Vector3.Lerp(oldPosition, targetPosition, t);
+                yield return null;
+            }
+        }
+        
+        zoomAmount = targetZoom;
+        transform.position = targetPosition;
+        atFocus = true;
+    }
+    IEnumerator ZoomRoutine(Transform targetPosition, float targetZoom, float duration)
+    {
+        targetZoom = Mathf.Clamp(targetZoom, 0, 1);
+        if (duration > 0)
+        {
+            float speed = 1f / duration;
+            atFocus = false;
+            float oldZoom = zoomAmount;
+            Vector3 oldPosition = transform.position;
+            for (float t = 0; t < 1; t += Time.deltaTime * speed)
+            {
+                zoomAmount = Mathf.Lerp(oldZoom, targetZoom, t);
+                transform.position = Vector3.Lerp(oldPosition, targetPosition.position, t);
+                yield return null;
+            }
+        }
+        zoomAmount = targetZoom;
+        transform.position = targetPosition.position;
+        atFocus = true;
     }
 }
