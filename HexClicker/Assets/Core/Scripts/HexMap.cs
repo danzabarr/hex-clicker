@@ -1,10 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.Profiling;
 
 [System.Serializable]
 public class HexMap : MonoBehaviour, IEnumerable<HexTile>
@@ -17,7 +13,6 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     public static readonly float PathMaskCoverIntervalSeconds = 5;
     private static float pathMaskCoverCounter;
 
-    private new Camera camera;
     [SerializeField] [HideInInspector] private HexTile[] tiles;
     private Dictionary<int, HexRegion> regions;
 
@@ -134,12 +129,10 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     public void OnEnable()
     {
         Instance = this;
-        camera = Camera.main;
     }
     public void Awake()
     {
         Instance = this;
-        camera = Camera.main;
         Generate();
         GenerateNavigationGraph();
         SetPlacingObject(placingObject);
@@ -435,6 +428,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     private void ControlModeUnits()
     {
         
+       
     }
     private void ControlModeBuild()
     {

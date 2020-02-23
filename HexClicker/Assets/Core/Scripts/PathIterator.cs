@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class PathIterator
 {
@@ -10,16 +11,16 @@ public class PathIterator
     public float CurrentDistance { get; private set; }
     public float T => Mathf.Clamp(CurrentDistance / TotalDistance, 0, 1);
     public Vector3 CurrentPosition { get; private set; }
-    public PathIterator(PathFinding.Path<Navigation.Node> path)
+    public PathIterator(List<Navigation.PathPoint> path)
     {
         points = new Vector3[path.Count];
-        for (int i = 0; i < path.Nodes.Count; i++)
-            points[i] = path.Nodes[i].Position;
+        for (int i = 0; i < path.Count; i++)
+            points[i] = path[i].Node.Position;
 
-        distances = new float[path.Nodes.Count - 1];
-        for (int i = 0; i < path.Nodes.Count - 1; i++)
+        distances = new float[path.Count - 1];
+        for (int i = 0; i < path.Count - 1; i++)
         {
-            distances[i] = Vector3.Distance(path.Nodes[i].Position, path.Nodes[i + 1].Position);
+            distances[i] = Vector3.Distance(path[i].Node.Position, path[i + 1].Node.Position);
             TotalDistance += distances[i];
         }
 

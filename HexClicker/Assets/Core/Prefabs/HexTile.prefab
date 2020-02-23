@@ -250,13 +250,11 @@ MonoBehaviour:
   meshRenderer: {fileID: 8604472299702636682}
   meshCollider: {fileID: 9076195393788734775}
   border: {fileID: 2100000, guid: dfdbd2ffd5df5cc40855ab8e5bff7cba, type: 2}
-  showTileBorder: 0
   maskCamera: {fileID: 1388343237731214600}
-  maskTexture: {fileID: 0}
   grassMaskResolution: 512
-  grassMaterial: {fileID: 2100000, guid: dc23b46c0890b774bb9bbeb2aa16645d, type: 2}
   maskCoverer: {fileID: 4226203173441962510}
-  interval: 1
+  grassMaterial: {fileID: 2100000, guid: dc23b46c0890b774bb9bbeb2aa16645d, type: 2}
+  maskTexture: {fileID: 0}
   edgesVisited: 000000000000
   inFloodFillSet: 0
   state: 0

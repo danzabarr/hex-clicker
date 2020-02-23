@@ -1,17 +1,22 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
 public class Navigation
 {
-    public static readonly int Resolution = 96;
+    public static readonly int Resolution = 64;
     public static readonly float MinHeight = 0.0f;
     public static readonly float MaxHeight = 1.25f;
     public static readonly float MaxDesirePathCost = 20;
+    private static Dictionary<Vector2Int, Node> nodes;
+    private static List<Edge> edges;
 
-    public class Node : PathFinding.INode
+    public delegate float CostFunction(float distance, float cost, float crowFliesDistance);
+    public static float StandardCostFunction(float distance, float cost, float crowFliesDistance) => cost + crowFliesDistance;
+    public static float NoAdditionalCosts(float distance, float cost, float crowFliesDistance) => distance + crowFliesDistance;
+
+    public class Node
     {
         private float desirePathCost = MaxDesirePathCost;
         public float DesirePathCost
@@ -23,24 +28,12 @@ public class Navigation
         public Vector2Int Hex { get; private set; }
         public Vector3 Position { get; private set; }
         public List<Neighbour> Neighbours { get; private set; } = new List<Neighbour>();
-        public int PathParent { get; set; } = -1;
-        public int PathIndex { get; set; } = -1;
-        public float PathDistance { get; set; }
-        public float PathCrowFliesDistance { get; set; }
-        public float PathCost { get; set; }
-        public int PathSteps { get; set; }
-        public int PathTurns { get; set; }
-        public int PathEndDirection { get; set; }
+        public Node Neighbour(int i) => Neighbours[i].Node;
+        public float EuclideanDistance(Node node) => Vector3.Distance(Position, node.Position);
         public bool Accessible { get; set; } = true;
-        public bool Open { get; set; }
-        public bool Closed { get; set; }
-        public int NeighboursCount => Neighbours.Count;
-        PathFinding.INode PathFinding.INode.Neighbour(int i) => Neighbours[i].Node;
         public float NeighbourDistance(int i) => Neighbours[i].Distance;
         public float NeighbourCost(int i) => Neighbours[i].Distance * (MovementCost + Neighbours[i].Node.MovementCost) / 2;
         public bool NeighbourAccessible(int i) => true;
-        public float EuclideanDistance(PathFinding.INode node) => Vector3.Distance(Position, ((Node)node).Position);
-        public float XZEuclideanDistance(PathFinding.INode node) => Vector2.Distance(Position.xz(), ((Node)node).Position.xz());
 
         public Node(Vector2Int hex, Vector3 position)
         {
@@ -59,6 +52,35 @@ public class Navigation
                 Neighbours.RemoveAt(Neighbours.Count - 1);
         }
     }
+    public struct NodeData
+    {
+        public int PathParent;
+        public int PathIndex;
+        public float PathDistance;
+        public float PathCrowFliesDistance;
+        public float PathCost;
+        public bool Open;
+
+        public NodeData(int pathParent, int pathIndex, float pathDistance, float pathCrowFliesDistance, float pathCost, bool open)
+        {
+            PathParent = pathParent;
+            PathIndex = pathIndex;
+            PathDistance = pathDistance;
+            PathCrowFliesDistance = pathCrowFliesDistance;
+            PathCost = pathCost;
+            Open = open;
+        }
+    }
+    public struct PathPoint
+    {
+        public PathPoint(Node node, NodeData data)
+        {
+            Node = node;
+            Data = data;
+        }
+        public Node Node { get; private set; }
+        public NodeData Data { get; private set; }
+    }
     public class Edge
     {
         public Node Node1 { get; private set; }
@@ -74,31 +96,25 @@ public class Navigation
     public class Neighbour
     {
         public Node Node { get; private set; }
-        public Edge Edge { get; private set; }
-        public float Distance => Edge.Length;
-        public Neighbour(Node node, Edge edge)
+        public float Distance { get; private set; }
+        public Neighbour(Node node, float distance)
         {
             Node = node;
-            Edge = edge;
+            Distance = distance;
         }
     }
-    [System.Serializable]
-    
     public class PathRequest
     {
-        private readonly Thread thread;
         private readonly Vector3 start, end;
         private readonly float maxDistance;
         private readonly int maxTries;
-        private readonly PathFinding.CostFunction costFunction;
+        private readonly CostFunction costFunction;
         private readonly bool raycastModifier;
         public bool Completed { get; private set; }
-        public bool Cancelled { get; private set; }
-        public PathFinding.Path<Node> Path { get; private set; }
-        public List<Node> Visited { get; private set; }
-        public PathFinding.Result Result { get; private set; }
+        public List<PathPoint> Path { get; private set; }
+        public PathResult Result { get; private set; }
 
-        public PathRequest(Vector3 start, Vector3 end, float maxDistance, int maxTries, PathFinding.CostFunction costFunction, bool raycastModifier)
+        public PathRequest(Vector3 start, Vector3 end, float maxDistance, int maxTries, CostFunction costFunction, bool raycastModifier)
         {
             this.start = start;
             this.end = end;
@@ -110,37 +126,22 @@ public class Navigation
 
         public void Queue()
         {
-            Enqueue(this);
+            ThreadPool.QueueUserWorkItem(new WaitCallback(Execute));
         }
 
-        public void Cancel()
+        public void Execute(object data)
         {
-            Cancelled = true;
-        }
-
-        public void Execute()
-        {
-            Result = PathFind(start, end, maxDistance, maxTries, costFunction, out PathFinding.Path<Node> path, out List<Node> visited, !raycastModifier);
+            Result = PathFind(start, end, maxDistance, maxTries, costFunction, out List<PathPoint> path);
             Path = path;
-            Visited = visited;
 
             if (raycastModifier)
             {
                 RaycastModifier(path);
-
-                foreach (Node node in visited)
-                    PathFinding.ClearPathFindingData(node);
             }
 
             Completed = true;
         }
     }
-
-    private static List<Edge> edges;
-    private static Dictionary<Vector2Int, Node> nodes;
-    private static Thread thread;
-    private static BlockingCollection<PathRequest> queue = new BlockingCollection<PathRequest>();
-    public static bool Working { get; private set; }
     public static bool TryGetNode(Vector2Int vertex, out Node node) => nodes.TryGetValue(vertex, out node);
     public static void GenerateNavigationGraph(HexMap map)
     {
@@ -284,64 +285,45 @@ public class Navigation
         if (n1 == null || n2 == null)
             return false;
 
-        if (check && Connected(n1, n2, out _))
+        if (check && Connected(n1, n2))
             return false;
 
         float distance = n1.EuclideanDistance(n2);
         edge = new Edge(n1, n2, distance);
-        n1.Neighbours.Add(new Neighbour(n2, edge));
-        n2.Neighbours.Add(new Neighbour(n1, edge));
+        n1.Neighbours.Add(new Neighbour(n2, distance));
+        n2.Neighbours.Add(new Neighbour(n1, distance));
         return true;
     }
-    public static bool Connect(Node n1, Node n2, float precalculatedLength, out Edge edge, bool check = true)
+    public static bool Connected(Node n1, Node n2)
     {
-        edge = default;
-
-        if (n1 == null || n2 == null)
-            return false;
-
-        if (check && Connected(n1, n2, out _))
-            return false;
-
-        edge = new Edge(n1, n2, precalculatedLength);
-        n1.Neighbours.Add(new Neighbour(n2, edge));
-        n2.Neighbours.Add(new Neighbour(n1, edge));
-        return true;
-    }
-    public static bool Connected(Node n1, Node n2, out Edge edge)
-    {
-        edge = null;
         foreach (Neighbour n in n1.Neighbours)
             if (n.Node == n2)
-            {
-                edge = n.Edge;
                 return true;
-            }
         return false;
     }
-    public static void DrawPath(PathFinding.Path<Node> path, bool drawSpheres = false, bool labelNodes = false, bool labelEdges = false)
+    public static void DrawPath(List<PathPoint> path, bool drawSpheres = false, bool labelNodes = false, bool labelEdges = false)
     {
         if (path == null)
             return;
 
-        for (int i = 0; i < path.Nodes.Count - 1; i++)
-            Gizmos.DrawLine(path.Nodes[i].Position, path.Nodes[i + 1].Position);
+        for (int i = 0; i < path.Count - 1; i++)
+            Gizmos.DrawLine(path[i].Node.Position, path[i + 1].Node.Position);
 
         if (labelEdges)
-            for (int i = 0; i < path.Nodes.Count - 1; i++)
+            for (int i = 0; i < path.Count - 1; i++)
             {
-                Vector3 midPoint = (path.Nodes[i].Position + path.Nodes[i + 1].Position) / 2f;
-                float length = path.Nodes[i].EuclideanDistance(path.Nodes[i + 1]);
+                Vector3 midPoint = (path[i].Node.Position + path[i + 1].Node.Position) / 2f;
+                float length = path[i].Node.EuclideanDistance(path[i + 1].Node);
                 Handles.Label(midPoint, length + "");
             }
 
         if (drawSpheres)
-            foreach(Node node in path.Nodes)
-                Gizmos.DrawSphere(node.Position, 0.02f);
+            foreach(PathPoint pp in path)
+                Gizmos.DrawSphere(pp.Node.Position, 0.02f);
 
         if (labelNodes)
-            foreach (Node node in path.Nodes)
-                Handles.Label(node.Position, node.Position + "");
+            foreach (PathPoint pp in path)
+                Handles.Label(pp.Node.Position, pp.Node.Position + "");
     }
     public static void Clear()
     {
@@ -438,64 +420,22 @@ public class Navigation
 
         return nearest;
     }
-    public static bool NearestHexNode(Vector3 position, out Node node)
-    {
-        Vector2Int vertex = HexUtils.NearestVertex(position, HexMap.TileSize, Resolution);
-        return nodes.TryGetValue(vertex, out node);
-    }
-    public static List<Node> NearestHexNodes(Vector3 position)
-    {
-        List<Node> nearest = new List<Node>();
-        if (nodes == null)
-            return nearest;
-        Vector2Int[] vertices = HexUtils.NearestThreeVertices(position, HexMap.TileSize, Resolution);
-
-        for (int i = 0; i < 3; i++)
-            if (nodes.TryGetValue(vertices[i], out Node node))
-                nearest.Add(node);
-
-        return nearest;
-    }
-    public static void SnapToHexNode(Transform transform)
-    {
-        if (NearestHexNode(transform.position, out Node node))
-            transform.transform.position = node.Position;
-    }
     public static void FadeOutPaths(float amount)
     {
         foreach (Node node in nodes.Values)
             node.DesirePathCost += amount;
     }
-    public static void Enqueue(PathRequest request)
+    public enum PathResult
     {
-        queue.Add(request);
-        //Debug.Log(queue.Count);
-        if (thread == null)
-        {
-            thread = new Thread(ProcessRequests);
-            thread.Start();
-        }
+        Success,
+        AtDestination,
+        FailureNoPath,
+        FailureTooManyTries,
+        FailureTooFar,
     }
-    private static void ProcessRequests()
-    {
-        while(true)
-        {
-            
-            foreach(PathRequest current in queue.GetConsumingEnumerable())
-            {
-                if (current.Cancelled)
-                    continue;
-
-                Working = true;
-                current.Execute();
-                Working = false;
-            }
-        }
-    }
-    public static PathFinding.Result PathFind(Vector3 start, Vector3 end, float maxDistance, int maxTries, PathFinding.CostFunction costFunction, out PathFinding.Path<Node> path, out List<Node> visited, bool cleanUpOnSuccess = true)
+    public static PathResult PathFind(Vector3 start, Vector3 end, float maxDistance, int maxTries, CostFunction costFunction, out List<PathPoint> path)
     {
         path = null;
-        visited = new List<Node>();
 
         float size = HexMap.TileSize;
 
@@ -505,29 +445,174 @@ public class Navigation
         List<Node> startNeighbours = NearestSquareNodes(start);//NearestHexNodes(start);
         if (startNeighbours.Count <= 0)
         {
-            return PathFinding.Result.FailureNoPath;
+            return PathResult.FailureNoPath;
         }
 
         List<Node> endNeighbours = NearestSquareNodes(end);//NearestHexNodes(end);
         if (endNeighbours.Count <= 0)
         {
-            return PathFinding.Result.FailureNoPath;
+            return PathResult.FailureNoPath;
         }
 
         foreach (Node neighbour in startNeighbours)
-            startNode.Neighbours.Add(new Neighbour(neighbour, new Edge(startNode, neighbour, startNode.EuclideanDistance(neighbour))));
+            startNode.Neighbours.Add(new Neighbour(neighbour, startNode.EuclideanDistance(neighbour)));
 
         foreach (Node neighbour in endNeighbours)
             Connect(neighbour, endNode, out _, false);
 
-        PathFinding.Result result = PathFinding.PathFind(startNode, endNode, maxDistance, maxTries, costFunction, out path, out visited, cleanUpOnSuccess);
+        PathResult result = PathFind(startNode, endNode, maxDistance, maxTries, costFunction, out path);
 
         foreach (Node neighbour in endNeighbours)
             neighbour.RemoveLastAddedNeighbour();
 
         return result;
     }
-    public static void RaycastModifier(PathFinding.Path<Node> path)
+    public static PathResult PathFind(Node start, Node end, float maxDistance, int maxTries, CostFunction costFunction, out List<PathPoint> path)
+    {
+        path = null;
+        List<Node> visited = new List<Node>();
+
+        if (start == null || end == null)
+            return PathResult.FailureNoPath;
+
+        if (!end.Accessible)
+            return PathResult.FailureNoPath;
+
+        if (start.Equals(end))
+            return PathResult.AtDestination;
+
+        float startToEndDistance = start.EuclideanDistance(end);
+
+        if (startToEndDistance > maxDistance)
+            return PathResult.FailureTooFar;
+
+        Dictionary<Node, NodeData> nodeData = new Dictionary<Node, NodeData>();
+
+        List<Node> open = new List<Node>();
+
+        nodeData.Add(start, new NodeData
+        {
+            PathIndex = 0,
+            PathParent = -1,
+            PathCost = 0,
+            PathDistance = 0,
+            PathCrowFliesDistance = startToEndDistance,
+            Open = true
+        });
+        open.Add(start);
+        visited.Add(start);
+
+        int tries = 0;
+        while (true)
+        {
+            tries++;
+            if (tries > maxTries)
+            {
+                return PathResult.FailureTooManyTries;
+            }
+
+            Node currentNode = null;
+
+            if (open.Count == 0)
+            {
+                return PathResult.FailureNoPath;
+            }
+
+            float currentCost = float.MaxValue;
+            foreach (Node node in open)
+            {
+                NodeData data = nodeData[node];
+
+                float cost = costFunction(data.PathDistance, data.PathCost, data.PathCrowFliesDistance);
+                if (cost < currentCost)
+                {
+                    currentNode = node;
+                    currentCost = cost;
+                }
+            }
+
+            if (currentNode.Equals(end))
+            {
+                break;
+            }
+
+            NodeData currentData = nodeData[currentNode];
+            if (currentData.PathDistance > maxDistance)
+            {
+                return PathResult.FailureTooFar;
+            }
+
+            open.Remove(currentNode);
+            currentData.Open = false;
+            nodeData[currentNode] = currentData;
+
+            for (int i = 0; i < currentNode.Neighbours.Count; i++)
+            {
+
+                Node neighbour = currentNode.Neighbours[i].Node;
+
+                if (neighbour == null)
+                    continue;
+
+                if (!neighbour.Accessible)
+                    continue;
+
+                if (!currentNode.NeighbourAccessible(i))
+                    continue;
+
+                float nextPathDistance = currentData.PathDistance + currentNode.NeighbourDistance(i);
+                float nextPathCrowFliesDistance = neighbour.EuclideanDistance(end);
+                float nextPathCost = currentData.PathCost + currentNode.NeighbourCost(i);
+                float nextTotalCost = costFunction(nextPathDistance, nextPathCost, nextPathCrowFliesDistance);
+
+                bool neighbourExists = nodeData.TryGetValue(neighbour, out NodeData neighbourData);
+
+                if (!neighbourExists)
+                    neighbourData = new NodeData()
+                    {
+                        PathIndex = -1,
+                        PathParent = -1,
+                        PathCrowFliesDistance = float.MaxValue,
+                        PathDistance = float.MaxValue,
+                        PathCost = float.MaxValue
+                    };
+
+                if (nextTotalCost < costFunction(neighbourData.PathDistance, neighbourData.PathCost, neighbourData.PathCrowFliesDistance))
+                {
+                    neighbourData.PathParent = currentData.PathIndex;
+                    neighbourData.PathDistance = nextPathDistance;
+                    neighbourData.PathCost = nextPathCost;
+                    neighbourData.PathCrowFliesDistance = nextPathCrowFliesDistance;
+                    neighbourData.Open = true;
+                    open.Add(neighbour);
+
+                    if (neighbourData.PathIndex == -1 || !neighbourExists)
+                    {
+                        neighbourData.PathIndex = visited.Count;
+                        visited.Add(neighbour);
+                    }
+                    if (!neighbourExists)
+                        nodeData.Add(neighbour, neighbourData);
+                    else
+                        nodeData[neighbour] = neighbourData;
+                }
+            }
+        }
+
+        path = new List<PathPoint>();
+        Node n = end;
+        NodeData d = nodeData[end];
+        while (d.PathParent != -1)
+        {
+            path.Insert(0, new PathPoint(n, d));
+            n = visited[d.PathParent];
+            d = nodeData[n];
+        }
+        path.Insert(0, new PathPoint(start, nodeData[start]));
+
+        return PathResult.Success;
+    }
+    public static void RaycastModifier(List<PathPoint> path)
     {
         if (path == null)
             return;
@@ -543,16 +628,16 @@ public class Navigation
         {
             for (int i = path.Count - 1; i > startIndex; i--)
             {
-                float pathDistance = path[i].PathDistance - path[startIndex].PathDistance;
-                float pathCost = path[i].PathCost - path[startIndex].PathCost;
+                float pathDistance = path[i].Data.PathDistance - path[startIndex].Data.PathDistance;
+                float pathCost = path[i].Data.PathCost - path[startIndex].Data.PathCost;
 
                 bool valid = true;
                 List<Vector3> points = new List<Vector3>();
                 float shortCutDistance = 0;
                 float shortCutCost = 0;
 
-                Vector2 p0 = path[startIndex].Position.xz();
-                Vector2 p1 = path[i].Position.xz();
+                Vector2 p0 = path[startIndex].Node.Position.xz();
+                Vector2 p1 = path[i].Node.Position.xz();
                 float voxelSize = HexMap.TileSize / Resolution;
                 Vector2 voxelOffset = Vector2.one * .5f;// .5f;
 
@@ -572,7 +657,7 @@ public class Navigation
                 Vector2 delta = Vector2.Min(rdinv * stp, Vector2.one);
                 Vector2 t_max = Vector2Abs((p + Vector2.Max(stp, Vector2.zero) - p0) * rdinv);
 
-                Vector3 lastIntersection = path[startIndex].Position;
+                Vector3 lastIntersection = path[startIndex].Node.Position;
 
                 int steps = 0;
                 while (steps < 1000)
@@ -597,7 +682,7 @@ public class Navigation
                     float next_t = Mathf.Min(t_max.x, t_max.y);
                     if (next_t > 1.0)
                     {
-                        float finalDistance = Vector3.Distance(lastIntersection, path[i].Position);
+                        float finalDistance = Vector3.Distance(lastIntersection, path[i].Node.Position);
                         shortCutDistance += finalDistance;
                         float finalCost = finalDistance * node.MovementCost;
                         shortCutCost += finalCost;
@@ -639,11 +724,11 @@ public class Navigation
                 if (valid)
                 {
                     //Debug.Log("(" + startIndex + "-" + i + ") Path distance: " + pathDistance + " Shortcut distance: " + shortCutDistance);
-                    path.Nodes.RemoveRange(startIndex + 1, i - startIndex - 1);
+                    path.RemoveRange(startIndex + 1, i - startIndex - 1);
                     foreach (Vector3 point in points)
                     {
                         startIndex++;
-                        path.Nodes.Insert(startIndex, new Node(point));
+                        path.Insert(startIndex, new PathPoint(new Node(point), default));
                     }
                     break;
                 }
@@ -651,8 +736,67 @@ public class Navigation
             startIndex++;
         }
     }
-
     #region Unused
+    /*
+    
+    public static bool NearestHexNode(Vector3 position, out Node node)
+    {
+        Vector2Int vertex = HexUtils.NearestVertex(position, HexMap.TileSize, Resolution);
+        return nodes.TryGetValue(vertex, out node);
+    }
+    public static List<Node> NearestHexNodes(Vector3 position)
+    {
+        List<Node> nearest = new List<Node>();
+        if (nodes == null)
+            return nearest;
+        Vector2Int[] vertices = HexUtils.NearestThreeVertices(position, HexMap.TileSize, Resolution);
+
+        for (int i = 0; i < 3; i++)
+            if (nodes.TryGetValue(vertices[i], out Node node))
+                nearest.Add(node);
+
+        return nearest;
+    }
+    public static void SnapToHexNode(Transform transform)
+    {
+        if (NearestHexNode(transform.position, out Node node))
+            transform.transform.position = node.Position;
+    }
+    */
+
+    /*
+    private static Thread thread;
+    private static BlockingCollection<PathRequest> queue = new BlockingCollection<PathRequest>();
+    public static bool Working { get; private set; }
+    public static void Enqueue(PathRequest request)
+    {
+        queue.Add(request);
+        //Debug.Log(queue.Count);
+        if (thread == null)
+        {
+            thread = new Thread(ProcessRequests);
+            thread.Start();
+        }
+    }
+    private static void ProcessRequests()
+    {
+        while(true)
+        {
+            
+            foreach(PathRequest current in queue.GetConsumingEnumerable())
+            {
+                if (current.Cancelled)
+                    continue;
+
+                Working = true;
+                //current.Execute();
+                Working = false;
+            }
+        }
+    }
+    */
+
+
     /*
     public static void RaycastModifierRegularIntervals(PathFinding.Path<Node> path)
     {
@@ -725,6 +869,7 @@ public class Navigation
             }
             startIndex++;
         }
+        
     }
 
     public static void VoxelTraverse(Vector2 p0, Vector2 p1, float voxelSize)

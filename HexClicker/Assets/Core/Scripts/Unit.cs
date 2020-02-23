@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public class Unit : MonoBehaviour
 {
@@ -11,7 +13,7 @@ public class Unit : MonoBehaviour
     private Vector2Int nearestNode;
 
     private Navigation.PathRequest pathRequest;
-    private PathFinding.Path<Navigation.Node> path;
+    private List<Navigation.PathPoint> path;
     private PathIterator pathIterator;
 
     public enum Status
@@ -30,14 +32,14 @@ public class Unit : MonoBehaviour
     /// <summary>
     /// Sets the path for this unit directly.
     /// </summary>
-    public void SetPath(PathFinding.Path<Navigation.Node> path)
+    public void SetPath(List<Navigation.PathPoint> path)
     {
         Stop();
         this.path = path;
         if (path != null)
         {
             pathIterator = new PathIterator(path);
-            Destination = path.End.Position;
+            Destination = path[path.Count - 1].Node.Position;
         }
     }
 
@@ -48,8 +50,8 @@ public class Unit : MonoBehaviour
     {
         Stop();
         Destination = destination;
-        pathRequest = new Navigation.PathRequest(transform.position, destination, 1000, 50000, PathFinding.StandardCostFunction, requestRaycastModifiedPaths);
-        Navigation.Enqueue(pathRequest);
+        pathRequest = new Navigation.PathRequest(transform.position, destination, 1000, 50000, Navigation.StandardCostFunction, requestRaycastModifiedPaths);
+        pathRequest.Queue();
         status = Status.Waiting;
     }
 
@@ -59,8 +61,6 @@ public class Unit : MonoBehaviour
     public void Stop()
     {
         pathIterator = null;
-        if (pathRequest != null)
-            pathRequest.Cancel();
         pathRequest = null;
         status = Status.Stopped;
     }
@@ -69,7 +69,7 @@ public class Unit : MonoBehaviour
         //Create a new path iterator when a path has been found
         if (pathRequest != null && pathRequest.Completed)
         {
-            if (pathRequest.Result == PathFinding.Result.Success)
+            if (pathRequest.Result == Navigation.PathResult.Success)
             {
                 path = pathRequest.Path;
                 pathIterator = new PathIterator(path);
