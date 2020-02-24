@@ -1,33 +1,34 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(NavigationArea))]
-public class NavigationAreaEditor : Editor
+namespace HexClicker.Navigation
 {
-    SerializedProperty pointsArray;
-    //SerializedProperty useXZ;
-
-    private void OnEnable()
+    [CustomEditor(typeof(NavigationArea))]
+    public class NavigationAreaEditor : Editor
     {
-        pointsArray = serializedObject.FindProperty("points");
-        //useXZ = serializedObject.FindProperty("useXZ");
-    }
+        SerializedProperty pointsArray;
+        //SerializedProperty useXZ;
 
-    public void OnSceneGUI()
-    {
-        Transform transform = ((NavigationArea)target).transform;
-
-        for (int i = 0; i < pointsArray.arraySize; i++)
+        private void OnEnable()
         {
-            SerializedProperty element = pointsArray.GetArrayElementAtIndex(i);
-            //if (useXZ.boolValue)
-                element.vector2Value = transform.InverseTransformPoint(Handles.PositionHandle(transform.TransformPoint(element.vector2Value.x0z()), transform.rotation)).xz();
-            //else 
-            //    element.vector2Value = transform.InverseTransformPoint(Handles.PositionHandle(transform.TransformPoint(element.vector2Value), transform.rotation));
-
+            pointsArray = serializedObject.FindProperty("points");
+            //useXZ = serializedObject.FindProperty("useXZ");
         }
-        serializedObject.ApplyModifiedProperties();
+
+        public void OnSceneGUI()
+        {
+            Transform transform = ((NavigationArea)target).transform;
+
+            for (int i = 0; i < pointsArray.arraySize; i++)
+            {
+                SerializedProperty element = pointsArray.GetArrayElementAtIndex(i);
+                //if (useXZ.boolValue)
+                    element.vector2Value = transform.InverseTransformPoint(Handles.PositionHandle(transform.TransformPoint(element.vector2Value.x0z()), transform.rotation)).xz();
+                //else 
+                //    element.vector2Value = transform.InverseTransformPoint(Handles.PositionHandle(transform.TransformPoint(element.vector2Value), transform.rotation));
+
+            }
+            serializedObject.ApplyModifiedProperties();
+        }
     }
 }

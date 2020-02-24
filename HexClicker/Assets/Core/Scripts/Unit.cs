@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using HexClicker.Navigation;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
@@ -12,8 +13,8 @@ public class Unit : MonoBehaviour
 
     private Vector2Int nearestNode;
 
-    private Navigation.PathRequest pathRequest;
-    private List<Navigation.PathPoint> path;
+    private PathFinding.Request pathRequest;
+    private List<PathFinding.Point> path;
     private PathIterator pathIterator;
 
     public enum Status
@@ -32,7 +33,7 @@ public class Unit : MonoBehaviour
     /// <summary>
     /// Sets the path for this unit directly.
     /// </summary>
-    public void SetPath(List<Navigation.PathPoint> path)
+    public void SetPath(List<PathFinding.Point> path)
     {
         Stop();
         this.path = path;
@@ -50,7 +51,7 @@ public class Unit : MonoBehaviour
     {
         Stop();
         Destination = destination;
-        pathRequest = new Navigation.PathRequest(transform.position, destination, 1000, 50000, requestRaycastModifiedPaths);
+        pathRequest = new PathFinding.Request(transform.position, destination, 500, 10000, requestRaycastModifiedPaths);
         pathRequest.Queue();
         status = Status.Waiting;
     }
@@ -69,7 +70,7 @@ public class Unit : MonoBehaviour
         //Create a new path iterator when a path has been found
         if (pathRequest != null && pathRequest.Completed)
         {
-            if (pathRequest.Result == Navigation.PathResult.Success)
+            if (pathRequest.Result == PathFinding.Result.Success)
             {
                 path = pathRequest.Path;
                 pathIterator = new PathIterator(path);
@@ -90,11 +91,11 @@ public class Unit : MonoBehaviour
         }
 
         //Apply path to navigation nodes
-        Vector2Int nearestNode = Vector2Int.RoundToInt((transform.position * Navigation.Resolution / HexMap.TileSize).xz());
+        Vector2Int nearestNode = Vector2Int.RoundToInt((transform.position * NavigationGraph.Resolution / HexMap.TileSize).xz());
         if (this.nearestNode != nearestNode)
         {
             this.nearestNode = nearestNode;
-            if (Navigation.TryGetNode(nearestNode, out Navigation.Node node))
+            if (NavigationGraph.TryGetNode(nearestNode, out Node node))
                 node.DesirePathCost += nodeCostInfluence;
         }
 
@@ -104,7 +105,7 @@ public class Unit : MonoBehaviour
     public void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
-        Navigation.DrawPath(path, true, false, false);
+        PathFinding.DrawPath(path, true, false, false);
     }
     private void MoveRandomly()
     {

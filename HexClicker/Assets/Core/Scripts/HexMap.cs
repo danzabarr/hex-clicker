@@ -1,7 +1,7 @@
-﻿using System.Collections;
+﻿using HexClicker.Navigation;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 [System.Serializable]
 public class HexMap : MonoBehaviour, IEnumerable<HexTile>
@@ -203,7 +203,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         if (cover)
         {
             pathMaskCoverCounter -= GrassRegrowthInterval;
-            Navigation.FadeOutPaths(GrassRegrowthAmount);
+            NavigationGraph.GrassRegrowth(GrassRegrowthAmount);
         }
         StartCoroutine(UpdateMasks(cover));
         #endregion;
@@ -219,7 +219,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     void OnDrawGizmos()
     {
         if (navigationDrawGraph)
-            Navigation.OnDrawGizmos();
+            NavigationGraph.OnDrawGizmos();
     }
     /// <summary>
     /// Returns the height of the terrain at the supplied x and z coordinates. Does not necessarily return the height of the mesh according to resolution.
@@ -363,7 +363,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             treesRenderer.Clear();
         treesRenderer = null;
         regions = null;
-        Navigation.Clear();
+        NavigationGraph.Clear();
         //NavMesh.RemoveAllNavMeshData();
     }
     /// <summary>
@@ -499,7 +499,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     [ContextMenu("Generate Navigation Graph", false, 2)]
     public void GenerateNavigationGraph()
     {
-        Navigation.GenerateNavigationGraph(this);
+        NavigationGraph.Generate(this);
     }
 
     #region Unused

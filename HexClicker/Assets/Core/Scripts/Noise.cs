@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Noise : MonoBehaviour
+public static class Noise
 {
     [System.Serializable]
     public struct NoiseSettings
     {
-
         [SerializeField]
         internal float frequency;
         [SerializeField]
