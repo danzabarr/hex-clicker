@@ -50,7 +50,7 @@ public class Unit : MonoBehaviour
     {
         Stop();
         Destination = destination;
-        pathRequest = new Navigation.PathRequest(transform.position, destination, 1000, 50000, Navigation.StandardCostFunction, requestRaycastModifiedPaths);
+        pathRequest = new Navigation.PathRequest(transform.position, destination, 1000, 50000, requestRaycastModifiedPaths);
         pathRequest.Queue();
         status = Status.Waiting;
     }

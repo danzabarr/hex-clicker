@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,13 +10,15 @@ public class Navigation
     public static readonly int Resolution = 64;
     public static readonly float MinHeight = 0.0f;
     public static readonly float MaxHeight = 1.25f;
-    public static readonly float MaxDesirePathCost = 20;
+    public static readonly float MaxDesirePathCost = 5;
+    public static readonly int NavigationThreads = 16;
     private static Dictionary<Vector2Int, Node> nodes;
     private static List<Edge> edges;
-
-    public delegate float CostFunction(float distance, float cost, float crowFliesDistance);
-    public static float StandardCostFunction(float distance, float cost, float crowFliesDistance) => cost + crowFliesDistance;
-    public static float NoAdditionalCosts(float distance, float cost, float crowFliesDistance) => distance + crowFliesDistance;
+    private static Thread[] threads;
+    private static BlockingCollection<PathRequest>[] queues;
+    private static Dictionary<Node, NodeData>[] nodeDataMaps;
+    private static List<Node>[] openLists;
+    private static List<Node>[] visitedLists;
 
     public class Node
     {
@@ -22,7 +26,7 @@ public class Navigation
         public float DesirePathCost
         {
             get => desirePathCost;
-            set => desirePathCost = Mathf.Clamp(value, 0, MaxDesirePathCost);
+            set => desirePathCost = Mathf.Clamp(value, 1, MaxDesirePathCost);
         }
         public float MovementCost => DesirePathCost;// + roads + other stuff;
         public Vector2Int Hex { get; private set; }
@@ -56,16 +60,14 @@ public class Navigation
     {
         public int PathParent;
         public int PathIndex;
-        public float PathDistance;
         public float PathCrowFliesDistance;
         public float PathCost;
         public bool Open;
 
-        public NodeData(int pathParent, int pathIndex, float pathDistance, float pathCrowFliesDistance, float pathCost, bool open)
+        public NodeData(int pathParent, int pathIndex, float pathCrowFliesDistance, float pathCost, bool open)
         {
             PathParent = pathParent;
             PathIndex = pathIndex;
-            PathDistance = pathDistance;
             PathCrowFliesDistance = pathCrowFliesDistance;
             PathCost = pathCost;
             Open = open;
@@ -103,41 +105,87 @@ public class Navigation
             Distance = distance;
         }
     }
+    private static void StartThreads(int amount)
+    {
+        threads = new Thread[amount];
+        queues = new BlockingCollection<PathRequest>[amount];
+        nodeDataMaps = new Dictionary<Node, NodeData>[amount];
+        openLists = new List<Node>[amount];
+        visitedLists = new List<Node>[amount];
+
+        for (int i = 0; i < amount; i++)
+        {
+            queues[i] = new BlockingCollection<PathRequest>();
+            nodeDataMaps[i] = new Dictionary<Node, NodeData>();
+            openLists[i] = new List<Node>();
+            visitedLists[i] = new List<Node>();
+            threads[i] = new Thread(ProcessQueue);
+            threads[i].Start(i);
+        }
+    }
+    private static void ProcessQueue(object queue)
+    {
+        int i = (int)queue;
+        while (true)
+        {
+            foreach (PathRequest request in queues[i].GetConsumingEnumerable())
+            {
+                if (request.Cancelled)
+                    continue;
+                request.Execute(i);
+            }
+        }
+    }
+    public static void Enqueue(PathRequest request)
+    {
+        if (queues == null)
+            StartThreads(NavigationThreads);
+
+        int shortestLength = int.MaxValue;
+        int shortestIndex = 0;
+        for (int i = 0; i < threads.Length; i++)
+        {
+            int length = queues[i].Count;
+            if (length < shortestLength)
+            {
+                shortestLength = length;
+                shortestIndex = i;
+            }
+        }
+        queues[shortestIndex].Add(request);
+    }
     public class PathRequest
     {
         private readonly Vector3 start, end;
         private readonly float maxDistance;
         private readonly int maxTries;
-        private readonly CostFunction costFunction;
         private readonly bool raycastModifier;
+        public bool Cancelled { get; private set; }
         public bool Completed { get; private set; }
         public List<PathPoint> Path { get; private set; }
         public PathResult Result { get; private set; }
 
-        public PathRequest(Vector3 start, Vector3 end, float maxDistance, int maxTries, CostFunction costFunction, bool raycastModifier)
+        public PathRequest(Vector3 start, Vector3 end, float maxDistance, int maxTries, bool raycastModifier)
         {
             this.start = start;
             this.end = end;
             this.maxDistance = maxDistance;
             this.maxTries = maxTries;
-            this.costFunction = costFunction;
             this.raycastModifier = raycastModifier;
         }
-
+        
         public void Queue()
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(Execute));
+            Enqueue(this);
         }
 
-        public void Execute(object data)
+        public void Execute(int thread)
         {
-            Result = PathFind(start, end, maxDistance, maxTries, costFunction, out List<PathPoint> path);
+            Result = PathFind(start, end, maxDistance, maxTries, thread, out List<PathPoint> path);
             Path = path;
 
             if (raycastModifier)
-            {
                 RaycastModifier(path);
-            }
 
             Completed = true;
         }
@@ -305,6 +353,7 @@ public class Navigation
     {
         if (path == null)
             return;
+#if UNITY_EDITOR
 
         for (int i = 0; i < path.Count - 1; i++)
             Gizmos.DrawLine(path[i].Node.Position, path[i + 1].Node.Position);
@@ -316,7 +365,6 @@ public class Navigation
                 float length = path[i].Node.EuclideanDistance(path[i + 1].Node);
                 Handles.Label(midPoint, length + "");
             }
-
         if (drawSpheres)
             foreach(PathPoint pp in path)
                 Gizmos.DrawSphere(pp.Node.Position, 0.02f);
@@ -324,6 +372,7 @@ public class Navigation
         if (labelNodes)
             foreach (PathPoint pp in path)
                 Handles.Label(pp.Node.Position, pp.Node.Position + "");
+#endif
     }
     public static void Clear()
     {
@@ -392,7 +441,6 @@ public class Navigation
     }
     public static List<Node> NearestSquareNodes(Vector3 position)
     {
-
         List<Node> nearest = new List<Node>();
 
         if (nodes == null)
@@ -433,7 +481,7 @@ public class Navigation
         FailureTooManyTries,
         FailureTooFar,
     }
-    public static PathResult PathFind(Vector3 start, Vector3 end, float maxDistance, int maxTries, CostFunction costFunction, out List<PathPoint> path)
+    public static PathResult PathFind(Vector3 start, Vector3 end, float maxDistance, int maxTries, int thread, out List<PathPoint> path)
     {
         path = null;
 
@@ -444,15 +492,11 @@ public class Navigation
 
         List<Node> startNeighbours = NearestSquareNodes(start);//NearestHexNodes(start);
         if (startNeighbours.Count <= 0)
-        {
             return PathResult.FailureNoPath;
-        }
 
         List<Node> endNeighbours = NearestSquareNodes(end);//NearestHexNodes(end);
         if (endNeighbours.Count <= 0)
-        {
             return PathResult.FailureNoPath;
-        }
 
         foreach (Node neighbour in startNeighbours)
             startNode.Neighbours.Add(new Neighbour(neighbour, startNode.EuclideanDistance(neighbour)));
@@ -460,17 +504,16 @@ public class Navigation
         foreach (Node neighbour in endNeighbours)
             Connect(neighbour, endNode, out _, false);
 
-        PathResult result = PathFind(startNode, endNode, maxDistance, maxTries, costFunction, out path);
+        PathResult result = PathFind(startNode, endNode, maxDistance, maxTries, thread, out path);
 
         foreach (Node neighbour in endNeighbours)
             neighbour.RemoveLastAddedNeighbour();
 
         return result;
     }
-    public static PathResult PathFind(Node start, Node end, float maxDistance, int maxTries, CostFunction costFunction, out List<PathPoint> path)
+    public static PathResult PathFind(Node start, Node end, float maxDistance, int maxTries, int thread, out List<PathPoint> path)
     {
         path = null;
-        List<Node> visited = new List<Node>();
 
         if (start == null || end == null)
             return PathResult.FailureNoPath;
@@ -486,19 +529,24 @@ public class Navigation
         if (startToEndDistance > maxDistance)
             return PathResult.FailureTooFar;
 
-        Dictionary<Node, NodeData> nodeData = new Dictionary<Node, NodeData>();
+        Dictionary<Node, NodeData> nodeData = nodeDataMaps[thread];
+        List<Node> visited = visitedLists[thread];
+        List<Node> open = openLists[thread];
 
-        List<Node> open = new List<Node>();
+        nodeData.Clear();
+        visited.Clear();
+        open.Clear();
 
         nodeData.Add(start, new NodeData
         {
             PathIndex = 0,
             PathParent = -1,
             PathCost = 0,
-            PathDistance = 0,
+            //PathDistance = 0,
             PathCrowFliesDistance = startToEndDistance,
             Open = true
         });
+
         open.Add(start);
         visited.Add(start);
 
@@ -523,7 +571,7 @@ public class Navigation
             {
                 NodeData data = nodeData[node];
 
-                float cost = costFunction(data.PathDistance, data.PathCost, data.PathCrowFliesDistance);
+                float cost = data.PathCost + data.PathCrowFliesDistance;
                 if (cost < currentCost)
                 {
                     currentNode = node;
@@ -537,7 +585,7 @@ public class Navigation
             }
 
             NodeData currentData = nodeData[currentNode];
-            if (currentData.PathDistance > maxDistance)
+            if (currentData.PathCost > maxDistance)
             {
                 return PathResult.FailureTooFar;
             }
@@ -560,35 +608,31 @@ public class Navigation
                 if (!currentNode.NeighbourAccessible(i))
                     continue;
 
-                float nextPathDistance = currentData.PathDistance + currentNode.NeighbourDistance(i);
                 float nextPathCrowFliesDistance = neighbour.EuclideanDistance(end);
                 float nextPathCost = currentData.PathCost + currentNode.NeighbourCost(i);
-                float nextTotalCost = costFunction(nextPathDistance, nextPathCost, nextPathCrowFliesDistance);
+                float nextTotalCost = nextPathCost + nextPathCrowFliesDistance;
 
                 bool neighbourExists = nodeData.TryGetValue(neighbour, out NodeData neighbourData);
 
-                if (!neighbourExists)
-                    neighbourData = new NodeData()
-                    {
-                        PathIndex = -1,
-                        PathParent = -1,
-                        PathCrowFliesDistance = float.MaxValue,
-                        PathDistance = float.MaxValue,
-                        PathCost = float.MaxValue
-                    };
-
-                if (nextTotalCost < costFunction(neighbourData.PathDistance, neighbourData.PathCost, neighbourData.PathCrowFliesDistance))
+                if (!neighbourExists || nextTotalCost < neighbourData.PathCost + neighbourData.PathCrowFliesDistance)
                 {
+                    if (!neighbourExists)
+                        neighbourData = new NodeData();
+
                     neighbourData.PathParent = currentData.PathIndex;
-                    neighbourData.PathDistance = nextPathDistance;
+                    //neighbourData.PathDistance = nextPathDistance;
                     neighbourData.PathCost = nextPathCost;
                     neighbourData.PathCrowFliesDistance = nextPathCrowFliesDistance;
-                    neighbourData.Open = true;
-                    open.Add(neighbour);
+
+                    if (!neighbourData.Open)
+                    {
+                        neighbourData.Open = true;
+                        open.Add(neighbour);
+                    }
 
                     if (neighbourData.PathIndex == -1 || !neighbourExists)
                     {
-                        neighbourData.PathIndex = visited.Count;
+                        neighbourData.PathIndex = (ushort)visited.Count;
                         visited.Add(neighbour);
                     }
                     if (!neighbourExists)
@@ -624,16 +668,18 @@ public class Navigation
 
         int startIndex = 0;
 
+        List<Vector3> points = new List<Vector3>();
+
         while (path.Count > startIndex)
         {
             for (int i = path.Count - 1; i > startIndex; i--)
             {
-                float pathDistance = path[i].Data.PathDistance - path[startIndex].Data.PathDistance;
+                //float pathDistance = path[i].Data.PathDistance - path[startIndex].Data.PathDistance;
                 float pathCost = path[i].Data.PathCost - path[startIndex].Data.PathCost;
 
                 bool valid = true;
-                List<Vector3> points = new List<Vector3>();
-                float shortCutDistance = 0;
+                points.Clear();
+                //float shortCutDistance = 0;
                 float shortCutCost = 0;
 
                 Vector2 p0 = path[startIndex].Node.Position.xz();
@@ -683,13 +729,13 @@ public class Navigation
                     if (next_t > 1.0)
                     {
                         float finalDistance = Vector3.Distance(lastIntersection, path[i].Node.Position);
-                        shortCutDistance += finalDistance;
+                        //shortCutDistance += finalDistance;
                         float finalCost = finalDistance * node.MovementCost;
                         shortCutCost += finalCost;
 
                         //Handles.Label(Vector3.Lerp(lastIntersection, path[i].Position, .5f), node.Hex + " " + finalDistance + " " + finalCost);
 
-                        if (shortCutDistance + shortCutCost > pathDistance + pathCost)
+                        if (shortCutCost > pathCost)
                         {
                             valid = false;
                             break;
@@ -699,14 +745,14 @@ public class Navigation
                     
                     Vector3 intersection = map.OnTerrain((p0 + next_t * rd + voxelOffset) * voxelSize);
                     float distance = Vector3.Distance(lastIntersection, intersection);
-                    shortCutDistance += distance;
+                    //shortCutDistance += distance;
 
                     float cost = distance * node.MovementCost;
                     shortCutCost += cost;
 
                     //Handles.Label(Vector3.Lerp(lastIntersection, intersection, .5f), node.Hex + " " + distance + " " + cost);
 
-                    if (shortCutDistance + shortCutCost > pathDistance + pathCost)
+                    if (shortCutCost > pathCost)
                     {
                         valid = false;
                         break;

@@ -124,18 +124,18 @@ public class CameraController : MonoBehaviour
             movementVelocity += (transform.right * inputMovement.x + transform.up * inputMovement.y + transform.forward * inputMovement.z) * moveAcceleration * Time.deltaTime;
             movementVelocity += (transform.right * inputEdgeScroll.x * edgeScrollSensitivity.x + transform.forward * inputEdgeScroll.y * edgeScrollSensitivity.y) * moveAcceleration * Time.deltaTime;
             movementVelocity = Vector3.ClampMagnitude(movementVelocity, moveSpeed);
-            transform.position += movementVelocity;
+            transform.position += movementVelocity * Time.deltaTime;
         }
         movementVelocity *= Mathf.Pow(moveDampening, Time.deltaTime);
 
         rotationVelocity += inputRotation * rotationAcceleration * Time.deltaTime;
         rotationVelocity = Mathf.Clamp(rotationVelocity, -rotationSpeed, +rotationSpeed);
-        transform.rotation *= Quaternion.Euler(0, rotationVelocity, 0);
+        transform.rotation *= Quaternion.Euler(0, rotationVelocity * Time.deltaTime, 0);
         rotationVelocity *= Mathf.Pow(rotationDampening, Time.deltaTime);
 
         zoomVelocity += inputZoom * zoomAcceleration * Time.deltaTime;
         zoomVelocity = Mathf.Clamp(zoomVelocity, -zoomSpeed, zoomSpeed);
-        zoomAmount = Mathf.Clamp(zoomAmount - zoomVelocity, 0, 1);
+        zoomAmount = Mathf.Clamp(zoomAmount - zoomVelocity * Time.deltaTime, 0, 1);
         zoom.localPosition = Vector3.forward * -(zoomAmount * 20);
         pitch.localRotation = Quaternion.Euler(zoomAmount * 50 + 40, pitch.localRotation.eulerAngles.y, pitch.localRotation.eulerAngles.z);
         zoomVelocity *= Mathf.Pow(zoomDampening, Time.deltaTime);

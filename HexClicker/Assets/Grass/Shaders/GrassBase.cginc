@@ -159,23 +159,23 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	if (dot(world - _WorldSpaceCameraPos, world - _WorldSpaceCameraPos) > _DistanceCulling * _DistanceCulling * 2)
 		return;
-
+	
 	if (dot(world - _CameraFocalPoint, world - _CameraFocalPoint) > _DistanceCulling * _DistanceCulling)
 		return;
-
+	
 	float3 viewDir = mul((float3x3)unity_CameraToWorld, float3(0, 0, 1));
-
+	
 	if (dot(viewDir, _WorldSpaceCameraPos - world) > 0)
 		return;
-
+	
 	world -= _WorldOffset;
-
+	
 	float3 maskSample = tex2Dlod(_GrassMask, float4(IN[0].uv, 0, 0)).rgb;
 	float mask = (maskSample.x + maskSample.y + maskSample.z) / 3;
-
+	
 	if (mask < _MaskThreshold)
 		return;
-
+	
 	float3 cameraMaskSample = tex2Dlod(_CameraMask, float4(pos.xz / (_TileSize * 2) + .5, 0, 0)).rgb;
 	float cameraMask = (cameraMaskSample.x + cameraMaskSample.y + cameraMaskSample.z) / 3;
 
@@ -184,10 +184,10 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	if (world.y < _WaterLevel + _MinAlt)
 		return;
-
+	
 	if (world.y > _MaxAlt)
 		return;
-
+	
 	float slope = 1.0f - IN[0].normal.y;
 	if (slope > _MaxSlope)
 		return;
@@ -217,16 +217,13 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 
 	if (slope + _SlopeBlending > _MaxSlope)
 		bladeSize *= lerp(0.2, 1, 1 - (slope + _SlopeBlending - _MaxSlope) / _SlopeBlending);
-
+	
 	if (world.y + _AltBlending > _MaxAlt)
 		bladeSize *= lerp(0.2, 1, 1 - (world.y + _AltBlending - _MaxAlt) / _AltBlending);
-
+	
 	if (world.y - _AltBlending < _MinAlt)
 		bladeSize *= lerp(0.2, 1, (world.y - _MinAlt) / _AltBlending);
-
-
 	
-
 	if (bladeSize < 0)
 		return;
 
@@ -239,19 +236,19 @@ void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triSt
 		float loT = saturate((temperature - min) / (widthLo - min));
 		bladeWidth = lerp(0.25, 1, saturate((temperature - min) / (widthLo - min)));
 	}
-
+	
 	if (temperature > widthHi) {
-
+	
 		bladeWidth = lerp(0.25, 1, 1 - saturate((temperature - widthHi) / (max - widthHi)));
 	}
-
+	
 	if (temperature < heightLo) {
 		float loT = saturate((temperature - min) / (heightLo - min));
 		bladeHeight = lerp(0.5, 1, saturate((temperature - min) / (heightLo - min)));
 	}
-
+	
 	if (temperature > heightHi) {
-
+	
 		bladeHeight = lerp(0.25, 1, 1 - saturate((temperature - heightHi) / (max - heightHi)));
 	}
 

@@ -162,7 +162,7 @@ GroundType ground(vertexOutput input)
 
 	GroundType path;
 	path.albedo = _PathAlbedo.Sample(sampler_PathAlbedo, TRANSFORM_TEX(input.uv, _PathAlbedo)).rgb;
-	path.normal = UnpackNormal(_PathAlbedo.Sample(sampler_PathAlbedo, TRANSFORM_TEX(input.uv, _PathNormal)));
+	path.normal = UnpackNormal(_PathNormal.Sample(sampler_PathAlbedo, TRANSFORM_TEX(input.uv, _PathNormal)));
 	path.worldNormal = half3(dot(input.tspace0, path.normal), dot(input.tspace1, path.normal), dot(input.tspace2, path.normal));
 	half4 pathMetallic = _PathMetallic.Sample(sampler_PathAlbedo, TRANSFORM_TEX(input.uv, _PathMetallic));
 	path.metallic = pathMetallic.r;

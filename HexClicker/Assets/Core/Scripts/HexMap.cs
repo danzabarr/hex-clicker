@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 [System.Serializable]
 public class HexMap : MonoBehaviour, IEnumerable<HexTile>
@@ -10,7 +11,9 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
     public static readonly int TileResolution = 16;
     public static readonly float TileSize = 4.0f;
 
-    public static readonly float PathMaskCoverIntervalSeconds = 5;
+    public static readonly float GrassRegrowthInterval = .5f;
+    public static readonly float GrassRegrowthAmount = .001f;
+
     private static float pathMaskCoverCounter;
 
     [SerializeField] [HideInInspector] private HexTile[] tiles;
@@ -126,18 +129,26 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             this[tileX + 1, tileY - 1],
         };
     }
-    public void OnEnable()
+    void OnEnable()
     {
         Instance = this;
     }
-    public void Awake()
+    void Awake()
     {
         Instance = this;
         Generate();
         GenerateNavigationGraph();
         SetPlacingObject(placingObject);
     }
-    public void OnValidate()
+    void Start()
+    {
+        ShaderUpload();
+    }
+    void OnValidate()
+    {
+        ShaderUpload();
+    }
+    private void ShaderUpload()
     {
         //Globals used by multiple shaders
         Shader.SetGlobalFloat("_LatitudeScale", latitudeScale);
@@ -158,7 +169,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
 
         water.transform.position = new Vector3(0, waterLevel, 0);
     }
-    public void Update()
+    void Update()
     {
         switch (controlMode)
         {
@@ -188,19 +199,24 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
         #endregion
         #region Path Mask
         pathMaskCoverCounter += Time.deltaTime;
-        bool cover = pathMaskCoverCounter >= PathMaskCoverIntervalSeconds;
+        bool cover = pathMaskCoverCounter >= GrassRegrowthInterval;
         if (cover)
         {
-            pathMaskCoverCounter -= PathMaskCoverIntervalSeconds;
-            Navigation.FadeOutPaths(.01f);
+            pathMaskCoverCounter -= GrassRegrowthInterval;
+            Navigation.FadeOutPaths(GrassRegrowthAmount);
         }
-
-        foreach (HexTile tile in tiles)
-            tile.UpdateMask(cover);
-
+        StartCoroutine(UpdateMasks(cover));
         #endregion;
     }
-    public void OnDrawGizmos()
+    IEnumerator UpdateMasks(bool cover)
+    {
+        foreach (HexTile tile in tiles)
+        {
+            tile.UpdateMask(cover);
+            yield return null;
+        }
+    }
+    void OnDrawGizmos()
     {
         if (navigationDrawGraph)
             Navigation.OnDrawGizmos();

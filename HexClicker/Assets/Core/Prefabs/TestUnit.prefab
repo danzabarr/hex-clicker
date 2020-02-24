@@ -48,7 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 1
   requestRaycastModifiedPaths: 1
-  nodeCostInfluence: -5
+  nodeCostInfluence: -0.5
   status: 0
 --- !u!136 &1299481544107678492
 CapsuleCollider:
@@ -104,7 +104,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1299481544624945253}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -2432090755550338912, guid: 22573b065390d5e4292ce4d6a74fde1d, type: 3}
 --- !u!23 &1299481544624945248
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -115,10 +115,10 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
-  m_DynamicOccludee: 1
+  m_DynamicOccludee: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -157,7 +157,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   renderers:
   - {fileID: 1299481544624945248}
-  sensitivity: 5
+  sensitivity: 3
   color: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1299481544809790841
 GameObject:

@@ -35,7 +35,7 @@
 		half _Metallic;
 
 		UNITY_INSTANCING_BUFFER_START(Props)
-			UNITY_DEFINE_INSTANCED_PROP(fixed4, _Color)
+		UNITY_DEFINE_INSTANCED_PROP(fixed4, _Color)
 		UNITY_INSTANCING_BUFFER_END(Props)
 
 		void vert(inout appdata_full v) {

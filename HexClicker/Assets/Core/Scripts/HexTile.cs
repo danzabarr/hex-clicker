@@ -54,7 +54,7 @@ public class HexTile : MonoBehaviour
             maskCamera.targetTexture = maskTexture;
         }
 
-        if (tileGrassMaterial == null)
+        if (tileGrassMaterial == null && maskTexture != null)
         {
             tileGrassMaterial = new Material(grassMaterial);
             tileGrassMaterial.SetTexture("_CameraMask", maskTexture);

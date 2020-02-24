@@ -4,6 +4,7 @@
 [Bb]uild/
 [Bb]uilds/
 Assets/AssetStoreTools*
+HexClicker/Assets/GitIgnore*
 Graphics/
 Blender
 
@@ -30,6 +31,7 @@ ExportedObj/
 # Unity3D generated meta files
 *.pidb.meta
 *.pdb.meta
+*.psd.meta
 
 # Unity3D Generated File On Crash Reports
 sysinfo.txt

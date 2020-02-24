@@ -606,6 +606,7 @@ public class HexRegion
     }
     public void OnDrawGizmos()
     {
+#if UNITY_EDITOR
         /*
         if (members != null)
         {
@@ -661,7 +662,7 @@ public class HexRegion
                 index++;
             }
         }
-
+#endif
     }
     public static readonly float[] angles =
    {
