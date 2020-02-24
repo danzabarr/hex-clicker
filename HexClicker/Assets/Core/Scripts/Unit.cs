@@ -8,8 +8,9 @@ using UnityEngine.Profiling;
 public class Unit : MonoBehaviour
 {
     [SerializeField] private float speed;
-    [SerializeField] private bool requestRaycastModifiedPaths;
-    [SerializeField] private float nodeCostInfluence;
+    [SerializeField] private bool raycastModifiedPaths;
+    [SerializeField] private float pathCreation;
+    [SerializeField] [Range(0, 1)] private float takeExistingPaths;
 
     private Vector2Int nearestNode;
 
@@ -51,7 +52,7 @@ public class Unit : MonoBehaviour
     {
         Stop();
         Destination = destination;
-        pathRequest = new PathFinding.Request(transform.position, destination, 500, 10000, requestRaycastModifiedPaths);
+        pathRequest = new PathFinding.Request(transform.position, destination, 500, 10000, takeExistingPaths, raycastModifiedPaths);
         pathRequest.Queue();
         status = Status.Waiting;
     }
@@ -96,7 +97,7 @@ public class Unit : MonoBehaviour
         {
             this.nearestNode = nearestNode;
             if (NavigationGraph.TryGetNode(nearestNode, out Node node))
-                node.DesirePathCost += nodeCostInfluence;
+                node.DesirePathCost -= pathCreation;
         }
 
         MoveRandomly();

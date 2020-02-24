@@ -216,6 +216,7 @@ public class HexMap : MonoBehaviour, IEnumerable<HexTile>
             yield return null;
         }
     }
+
     void OnDrawGizmos()
     {
         if (navigationDrawGraph)

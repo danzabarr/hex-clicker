@@ -47,8 +47,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 1
-  requestRaycastModifiedPaths: 1
-  nodeCostInfluence: -0.5
+  raycastModifiedPaths: 1
+  pathCreation: 0.2
+  takeExistingPaths: 1
   status: 0
 --- !u!136 &1299481544107678492
 CapsuleCollider:
