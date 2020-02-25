@@ -1,0 +1,300 @@
+﻿using HexClicker.World;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+namespace HexClicker
+{
+    public class HexUtils
+    {
+        public static readonly float SQRT_3 = Mathf.Sqrt(3);
+
+        public static readonly int[] neighbourX = { 1, 0, -1, -1, 0, 1, };
+        public static readonly int[] neighbourY = { 0, 1, 1, 0, -1, -1, };
+
+        public static readonly float[] angles =
+        {
+        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 0,
+        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 1,
+        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 2,
+        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 3,
+        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 4,
+        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 5,
+    };
+
+        public static readonly float[] sinAngles =
+        {
+        Mathf.Sin(angles[0]),
+        Mathf.Sin(angles[1]),
+        Mathf.Sin(angles[2]),
+        Mathf.Sin(angles[3]),
+        Mathf.Sin(angles[4]),
+        Mathf.Sin(angles[5]),
+    };
+
+        public static readonly float[] cosAngles =
+        {
+        Mathf.Cos(angles[0]),
+        Mathf.Cos(angles[1]),
+        Mathf.Cos(angles[2]),
+        Mathf.Cos(angles[3]),
+        Mathf.Cos(angles[4]),
+        Mathf.Cos(angles[5]),
+    };
+
+        public static Vector2 HexToCartesian(float x, float y, float size) => new Vector2(3f / 2f * x, SQRT_3 / 2f * x + SQRT_3 * y) * size;
+        public static Vector2 HexToCartesian(Vector2 hex, float size) => HexToCartesian(hex.x, hex.y, size);
+        public static Vector2 CartesianToHex(float x, float z, float size) => new Vector2(2f / 3f * x, -1f / 3f * x + SQRT_3 / 3f * z) / size;
+        public static Vector2 CubeToHex(Vector3 cube) => new Vector2(cube.x, cube.y);
+        public static Vector2Int CubeToHex(Vector3Int cube) => new Vector2Int(cube.x, cube.y);
+        public static Vector3 HexToCube(Vector2 hex) => new Vector3(hex.x, hex.y, -hex.x - hex.y);
+        public static Vector3Int HexToCube(Vector2Int hex) => new Vector3Int(hex.x, hex.y, -hex.x - hex.y);
+        public static Vector2 CartesianToVertex(float x, float z, float size, int resolution) => new Vector2(x - z * SQRT_3 / 3f, 2f / 3f * z * SQRT_3) / (size / resolution);//new Vector2(-x + z / SQRT_3, z * 2f / SQRT_3) / (size / resolution );////new Vector2(-x + z / SQRT_3, z / SQRT_3 * 2f) / (size / resolution);
+        public static Vector2Int NearestVertex(Vector3 position, float size, int resolution) => NearestVertex(position.x, position.z, size, resolution);
+        public static Vector2Int NearestVertex(float x, float z, float size, int resolution) => HexRound(CartesianToVertex(x, z, size, resolution));
+        public static Vector2 VertexToCartesian(float x, float z, float size, int resolution)
+        {
+            float cZ = z * (size / resolution) / (2f / 3f * SQRT_3);
+            float cX = x * (size / resolution) + cZ * SQRT_3 / 3f;
+
+            return new Vector2(cX, cZ);
+        }
+        public static int CubeDistance(Vector3Int a, Vector3Int b) => (Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs(a.z - b.z)) / 2;
+        public static int HexDistance(Vector2Int a, Vector2Int b) => (Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs((a.x - a.y) - (b.x - b.y))) / 2;
+        public static float HexDistance(Vector2 a, Vector2 b) => (Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs((a.x - a.y) - (b.x - b.y))) / 2f;
+
+        public static float[] CosSixths =
+        {
+        Mathf.Cos(0 * Mathf.PI / 3f),
+        Mathf.Cos(1 * Mathf.PI / 3f),
+        Mathf.Cos(2 * Mathf.PI / 3f),
+        Mathf.Cos(3 * Mathf.PI / 3f),
+        Mathf.Cos(4 * Mathf.PI / 3f),
+        Mathf.Cos(5 * Mathf.PI / 3f),
+    };
+
+        public static float[] SinSixths =
+        {
+        Mathf.Sin(0 * Mathf.PI / 3f),
+        Mathf.Sin(1 * Mathf.PI / 3f),
+        Mathf.Sin(2 * Mathf.PI / 3f),
+        Mathf.Sin(3 * Mathf.PI / 3f),
+        Mathf.Sin(4 * Mathf.PI / 3f),
+        Mathf.Sin(5 * Mathf.PI / 3f),
+    };
+
+
+        public static Vector2Int[] NearestThreeVertices(Vector3 position, float size, int res)
+        {
+            Vector2Int[] nearest = new Vector2Int[3];
+
+            nearest[0] = NearestVertex(position.x, position.z, size, res);
+
+            Vector2 v0 = VertexToCartesian(nearest[0].x, nearest[0].y, size, res);
+
+            int angle = Mathf.RoundToInt((Mathf.PI - Mathf.Atan2(v0.x - position.x, v0.y - position.z)) / (Mathf.PI * 2) * 6);
+
+            Vector2 v1 = new Vector2(v0.x + CosSixths[(angle + 1) % 6] * (size / res), v0.y + SinSixths[(angle + 1) % 6] * (size / res));
+            Vector2 v2 = new Vector2(v0.x + CosSixths[(angle + 2) % 6] * (size / res), v0.y + SinSixths[(angle + 2) % 6] * (size / res));
+
+            nearest[1] = NearestVertex(v1.x, v1.y, size, res);
+            nearest[2] = NearestVertex(v2.x, v2.y, size, res);
+
+            return nearest;
+        }
+
+        public static Vector3Int CubeRound(Vector3 cube)
+        {
+            int rx = Mathf.RoundToInt(cube.x);
+            int ry = Mathf.RoundToInt(cube.y);
+            int rz = Mathf.RoundToInt(cube.z);
+
+            float x_diff = Mathf.Abs(rx - cube.x);
+            float y_diff = Mathf.Abs(ry - cube.y);
+            float z_diff = Mathf.Abs(rz - cube.z);
+
+            if (x_diff > y_diff && x_diff > z_diff)
+                rx = -ry - rz;
+            else if (y_diff > z_diff)
+                ry = -rx - rz;
+            else
+                rz = -rx - ry;
+
+            return new Vector3Int(rx, ry, rz);
+        }
+
+        public static Vector2Int HexRound(Vector2 hex)
+        {
+            Vector3Int cube = CubeRound(HexToCube(hex));
+            return new Vector2Int(cube.x, cube.y);
+        }
+
+        public static void DrawHexagon(float x, float y, float size)
+        {
+            Vector2 cartesian = HexUtils.HexToCartesian(x, y, size);
+
+            for (int i = 0; i < 6; i++)
+            {
+                float angle0 = Mathf.PI / 2f + Mathf.PI * 2f / 6f * i;
+                float angle1 = Mathf.PI / 2f + Mathf.PI * 2f / 6f * (i + 1);
+
+                float sinAngle0 = Mathf.Sin(angle0);
+                float cosAngle0 = Mathf.Cos(angle0);
+                float sinAngle1 = Mathf.Sin(angle1);
+                float cosAngle1 = Mathf.Cos(angle1);
+
+                Vector3 i0 = new Vector3(cartesian.x + sinAngle0, 0, cartesian.y + cosAngle0);
+                Vector3 i1 = new Vector3(cartesian.x + sinAngle1, 0, cartesian.y + cosAngle1);
+
+                Gizmos.DrawLine(i0, i1);
+            }
+        }
+
+        public static Mesh Mesh { get; } = CreateHexagonMesh();
+
+        
+        public static Mesh CreateHexagonMesh()
+        {
+            Mesh mesh = new Mesh();
+            Vector3[] vertices = new Vector3[7];
+            Vector2[] uv = new Vector2[7];
+            int[] triangles = new int[18];
+
+            vertices[0] = Vector3.zero;
+            uv[0] = Vector3.zero;
+
+            for (int i = 0; i < 6; i++)
+            {
+                vertices[1 + i] = new Vector3(sinAngles[i], 0, cosAngles[i]);
+                uv[1 + i] = new Vector2((angles[i] + Mathf.PI) / (Mathf.PI * 2), 1);
+                triangles[i * 3 + 0] = 0;
+                triangles[i * 3 + 1] = 1 + i;
+                triangles[i * 3 + 2] = 1 + (i + 1) % 6;
+            }
+
+            mesh.vertices = vertices;
+            mesh.uv = uv;
+            mesh.triangles = triangles;
+
+            mesh.RecalculateBounds();
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+
+            return mesh;
+        }
+
+        public delegate bool Match(Tile original, Tile tile);
+
+        public static List<Tile> RecursiveDepthFirstFloodFill(Tile start, Match match)
+        {
+            List<Tile> list = new List<Tile>();
+
+            if (start == null)
+                return list;
+
+            void Recursive(Tile tile)
+            {
+                if (match(start, tile) && !tile.inFloodFillSet)
+                {
+                    list.Add(tile);
+                    tile.inFloodFillSet = true;
+                }
+                else
+                    return;
+
+                foreach (Tile neighbour in tile.Neighbours)
+                    if (neighbour != null && match(start, neighbour))
+                        Recursive(neighbour);
+            }
+
+            Recursive(start);
+
+
+            foreach (Tile tile in list)
+                tile.inFloodFillSet = false;
+
+            return list;
+        }
+
+        public static List<Tile> BreadthFirstFloodFill(Tile start, Match match)
+        {
+            List<Tile> list = new List<Tile>();
+
+            if (!match(start, start))
+                return list;
+
+            Queue<Tile> frontier = new Queue<Tile>();
+            frontier.Enqueue(start);
+            start.inFloodFillSet = true;
+
+            while (frontier.Count > 0)
+            {
+                Tile tile = frontier.Dequeue();
+                list.Add(tile);
+                foreach (Tile neighbour in tile.Neighbours)
+                {
+                    if (neighbour == null)
+                        continue;
+
+                    if (!match(start, neighbour))
+                        continue;
+
+                    if (neighbour.inFloodFillSet)
+                        continue;
+
+                    neighbour.inFloodFillSet = true;
+                    frontier.Enqueue(neighbour);
+                }
+            }
+
+            foreach (Tile tile in list)
+                tile.inFloodFillSet = false;
+
+            return list;
+        }
+
+        public static bool State1(Tile start, Tile tile) => tile.state == 1;
+        public static bool IsRegionContiguous(List<Tile> tiles)
+        {
+            if (tiles.Count == 0)
+                return true;
+
+            foreach (Tile tile in tiles)
+                tile.state = 1;
+
+            List<Tile> floodFill = BreadthFirstFloodFill(tiles[0], State1);
+
+            foreach (Tile tile in tiles)
+                tile.state = 0;
+
+            return floodFill.Count == tiles.Count;
+        }
+
+        public static List<List<Tile>> IdentifyIslands(List<Tile> tiles)
+        {
+            List<List<Tile>> islands = new List<List<Tile>>();
+
+            foreach (Tile tile in tiles)
+                tile.state = 1;
+
+            foreach (Tile tile in tiles)
+            {
+                if (tile.state != 1)
+                    continue;
+
+                List<Tile> island = BreadthFirstFloodFill(tile, State1);
+                if (island.Count > 0)
+                {
+                    foreach (Tile member in island)
+                        member.state = 0;
+                    islands.Add(island);
+                }
+            }
+
+            foreach (Tile tile in tiles)
+                tile.state = 0;
+
+            return islands;
+        }
+    }
+}
