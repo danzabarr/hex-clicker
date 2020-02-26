@@ -20,10 +20,11 @@ namespace HexClicker.World
         private float grassRegrowthCounter;
 
         [SerializeField] [HideInInspector] private Tile[] tiles;
+        [SerializeField] [HideInInspector] private Mesh[] skirtMeshes;
 
         [Header("Map Settings")]
-        [SerializeField]
-        private Tile tilePrefab;
+        [SerializeField] private Tile tilePrefab;
+        [SerializeField] private Material skirtMaterial;
 
         [SerializeField] private int seed;
         [SerializeField] private int width;
@@ -124,6 +125,7 @@ namespace HexClicker.World
         {
             Instance = this;
             Generate();
+            GenerateSkirt();
             GenerateNavigationGraph();
         }
         void Start()
@@ -180,6 +182,10 @@ namespace HexClicker.World
 
         private void Update()
         {
+            #region Render Skirts
+            foreach (Mesh m in skirtMeshes)
+                Graphics.DrawMesh(m, Vector3.zero, Quaternion.identity, skirtMaterial, LayerMask.NameToLayer("Map Skirts"));
+            #endregion
             #region Render Trees
             if (treesRenderer != null)
             {
@@ -364,6 +370,272 @@ namespace HexClicker.World
         {
             NavigationGraph.Generate(this);
         }
+
+        
+
+        [ContextMenu("Generate Skirt")]
+        public void GenerateSkirt()
+        {
+            int bottom = -10;
+
+            Mesh m0 = new Mesh();
+            Mesh m1 = new Mesh();
+            Mesh m2 = new Mesh();
+            Mesh m3 = new Mesh();
+
+            List<Vector3> v0 = new List<Vector3>();
+            List<Vector3> v1 = new List<Vector3>();
+            List<Vector3> v2 = new List<Vector3>();
+            List<Vector3> v3 = new List<Vector3>();
+            List<int> t0 = new List<int>();
+            List<int> t1 = new List<int>();
+            List<int> t2 = new List<int>();
+            List<int> t3 = new List<int>();
+
+            List<Vector2> skirtPoints = new List<Vector2>();
+            int count = 0;
+
+            for (int x = 0; x < width; x++)
+            {
+                int z = 0;
+                int hexX = x - width / 2;
+                int hexY = z - height / 2 - x / 2 + width / 4;
+                Vector2 center = HexUtils.HexToCartesian(hexX, hexY, TileSize);
+
+                float a0 = Mathf.PI * 2 / 6 * -2;
+                float a1 = Mathf.PI * 2 / 6 * -1;
+
+                Vector2 c0 = center + new Vector2(Mathf.Cos(a0) * TileSize, Mathf.Sin(a0) * TileSize);
+                Vector2 c1 = center + new Vector2(Mathf.Cos(a1) * TileSize, Mathf.Sin(a1) * TileSize);
+
+                skirtPoints.Add(c0);
+                skirtPoints.Add(c1);
+            }
+
+            for (int i = 0; i < skirtPoints.Count - 1; i++)
+            {
+                Vector2 p0 = skirtPoints[i];
+                Vector2 p1 = skirtPoints[i + 1];
+
+                if (i == 0)
+                {
+                    Vector3 c0 = OnTerrain(p0);
+                    Vector3 c1 = p0.xyz(bottom);
+                    v0.Add(c0);
+                    v0.Add(c1);
+                }
+
+                for (int j = 1; j < TileResolution + 1; j++)
+                {
+                    Vector3 c2 = OnTerrain(Vector2.Lerp(p0, p1, (float)j / TileResolution));
+                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xyz(bottom);
+                    v0.Add(c2);
+                    v0.Add(c3);
+
+                    t0.Add(count * 2 + 0);
+                    t0.Add(count * 2 + 2);
+                    t0.Add(count * 2 + 1);
+                    t0.Add(count * 2 + 1);
+                    t0.Add(count * 2 + 2);
+                    t0.Add(count * 2 + 3);
+                    count++;
+                }
+            }
+
+            skirtPoints = new List<Vector2>();
+            count = 0;
+
+            for (int x = 0; x < width; x++)
+            {
+                int z = height;
+                int hexX = x - width / 2;
+                int hexY = z - height / 2 - x / 2 + width / 4;
+                Vector2 center = HexUtils.HexToCartesian(hexX, hexY, TileSize);
+
+                float a0 = Mathf.PI * 2 / 6 * -2;
+                float a1 = Mathf.PI * 2 / 6 * -1;
+
+                Vector2 c0 = center + new Vector2(Mathf.Cos(a0) * TileSize, Mathf.Sin(a0) * TileSize);
+                Vector2 c1 = center + new Vector2(Mathf.Cos(a1) * TileSize, Mathf.Sin(a1) * TileSize);
+
+                skirtPoints.Add(c0);
+                skirtPoints.Add(c1);
+            }
+
+            for (int i = 0; i < skirtPoints.Count - 1; i++)
+            {
+                Vector2 p0 = skirtPoints[i];
+                Vector2 p1 = skirtPoints[i + 1];
+
+                if (i == 0)
+                {
+                    Vector3 c0 = OnTerrain(p0);
+                    Vector3 c1 = p0.xyz(bottom);
+                    v1.Add(c0);
+                    v1.Add(c1);
+                }
+
+                for (int j = 1; j < TileResolution + 1; j++)
+                {
+                    Vector3 c2 = OnTerrain(Vector2.Lerp(p0, p1, (float)j / TileResolution));
+                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xyz(bottom);
+                    v1.Add(c2);
+                    v1.Add(c3);
+
+                    t1.Add(count * 2 + 0);
+                    t1.Add(count * 2 + 1);
+                    t1.Add(count * 2 + 2);
+                    t1.Add(count * 2 + 1);
+                    t1.Add(count * 2 + 3);
+                    t1.Add(count * 2 + 2);
+                    count++;
+                }
+            }
+
+            skirtPoints = new List<Vector2>();
+            count = 0;
+            for (int z = 0; z < height; z++)
+            {
+                int x = 0;
+                int hexX = x - width / 2;
+                int hexY = z - height / 2 - x / 2 + width / 4;
+                Vector2 center = HexUtils.HexToCartesian(hexX, hexY, TileSize);
+
+                float a0 = Mathf.PI * 2 / 6 * 3;
+                float a1 = Mathf.PI * 2 / 6 * 2;
+
+                Vector2 c0 = center + new Vector2(Mathf.Cos(a0) * TileSize, Mathf.Sin(a0) * TileSize);
+                Vector2 c1 = center + new Vector2(Mathf.Cos(a1) * TileSize, Mathf.Sin(a1) * TileSize);
+                if (z == 0)
+                {
+                    float a2 = Mathf.PI * 2 / 6 * 4;
+                    Vector2 c2 = center + new Vector2(Mathf.Cos(a2) * TileSize, Mathf.Sin(a2) * TileSize);
+                    skirtPoints.Add(c2);
+                }
+
+                skirtPoints.Add(c0);
+                skirtPoints.Add(c1);
+            }
+
+            for (int i = 0; i < skirtPoints.Count - 1; i++)
+            {
+                Vector2 p0 = skirtPoints[i];
+                Vector2 p1 = skirtPoints[i + 1];
+
+                if (i == 0)
+                {
+                    Vector3 c0 = OnTerrain(p0);
+                    Vector3 c1 = p0.xyz(bottom);
+                    v2.Add(c0);
+                    v2.Add(c1);
+                }
+
+                for (int j = 1; j < TileResolution + 1; j++)
+                {
+                    Vector3 c2 = OnTerrain(Vector2.Lerp(p0, p1, (float)j / TileResolution));
+                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xyz(bottom);
+                    v2.Add(c2);
+                    v2.Add(c3);
+
+                    t2.Add(count * 2 + 0);
+                    t2.Add(count * 2 + 1);
+                    t2.Add(count * 2 + 2);
+                    t2.Add(count * 2 + 1);
+                    t2.Add(count * 2 + 3);
+                    t2.Add(count * 2 + 2);
+                    count++;
+                }
+            }
+
+            skirtPoints = new List<Vector2>();
+            count = 0;
+            for (int z = 0; z < height; z++)
+            {
+                int x = width - 1;
+                int hexX = x - width / 2;
+                int hexY = z - height / 2 - x / 2 + width / 4;
+                Vector2 center = HexUtils.HexToCartesian(hexX, hexY, TileSize);
+
+                float a0 = Mathf.PI * 2 / 6 * 0;
+                float a1 = Mathf.PI * 2 / 6 * 1;
+
+                Vector2 c0 = center + new Vector2(Mathf.Cos(a0) * TileSize, Mathf.Sin(a0) * TileSize);
+                Vector2 c1 = center + new Vector2(Mathf.Cos(a1) * TileSize, Mathf.Sin(a1) * TileSize);
+                if (z == 0)
+                {
+                    float a2 = Mathf.PI * 2 / 6 * 5;
+                    Vector2 c2 = center + new Vector2(Mathf.Cos(a2) * TileSize, Mathf.Sin(a2) * TileSize);
+                    skirtPoints.Add(c2);
+                }
+
+                skirtPoints.Add(c0);
+                skirtPoints.Add(c1);
+            }
+
+            for (int i = 0; i < skirtPoints.Count - 1; i++)
+            {
+                Vector2 p0 = skirtPoints[i];
+                Vector2 p1 = skirtPoints[i + 1];
+
+                if (i == 0)
+                {
+                    Vector3 c0 = OnTerrain(p0);
+                    Vector3 c1 = p0.xyz(bottom);
+                    v3.Add(c0);
+                    v3.Add(c1);
+                }
+
+                for (int j = 1; j < TileResolution + 1; j++)
+                {
+                    Vector3 c2 = OnTerrain(Vector2.Lerp(p0, p1, (float)j / TileResolution));
+                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xyz(bottom);
+                    v3.Add(c2);
+                    v3.Add(c3);
+
+                    t3.Add(count * 2 + 0);
+                    t3.Add(count * 2 + 2);
+                    t3.Add(count * 2 + 1);
+                    t3.Add(count * 2 + 1);
+                    t3.Add(count * 2 + 2);
+                    t3.Add(count * 2 + 3);
+                    count++;
+                }
+            }
+
+            if (skirtMeshes == null)
+                skirtMeshes = new Mesh[4];
+
+            m0.vertices = v0.ToArray();
+            m1.vertices = v1.ToArray();
+            m2.vertices = v2.ToArray();
+            m3.vertices = v3.ToArray();
+
+            m0.uv = new Vector2[m0.vertices.Length];
+            m1.uv = new Vector2[m1.vertices.Length];
+            m2.uv = new Vector2[m2.vertices.Length];
+            m3.uv = new Vector2[m3.vertices.Length];
+
+            m0.triangles = t0.ToArray();
+            m1.triangles = t1.ToArray();
+            m2.triangles = t2.ToArray();
+            m3.triangles = t3.ToArray();
+
+            m0.RecalculateBounds();
+            m1.RecalculateBounds();
+            m2.RecalculateBounds();
+            m3.RecalculateBounds();
+
+            m0.RecalculateNormals();
+            m1.RecalculateNormals();
+            m2.RecalculateNormals();
+            m3.RecalculateNormals();
+
+            skirtMeshes[0] = m0;
+            skirtMeshes[1] = m1;
+            skirtMeshes[2] = m2;
+            skirtMeshes[3] = m3;
+        }
+       
 
         #region Unused
         /*

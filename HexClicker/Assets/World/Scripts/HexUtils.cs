@@ -14,13 +14,13 @@ namespace HexClicker
 
         public static readonly float[] angles =
         {
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 0,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 1,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 2,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 3,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 4,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 5,
-    };
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 0,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 1,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 2,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 3,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 4,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 5,
+        };
 
         public static readonly float[] sinAngles =
         {
