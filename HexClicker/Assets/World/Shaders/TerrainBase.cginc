@@ -1,6 +1,7 @@
 ﻿#ifndef TERRAIN_BASE_INCLUDE
 #define TERRAIN_BASE_INCLUDE
 
+#include "Assets/GlobalShaders/FogOfWar.cginc"
 #include "UnityCG.cginc"
 #include "Lighting.cginc"
 #include "AutoLight.cginc"
@@ -8,8 +9,6 @@
 uniform half4 _WaterColor, _SnowColor;
 uniform float _LatitudeScale, _WaterLevel, _WaterBlending, _AltitudeTemperature, _Temperature, _SnowBlending, _SnowShininess, _SnowIntensity, _SnowSpecular, _SnowSlopeMax;
 uniform float _OffsetAltitude, _OffsetLatitude;
-uniform float _TileSize;
-
 
 SamplerState sampler_DirtAlbedo;
 SamplerState sampler_GrassAlbedo;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HexClicker.Grass
+namespace HexClicker.PathMask
 {
     public class MaskRevealer : MonoBehaviour
     {

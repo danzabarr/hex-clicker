@@ -1,24 +1,18 @@
-﻿
-Shader "HexClicker/Tree"
+﻿Shader "HexClicker/Cutout"
 {
 	Properties
 	{
 		_Cutoff("Cutoff", Range(0, 1)) = 0.5
-		_Color("Color", Color) = (1,1,1,1)
-		_MainTex("Albedo", 2D) = "white" {}
+        _Color ("Color", Color) = (1,1,1,1)
+        _MainTex ("Albedo", 2D) = "white" {}
 		_Normal("Normal", 2D) = "bump" {}
 		_Metallic("Metallic", 2D) = "black" {}
-		_TranslucentGain("Translucent Gain", Range(0, 1)) = 0
 		[Toggle(FOG_OF_WAR)]
 		_FogOfWar("Fog of War", Float) = 1
-		[Header(Wind)]
-		_WindDistortionMap("Wind Distortion Map", 2D) = "white" {}
-		_WindStrength("Wind Strength", Float) = 1
-		_WindFrequency("Wind Frequency", Vector) = (0.05, 0.05, 0, 0)
 	}
 	SubShader
 	{
-		Tags { "RenderType" = "Tree"}
+		Tags { "RenderType" = "Terrain"}
 
 		Pass
 		{
@@ -42,11 +36,11 @@ Shader "HexClicker/Tree"
 
 			#pragma shader_feature FOG_OF_WAR
 
-			#pragma vertex vert addshadow
+			#pragma vertex vert
 			#pragma fragment frag
 
 			UNITY_INSTANCING_BUFFER_START(Props)
-			UNITY_DEFINE_INSTANCED_PROP(fixed4, _Color)
+			// put more per-instance properties here
 			UNITY_INSTANCING_BUFFER_END(Props)
 
 			uniform half4 _WaterColor;
@@ -65,7 +59,7 @@ Shader "HexClicker/Tree"
 			uniform float _OffsetLatitude;
 
 			float _Cutoff;
-			float _TranslucentGain;
+			float4 _Color;
 
 			sampler2D _MainTex;
 			sampler2D _Normal;
@@ -74,11 +68,6 @@ Shader "HexClicker/Tree"
 			float4 _MainTex_ST;
 			float4 _Normal_ST;
 			float4 _Metallic_ST;
-
-			sampler2D _WindDistortionMap;
-			float4 _WindDistortionMap_ST;
-			float _WindStrength;
-			float2 _WindFrequency;
 
 			struct appdata
 			{
@@ -108,22 +97,13 @@ Shader "HexClicker/Tree"
 
 				SHADOW_COORDS(9)
 				UNITY_FOG_COORDS(10)
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-
 			};
 
 			vertexOutput vert(appdata v)
 			{
 				vertexOutput output;
 
-				float3 modelPos = mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
-				float2 uv = modelPos.xz * _WindDistortionMap_ST.xy + _WindDistortionMap_ST.zw + _WindFrequency * _Time.y;
-				float2 windSample = (tex2Dlod(_WindDistortionMap, float4(uv, 0, 0)).xy * 2 - 1) * _WindStrength;
-
-				v.vertex.xz += windSample.xy * asin(v.vertex.y);
-
 				UNITY_SETUP_INSTANCE_ID(v);
-				UNITY_TRANSFER_INSTANCE_ID(v, output);
 
 				output.pos = UnityObjectToClipPos(v.vertex);
 				output.uv = v.texcoord;
@@ -166,16 +146,12 @@ Shader "HexClicker/Tree"
 				half3 lightDir = normalize(UnityWorldSpaceLightDir(input.worldPos.xyz));
 				float atten = UNITY_SHADOW_ATTENUATION(input, input.worldPos);
 
-				UNITY_SETUP_INSTANCE_ID(input);
-				 
-
-				col.rgb *= UNITY_ACCESS_INSTANCED_PROP(Props, _Color).rgb;
+				col.rgb *= _Color.rgb;
 				float3 normal = UnpackNormal(tex2D(_Normal, TRANSFORM_TEX(input.uv, _Normal)));
 				float3 worldNormal = half3(dot(input.tspace0, normal), dot(input.tspace1, normal), dot(input.tspace2, normal));
 				float4 metallic = tex2D(_Metallic, TRANSFORM_TEX(input.uv, _Metallic));
 				float diffuse = saturate(dot(lightDir.xyz, worldNormal));
 				float specular = saturate(pow(max(0.0, dot(reflect(-lightDir, worldNormal), input.viewDir)), max(1, metallic.a * 50)) * metallic.r);
-				diffuse = max(diffuse, _TranslucentGain);
 
 				col.rgb *= max((diffuse + specular) * atten * _LightColor0, UNITY_LIGHTMODEL_AMBIENT);
 
@@ -200,61 +176,6 @@ Shader "HexClicker/Tree"
 
 			ENDCG
 		}
-
-		Pass
-		{
-			Name "ShadowCaster"
-			Tags { "LightMode" = "ShadowCaster" }
-
-			Fog {Mode Off}
-			ZWrite On ZTest Less Cull Off
-
-			CGPROGRAM
-
-			#pragma multi_compile_instancing
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma fragmentoption ARB_precision_hint_fastest
-			#pragma multi_compile_shadowcaster
-			#include "UnityCG.cginc"
-
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
-			float _Cutoff;
-
-			sampler2D _WindDistortionMap;
-			float4 _WindDistortionMap_ST;
-			float _WindStrength;
-			float2 _WindFrequency;
-
-			struct v2f
-			{
-				V2F_SHADOW_CASTER;
-				float2 uv : TEXCOORD1;
-			};
-
-
-			v2f vert(appdata_full v)
-			{
-				v2f o;
-				float3 modelPos = mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
-				float2 uv = modelPos.xz * _WindDistortionMap_ST.xy + _WindDistortionMap_ST.zw + _WindFrequency * _Time.y;
-				float2 windSample = (tex2Dlod(_WindDistortionMap, float4(uv, 0, 0)).xy * 2 - 1) * _WindStrength;
-
-				v.vertex.xz += windSample.xy * asin(v.vertex.y);
-				UNITY_SETUP_INSTANCE_ID(v);
-				o.uv = v.texcoord;
-				TRANSFER_SHADOW_CASTER(o)
-				return o;
-			}
-
-			float4 frag(v2f i) : COLOR
-			{
-				float4 col = tex2D(_MainTex, TRANSFORM_TEX(i.uv, _MainTex));
-				clip(col.a - _Cutoff);
-				SHADOW_CASTER_FRAGMENT(i)
-			}
-			ENDCG
-		}
-	}
+    }
+	Fallback "Transparent/Cutout/Diffuse"
 }

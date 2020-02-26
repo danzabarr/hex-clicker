@@ -86,7 +86,7 @@ Material:
     - _ClipXZ: 0.0001
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DistanceCulling: 12
+    - _DistanceCulling: 20
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -122,8 +122,8 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _TessellationUniform: 14
-    - _TranslucentGain: 0.7
+    - _TessellationUniform: 20
+    - _TranslucentGain: 0.8
     - _UVSec: 0
     - _WindScale: 1
     - _WindStrength: 1
@@ -133,5 +133,5 @@ Material:
     - _Color: {r: 0, g: 0.5754717, b: 0.06694827, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Shadow: {r: 0.24525547, g: 0.29124084, b: 0.35, a: 0.75686276}
-    - _TopColor: {r: 0.22331154, g: 0.3490566, b: 0.18605375, a: 1}
+    - _TopColor: {r: 0.14828947, g: 0.245, b: 0.13539474, a: 1}
     - _WindFrequency: {r: 0.005, g: 0.005, b: 0, a: 0}

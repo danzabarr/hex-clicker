@@ -11,8 +11,8 @@ namespace HexClicker.World
     {
         public static Map Instance { get; private set; }
 
-        public static readonly int TileResolution = 16;
-        public static readonly float TileSize = 4.0f;
+        public static readonly int TileResolution = 32;
+        public static readonly float TileSize = 12.0f;
 
         public static readonly float GrassRegrowthInterval = .5f;
         public static readonly float GrassRegrowthAmount = .001f;
@@ -72,6 +72,9 @@ namespace HexClicker.World
         [Header("Navigation")]
         [SerializeField] private bool navigationDrawGraph;
 
+        [Header("Fog of War")]
+        [SerializeField] [Range(1, 20)] private float fowEdgeFactor = 1;
+
         public float SeedOffsetX { get; private set; }
         public float SeedOffsetY { get; private set; }
         public int Width => width;
@@ -125,6 +128,14 @@ namespace HexClicker.World
         }
         void Start()
         {
+            SetTileVisibilityState(0, 0, true, false);
+            SetTileVisibilityState(0, -1, true, false);
+            SetTileVisibilityState(-1, 0, true, false);
+            SetTileVisibilityState(-1, 1, true, false);
+            SetTileVisibilityState(0, 1, true, false);
+            SetTileVisibilityState(1, 0, true, false);
+            SetTileVisibilityState(1, -1, true, false);
+
             ShaderUpload();
         }
         void OnValidate()
@@ -150,9 +161,24 @@ namespace HexClicker.World
             Shader.SetGlobalFloat("_SnowSlopeMax", snowSlopeMax);
             Shader.SetGlobalFloat("_TileSize", TileSize);
 
+            Shader.SetGlobalFloatArray("_Tiles", tileVisibility);
+            Shader.SetGlobalFloat("_EdgeFactor", fowEdgeFactor);
+
             water.transform.position = new Vector3(0, waterLevel, 0);
         }
-        void Update()
+
+        private float[] tileVisibility = new float[1024];
+
+        private void SetTileVisibilityState(int hexX, int hexY, bool visible, bool upload = true)
+        {
+            hexX += 16;
+            hexY += 16;
+            tileVisibility[hexX + hexY * 32] = visible ? 1 : 0;
+            if (upload)
+                Shader.SetGlobalFloatArray("_Tiles", tileVisibility);
+        }
+
+        private void Update()
         {
             #region Render Trees
             if (treesRenderer != null)
@@ -169,7 +195,13 @@ namespace HexClicker.World
                 grassRegrowthCounter -= GrassRegrowthInterval;
                 NavigationGraph.GrassRegrowth(GrassRegrowthAmount);
             }
-            StartCoroutine(UpdateMasks(cover));
+            //StartCoroutine(UpdateMasks(cover));
+
+            foreach (Tile tile in tiles)
+            {
+                tile.UpdateMask(cover);
+            }
+
             #endregion;
         }
         IEnumerator UpdateMasks(bool cover)
@@ -243,6 +275,7 @@ namespace HexClicker.World
             NavigationGraph.Clear();
             //NavMesh.RemoveAllNavMeshData();
         }
+        
         /// <summary>
         /// Generates the map in all respects. Resets all regions and regenerates trees.
         /// </summary>
@@ -318,6 +351,7 @@ namespace HexClicker.World
             }
             #endregion
         }
+
         private void ControlModeUnits()
         {
 

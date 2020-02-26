@@ -18,6 +18,9 @@
 		//_WaterLevel("Water Level", Float) = 0
 		//_WaterBlending("Water Blending", Range(0,1)) = .1
 
+		[Toggle(FOG_OF_WAR)]
+		_FogOfWar("Fog of War", Float) = 0
+
 		[Space][Space]
 		_Band0("Dirt Height", Float) = 0
 		_Band1("Dirt/Grass Blending", Float) = 1
@@ -62,6 +65,8 @@
 		_PathNormal("Path Normal", 2D) = "bump" {}
 		//[Space][Space][Space][Space][Space][Space][Space][Space]
 		//_CameraMask("Camera Mask", 2D) = "white" {}
+
+
 	}
 
 	SubShader
@@ -83,11 +88,21 @@
 			#pragma multi_compile_fwdbase
 			#pragma multi_compile_fog
 
+			#pragma shader_feature FOG_OF_WAR
+
 			#pragma vertex vert
 			#pragma fragment frag
 
+
+
 			half4 frag(vertexOutput input) : SV_Target
 			{
+#if FOG_OF_WAR
+				int2 tile = SampleTile(input.worldPos.x, input.worldPos.z);
+				if (!Tile(tile.x, tile.y))
+					return half4(0, 0, 0, 1);
+#endif
+
 				GroundType result = ground(input);
 
 				float atten = UNITY_SHADOW_ATTENUATION(input, input.worldPos);
@@ -110,6 +125,9 @@
 				col = clamp(col, 0, 5);
 
 				UNITY_APPLY_FOG(input.fogCoord, col);
+#if FOG_OF_WAR
+				ApplyFogOfWar(input.worldPos, col);
+#endif
 				return half4(col, 1);
 			}
 

@@ -24,6 +24,7 @@ namespace HexClicker.Navigation
             public float gCost;
             public bool open;
         }
+
         public readonly struct Point
         {
             public Point(Node node, Data data)
@@ -34,6 +35,7 @@ namespace HexClicker.Navigation
             public Node Node { get; }
             public Data Data { get; }
         }
+
         public class Request
         {
             public readonly Vector3 start, end;
@@ -127,6 +129,7 @@ namespace HexClicker.Navigation
                 Completed = true;
             }
         }
+
         public enum Result
         {
             Success,
@@ -169,6 +172,7 @@ namespace HexClicker.Navigation
                 RaycastModifier(path, takeExistingPaths);
             return result;
         }
+
         public static Result PathFind(Node start, Node end, float maxDistance, int maxTries, float takeExistingPaths, bool raycastModifier, out List<Point> path)
         {
             Result result = PathFind(start, end, maxDistance, maxTries, takeExistingPaths, out path, -1);
@@ -176,6 +180,7 @@ namespace HexClicker.Navigation
                 RaycastModifier(path, takeExistingPaths);
             return result;
         }
+
         private static Result PathFind(Vector3 start, Vector3 end, float maxDistance, int maxTries, float takeExistingPaths, out List<Point> path, int thread = -1)
         {
             path = null;
@@ -204,6 +209,7 @@ namespace HexClicker.Navigation
 
             return result;
         }
+
         private static Result PathFind(Node start, Node end, float maxDistance, int maxTries, float takeExistingPaths, out List<Point> path, int thread = -1)
         {
             path = null;
@@ -266,7 +272,6 @@ namespace HexClicker.Navigation
                     Clear();
                     return Result.FailureTooManyTries;
                 }
-
 
                 if (open.Count == 0)
                 {

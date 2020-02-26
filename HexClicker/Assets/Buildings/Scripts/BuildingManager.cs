@@ -10,8 +10,12 @@ namespace HexClicker.Buildings
 
         private void Awake()
         {
-            SetPlacingObject(placingObject);
+            placingObject = Instantiate(placingObject);
+            if (placingObject)
+                placingObject.ExtractParts();
+            placingObject.gameObject.SetActive(false);
         }
+
         private void Update()
         {
             if (Input.GetKey(KeyCode.LeftArrow))
@@ -31,7 +35,8 @@ namespace HexClicker.Buildings
 
                     if (Input.GetMouseButtonDown(0))
                     {
-                        Instantiate(placingObject, hitInfo.point, Quaternion.Euler(0, placingRotation, 0));
+                        Building placed = Instantiate(placingObject, hitInfo.point, Quaternion.Euler(0, placingRotation, 0));
+                        placed.gameObject.SetActive(true);
                     }
 
                     return;
@@ -40,11 +45,14 @@ namespace HexClicker.Buildings
             }
         }
 
-        public void SetPlacingObject(Building placingObject)
+        public void SetPlacingObject(Building building)
         {
-            this.placingObject = placingObject;
+            if (placingObject)
+                Destroy(placingObject.gameObject);
+            placingObject = Instantiate(building);
             if (placingObject)
                 placingObject.ExtractParts();
+            placingObject.gameObject.SetActive(false);
         }
     }
 }

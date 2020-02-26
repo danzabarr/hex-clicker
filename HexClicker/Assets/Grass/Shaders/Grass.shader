@@ -84,6 +84,7 @@ Shader "Roystan/Grass"
 				col = saturate(col);
 
 				UNITY_APPLY_FOG(i.fogCoord, col);
+				ApplyFogOfWar(i.worldPos, col);
 
 				return float4(col, 1);
 			}

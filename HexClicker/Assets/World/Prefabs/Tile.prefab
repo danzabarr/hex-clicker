@@ -167,7 +167,7 @@ GameObject:
   - component: {fileID: 1074967575922730038}
   - component: {fileID: 9076195393788734775}
   m_Layer: 10
-  m_Name: HexTile
+  m_Name: Tile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -42,8 +42,9 @@ Properties {
 
 CGINCLUDE
 
+	#include "Assets/GlobalShaders/FogOfWar.cginc"
 	#include "WaterInclude.cginc"
-	#include "Lighting.cginc"
+	#include "Lighting.cginc" 
 	#include "AutoLight.cginc"
 	#include "UnityPBSLighting.cginc"
 
@@ -184,6 +185,7 @@ CGINCLUDE
 		
 		UNITY_TRANSFER_FOG(o,o.pos);
 		TRANSFER_SHADOW(o);
+		
 
 		return o;
 	}
@@ -255,7 +257,7 @@ CGINCLUDE
 		baseColor *= _LightColor0;
 		
 		UNITY_APPLY_FOG(i.fogCoord, baseColor);
-
+		ApplyFogOfWar(i.worldPos, baseColor);
 		return baseColor;
 	}
 	

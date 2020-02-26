@@ -5,7 +5,8 @@
 #include "Lighting.cginc"
 #include "Autolight.cginc"
 #include "CustomTessellation.cginc"
-	            
+#include "Assets/GlobalShaders/FogOfWar.cginc"
+
 uniform float _LatitudeScale;
 uniform float _WaterLevel;
 uniform float _AltitudeTemperature;
@@ -13,7 +14,6 @@ uniform float _Temperature;
 uniform float _Wetness;
 uniform float3 _WorldOffset;
 uniform float3 _CameraFocalPoint;
-uniform float _TileSize;
 
 struct geometryOutput
 {

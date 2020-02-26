@@ -24,23 +24,23 @@ namespace HexClicker
 
         public static readonly float[] sinAngles =
         {
-        Mathf.Sin(angles[0]),
-        Mathf.Sin(angles[1]),
-        Mathf.Sin(angles[2]),
-        Mathf.Sin(angles[3]),
-        Mathf.Sin(angles[4]),
-        Mathf.Sin(angles[5]),
-    };
+            Mathf.Sin(angles[0]),
+            Mathf.Sin(angles[1]),
+            Mathf.Sin(angles[2]),
+            Mathf.Sin(angles[3]),
+            Mathf.Sin(angles[4]),
+            Mathf.Sin(angles[5]),
+        };
 
         public static readonly float[] cosAngles =
         {
-        Mathf.Cos(angles[0]),
-        Mathf.Cos(angles[1]),
-        Mathf.Cos(angles[2]),
-        Mathf.Cos(angles[3]),
-        Mathf.Cos(angles[4]),
-        Mathf.Cos(angles[5]),
-    };
+            Mathf.Cos(angles[0]),
+            Mathf.Cos(angles[1]),
+            Mathf.Cos(angles[2]),
+            Mathf.Cos(angles[3]),
+            Mathf.Cos(angles[4]),
+            Mathf.Cos(angles[5]),
+        };
 
         public static Vector2 HexToCartesian(float x, float y, float size) => new Vector2(3f / 2f * x, SQRT_3 / 2f * x + SQRT_3 * y) * size;
         public static Vector2 HexToCartesian(Vector2 hex, float size) => HexToCartesian(hex.x, hex.y, size);
@@ -65,24 +65,23 @@ namespace HexClicker
 
         public static float[] CosSixths =
         {
-        Mathf.Cos(0 * Mathf.PI / 3f),
-        Mathf.Cos(1 * Mathf.PI / 3f),
-        Mathf.Cos(2 * Mathf.PI / 3f),
-        Mathf.Cos(3 * Mathf.PI / 3f),
-        Mathf.Cos(4 * Mathf.PI / 3f),
-        Mathf.Cos(5 * Mathf.PI / 3f),
-    };
+            Mathf.Cos(0 * Mathf.PI / 3f),
+            Mathf.Cos(1 * Mathf.PI / 3f),
+            Mathf.Cos(2 * Mathf.PI / 3f),
+            Mathf.Cos(3 * Mathf.PI / 3f),
+            Mathf.Cos(4 * Mathf.PI / 3f),
+            Mathf.Cos(5 * Mathf.PI / 3f),
+        };
 
         public static float[] SinSixths =
         {
-        Mathf.Sin(0 * Mathf.PI / 3f),
-        Mathf.Sin(1 * Mathf.PI / 3f),
-        Mathf.Sin(2 * Mathf.PI / 3f),
-        Mathf.Sin(3 * Mathf.PI / 3f),
-        Mathf.Sin(4 * Mathf.PI / 3f),
-        Mathf.Sin(5 * Mathf.PI / 3f),
-    };
-
+            Mathf.Sin(0 * Mathf.PI / 3f),
+            Mathf.Sin(1 * Mathf.PI / 3f),
+            Mathf.Sin(2 * Mathf.PI / 3f),
+            Mathf.Sin(3 * Mathf.PI / 3f),
+            Mathf.Sin(4 * Mathf.PI / 3f),
+            Mathf.Sin(5 * Mathf.PI / 3f),
+        };
 
         public static Vector2Int[] NearestThreeVertices(Vector3 position, float size, int res)
         {
@@ -151,7 +150,6 @@ namespace HexClicker
         }
 
         public static Mesh Mesh { get; } = CreateHexagonMesh();
-
         
         public static Mesh CreateHexagonMesh()
         {
@@ -208,7 +206,6 @@ namespace HexClicker
             }
 
             Recursive(start);
-
 
             foreach (Tile tile in list)
                 tile.inFloodFillSet = false;

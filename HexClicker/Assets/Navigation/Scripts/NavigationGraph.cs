@@ -9,6 +9,7 @@ namespace HexClicker.Navigation
         public static readonly int Resolution = 64;
         public static readonly float MinHeight = 0.0f;
         public static readonly float MaxHeight = 1.25f;
+
         private static Dictionary<Vector2Int, Node> nodes;
         public static bool TryGetNode(Vector2Int vertex, out Node node) => nodes.TryGetValue(vertex, out node);
         public static void Generate(World.Map map)
@@ -141,10 +142,12 @@ namespace HexClicker.Navigation
             //RemoveNodesMinNeighbours(nodes, edges, 2);
             //AddConnections(map, nodes, edges, 0, .3f, .25f);
         }
+
         public static void Clear()
         {
             nodes = null;
         }
+
         public static bool NearestSquareNode(Vector3 position, out Node node)
         {
             node = default;
@@ -183,11 +186,13 @@ namespace HexClicker.Navigation
 
             return nearest;
         }
+
         public static void GrassRegrowth(float amount)
         {
             foreach (Node node in nodes.Values)
                 node.DesirePathCost += amount;
         }
+
         public static void OnDrawGizmos()
         {
             if (nodes != null)
