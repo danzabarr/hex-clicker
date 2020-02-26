@@ -45,7 +45,7 @@ Shader "Roystan/Grass"
     {
 		Cull Off
         Pass
-        {
+		{
 			Tags
 			{
 				"RenderType" = "Opaque"
@@ -61,6 +61,7 @@ Shader "Roystan/Grass"
 			#pragma target 4.6
 			#pragma multi_compile_fwdbase
 			#pragma multi_compile_fog
+
 
 			#include "GrassBase.cginc"
 
@@ -85,6 +86,7 @@ Shader "Roystan/Grass"
 
 				UNITY_APPLY_FOG(i.fogCoord, col);
 				ApplyFogOfWar(i.worldPos, col);
+
 
 				return float4(col, 1);
 			}

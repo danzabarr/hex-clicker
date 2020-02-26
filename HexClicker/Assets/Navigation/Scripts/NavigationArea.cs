@@ -28,13 +28,6 @@ namespace HexClicker.Navigation
             outlinePoints = Polygon.VoxelTraverseOutline(transformedPoints, voxelSize, voxelOffset, true).ToArray();
         }
 
-        void Awake()
-        {
-            Recalculate();
-            if (inaccessible)
-                MakeInaccessible();
-        }
-
         void OnValidate()
         {
             Recalculate();
@@ -83,9 +76,10 @@ namespace HexClicker.Navigation
 
         }
 
-        [ContextMenu("Make Inaccessible")]
-        public void MakeInaccessible()
+        [ContextMenu("Apply")]
+        public void Apply()
         {
+            Recalculate();
             foreach (Vector2Int p in fillPoints)
                 if (NavigationGraph.TryGetNode(p, out Node node))
                     node.Accessible = false;

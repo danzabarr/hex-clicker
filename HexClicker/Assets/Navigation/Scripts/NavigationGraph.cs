@@ -6,7 +6,7 @@ namespace HexClicker.Navigation
 {
     public static class NavigationGraph
     {
-        public static readonly int Resolution = 64;
+        public static readonly int Resolution = 128;
         public static readonly float MinHeight = 0.0f;
         public static readonly float MaxHeight = 1.25f;
 
@@ -23,11 +23,6 @@ namespace HexClicker.Navigation
             int w2 = Mathf.CeilToInt((map.Width - 1) / 2f);
             int h1 = Mathf.FloorToInt((map.Height - 1) / 2f);
             int h2 = Mathf.CeilToInt((map.Height - 1) / 2f);
-
-            // int minX = -(int)((1.5f * w2 + 1) * res) - 1;// (int)(res / 2 * HexUtils.SQRT_3 * -map.Width * 2);
-            // int maxX = (int)((1.5f * w1 + 1) * res) + 1;// res;
-            // int minZ = -(int)(HexUtils.SQRT_3 * (h2 + 1f) * res) - 1;// -(int)(res * HexUtils.SQRT_3 * map.Width);
-            // int maxZ = (int)(HexUtils.SQRT_3 * (h1 + .5f) * res) + 1;//(int)(res / 2f * HexUtils.SQRT_3 + 1);
 
             int minX = -(int)((1.5f * w2 + 1) * res) - 1;
             int maxX = +(int)((1.5f * w1 + 1) * res) + 1;

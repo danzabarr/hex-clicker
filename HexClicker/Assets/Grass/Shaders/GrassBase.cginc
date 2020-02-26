@@ -86,7 +86,6 @@ geometryOutput VertexOutput(float3 pos, float3 normal, float2 uv)
 		
 #endif
 
-
 	o.worldPos = mul(unity_ObjectToWorld, float4(pos.xyz, 1.0)).xyz - _WorldOffset;
 	o.viewDir = normalize(ObjSpaceViewDir(float4(pos.xyz, 1.0))).xyz;
 	UNITY_TRANSFER_FOG(o, o.pos);
@@ -147,7 +146,7 @@ float4 _CameraMask_ST;
 
 float _Smoothness;
 
-#define BLADE_SEGMENTS 3
+#define BLADE_SEGMENTS 1
 
 // Geometry program that takes in a single triangle and outputs a blade
 // of grass at that triangle first vertex position, aligned to the vertex's normal.

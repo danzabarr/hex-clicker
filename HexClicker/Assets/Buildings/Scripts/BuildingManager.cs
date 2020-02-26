@@ -37,6 +37,7 @@ namespace HexClicker.Buildings
                     {
                         Building placed = Instantiate(placingObject, hitInfo.point, Quaternion.Euler(0, placingRotation, 0));
                         placed.gameObject.SetActive(true);
+                        placed.OnPlace();
                     }
 
                     return;

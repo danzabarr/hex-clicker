@@ -1,10 +1,24 @@
-﻿using UnityEngine;
+﻿using HexClicker.Navigation;
+using UnityEngine;
 
 namespace HexClicker.Buildings
 {
     public class Building : MonoBehaviour
     {
         private BuildingPart[] parts;
+        private NavigationArea[] areas;
+
+        public void OnPlace()
+        {
+            ExtractParts();
+            ApplyAreas();
+        }
+
+        public void ApplyAreas()
+        {
+            foreach (NavigationArea area in areas)
+                area.Apply();
+        }
 
         public void ExtractParts()
         {
@@ -12,6 +26,8 @@ namespace HexClicker.Buildings
 
             foreach (BuildingPart part in parts)
                 part.SetupPlacingObjects();
+
+            areas = gameObject.GetComponentsInChildren<NavigationArea>();
         }
 
         public void ToTerrain(Matrix4x4 parentTransform)

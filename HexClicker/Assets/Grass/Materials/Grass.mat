@@ -80,7 +80,7 @@ Material:
     - _BladeHeightRandom: 0.05
     - _BladeRandomAmount: 0.5
     - _BladeSegments: 3
-    - _BladeWidth: 0.01
+    - _BladeWidth: 0.02
     - _BladeWidthRandom: 0.01
     - _BumpScale: 1
     - _ClipXZ: 0.0001
@@ -122,7 +122,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _TessellationUniform: 20
+    - _TessellationUniform: 16
     - _TranslucentGain: 0.8
     - _UVSec: 0
     - _WindScale: 1
