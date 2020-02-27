@@ -79,7 +79,7 @@ Shader "Roystan/Grass"
 				//half3 ambient = ShadeSH9(float4(normal, 1)) + 0.5;
 				half specular = pow(max(0.0, dot(reflect(-lightDir, normal), i.viewDir)), 1.5) * 1.25;
 				//half3 lightIntensity = clamp(diffuse + ambient + specular * .5, 0, 1.25);
-                half atten = SHADOW_ATTENUATION(i);
+				float atten = UNITY_SHADOW_ATTENUATION(i, i.worldPos);
 
 				col *= max((diffuse + specular) * atten  * _LightColor0, UNITY_LIGHTMODEL_AMBIENT);
 				col = saturate(col);

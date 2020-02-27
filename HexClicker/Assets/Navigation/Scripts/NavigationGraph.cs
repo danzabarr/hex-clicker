@@ -6,16 +6,16 @@ namespace HexClicker.Navigation
 {
     public static class NavigationGraph
     {
-        public static readonly int Resolution = 128;
+        public static readonly int Resolution = 64;
         public static readonly float MinHeight = 0.0f;
         public static readonly float MaxHeight = 1.25f;
 
         private static Dictionary<Vector2Int, Node> nodes;
         public static bool TryGetNode(Vector2Int vertex, out Node node) => nodes.TryGetValue(vertex, out node);
-        public static void Generate(World.Map map)
+        public static void Generate(Map map)
         {
             int res = Resolution;
-            float size = World.Map.TileSize;
+            float size = Map.TileSize;
 
             nodes = new Dictionary<Vector2Int, Node>();
 

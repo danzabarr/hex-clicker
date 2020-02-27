@@ -7,7 +7,7 @@ using UnityEngine;
 namespace HexClicker.Regions
 {
     [System.Serializable]
-    public class Region
+    public class Region : IEnumerable<Tile>
     {
         private List<Tile> members;
         private List<List<Tile>> holes;
@@ -23,6 +23,10 @@ namespace HexClicker.Regions
             ContigRegionID = contigRegionID;
             members = new List<Tile>();
         }
+
+        public IEnumerator<Tile> GetEnumerator() => members.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         /// <summary>
         /// Method for safely adding tiles to the region such that THIS region will remain contiguous
         /// </summary>
@@ -667,32 +671,34 @@ namespace HexClicker.Regions
             }
 #endif
         }
+
+        
         public static readonly float[] angles =
-       {
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * -0.5f,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 0.5f,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 1.5f,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 2.5f,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 3.5f,
-        Mathf.PI / 2f + Mathf.PI * 2f / 6f * 4.5f,
-    };
+        {
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * -0.5f,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 0.5f,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 1.5f,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 2.5f,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 3.5f,
+            Mathf.PI / 2f + Mathf.PI * 2f / 6f * 4.5f,
+        };
         public static readonly float[] sinAngles =
         {
-        Mathf.Sin(angles[0]),
-        Mathf.Sin(angles[1]),
-        Mathf.Sin(angles[2]),
-        Mathf.Sin(angles[3]),
-        Mathf.Sin(angles[4]),
-        Mathf.Sin(angles[5]),
-    };
+            Mathf.Sin(angles[0]),
+            Mathf.Sin(angles[1]),
+            Mathf.Sin(angles[2]),
+            Mathf.Sin(angles[3]),
+            Mathf.Sin(angles[4]),
+            Mathf.Sin(angles[5]),
+        };
         public static readonly float[] cosAngles =
         {
-        Mathf.Cos(angles[0]),
-        Mathf.Cos(angles[1]),
-        Mathf.Cos(angles[2]),
-        Mathf.Cos(angles[3]),
-        Mathf.Cos(angles[4]),
-        Mathf.Cos(angles[5]),
-    };
+            Mathf.Cos(angles[0]),
+            Mathf.Cos(angles[1]),
+            Mathf.Cos(angles[2]),
+            Mathf.Cos(angles[3]),
+            Mathf.Cos(angles[4]),
+            Mathf.Cos(angles[5]),
+        };
     }
 }

@@ -12,6 +12,7 @@ namespace HexClicker.Regions
 
         private static Dictionary<int, Region> regions = new Dictionary<int, Region>();
         private static int IDCounter = 0;
+        private static float[] tileVisibility = new float[1024];
         public static int NewRegionID
         {
             get
@@ -19,6 +20,15 @@ namespace HexClicker.Regions
                 IDCounter++;
                 return IDCounter;
             }
+        }
+
+        public static void SetTileVisibilityState(int hexX, int hexY, bool visible, bool upload = true)
+        {
+            hexX += 16;
+            hexY += 16;
+            tileVisibility[hexX + hexY * 32] = visible ? 1 : 0;
+            if (upload)
+                Shader.SetGlobalFloatArray("_Tiles", tileVisibility);
         }
 
         private void Update()
@@ -32,24 +42,51 @@ namespace HexClicker.Regions
 
             if (Input.GetMouseButtonDown(0))
             {
-                if (ScreenCast.MouseTerrain.Cast(out World.Tile mouse))
+                if (ScreenCast.MouseTerrain.Cast(out Tile mouse))
                 {
-                    RegionManager.SetRegion(placingRegionID, mouse.Position.x, mouse.Position.y);
+                    SetRegion(placingRegionID, mouse.Position.x, mouse.Position.y);
+                    UpdateTileVisibility();
                 }
             }
             if (Input.GetMouseButtonDown(1))
             {
-                if (ScreenCast.MouseTerrain.Cast(out World.Tile mouse))
+                if (ScreenCast.MouseTerrain.Cast(out Tile mouse))
                 {
-                    RegionManager.SetRegion(0, mouse.Position.x, mouse.Position.y);
+                    SetRegion(0, mouse.Position.x, mouse.Position.y);
+                    UpdateTileVisibility();
                 }
             }
 
         }
 
+        public static void UpdateTileVisibility()
+        {
+            for (int i = 0; i < 1024; i++)
+                tileVisibility[i] = 0;
+            foreach (Region r in regions.Values)
+            {
+                if (r.RegionID != 1)
+                    continue;
+
+                foreach (Tile t in r)
+                {
+                    SetTileVisibilityState(t.Position.x, t.Position.y, true, false);
+                    foreach(Tile n in t.Neighbours)
+                    {
+                        if (n == null)
+                            continue;
+                        SetTileVisibilityState(n.Position.x, n.Position.y, true, false);
+                    }
+                }
+            }
+            Shader.SetGlobalFloatArray("_Tiles", tileVisibility);
+        }
+
         public static void Clear()
         {
             regions = new Dictionary<int, Region>();
+            tileVisibility = new float[1024];
+            Shader.SetGlobalFloatArray("_Tiles", tileVisibility);
         }
 
         /// <summary>
