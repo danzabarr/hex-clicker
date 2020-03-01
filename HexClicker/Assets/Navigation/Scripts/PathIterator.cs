@@ -22,7 +22,7 @@ namespace HexClicker.Navigation
             distances = new float[path.Count - 1];
             for (int i = 0; i < path.Count - 1; i++)
             {
-                distances[i] = Vector3.Distance(path[i].Node.Position, path[i + 1].Node.Position);
+                distances[i] = Node.Distance(path[i].Node, path[i + 1].Node);
                 TotalDistance += distances[i];
             }
 

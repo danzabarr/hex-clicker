@@ -6,7 +6,7 @@ namespace HexClicker
 {
     public class OnTerrain : MonoBehaviour
     {
-        void Update()
+        private void Start()
         {
             transform.position = World.Map.Instance.OnTerrain(transform.position);
         }

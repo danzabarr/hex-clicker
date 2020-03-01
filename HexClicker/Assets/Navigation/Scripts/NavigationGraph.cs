@@ -9,8 +9,10 @@ namespace HexClicker.Navigation
         public static readonly int Resolution = 64;
         public static readonly float MinHeight = 0.0f;
         public static readonly float MaxHeight = 1.25f;
+        public static float NodesPerUpdate { get; private set; }
 
         private static Dictionary<Vector2Int, Node> nodes;
+        public static Dictionary<Vector2Int, Node>.ValueCollection Nodes => nodes.Values;
         public static bool TryGetNode(Vector2Int vertex, out Node node) => nodes.TryGetValue(vertex, out node);
         public static void Generate(Map map)
         {
@@ -64,6 +66,7 @@ namespace HexClicker.Navigation
                     Node.Connect(node, n4, false);
             }
 
+            NodesPerUpdate = nodes.Count / Map.GrassRegrowthInterval / 60f;
             /*
             int i = 0;
             Profiler.BeginSample("Generate Nodes");

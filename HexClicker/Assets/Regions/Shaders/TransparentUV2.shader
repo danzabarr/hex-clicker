@@ -12,7 +12,7 @@
 		LOD 100
 
 		ZWrite Off
-		//ZTest Off
+		ZTest Off
 		Blend SrcAlpha OneMinusSrcAlpha
 		Lighting Off
 		Fog { Mode Off }

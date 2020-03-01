@@ -6,18 +6,16 @@ namespace HexClicker.Buildings
     public class Building : MonoBehaviour
     {
         private BuildingPart[] parts;
-        private NavigationArea[] areas;
+        private Area[] areas;
+        private Access[] accesses;
 
         public void OnPlace()
         {
             ExtractParts();
-            ApplyAreas();
-        }
-
-        public void ApplyAreas()
-        {
-            foreach (NavigationArea area in areas)
+            foreach (Area area in areas)
                 area.Apply();
+            foreach (Access access in accesses)
+                access.ConnectToGraph();
         }
 
         public void ExtractParts()
@@ -27,7 +25,9 @@ namespace HexClicker.Buildings
             foreach (BuildingPart part in parts)
                 part.SetupPlacingObjects();
 
-            areas = gameObject.GetComponentsInChildren<NavigationArea>();
+            areas = gameObject.GetComponentsInChildren<Area>();
+
+            accesses = gameObject.GetComponentsInChildren<Access>();
         }
 
         public void ToTerrain(Matrix4x4 parentTransform)

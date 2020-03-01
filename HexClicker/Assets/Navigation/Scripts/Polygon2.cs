@@ -4,10 +4,11 @@ using UnityEngine;
 
 namespace HexClicker.Navigation
 {
-    public struct Polygon : IEnumerable<Vector2>
+    public struct Polygon2 : IEnumerable<Vector2>
     {
         private Vector2[] points;
-        public Polygon(Vector2[] points)
+
+        public Polygon2(Vector2[] points)
         {
             this.points = points;
             Bounds = CalculateBounds(points);
@@ -17,11 +18,13 @@ namespace HexClicker.Navigation
         public IEnumerator<Vector2> GetEnumerator() => ((IEnumerable<Vector2>)points).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => points.GetEnumerator();
         public Bounds2 Bounds { get; private set; }
+
         public void ApplyTransform(Transform transform, bool useXZ)
         {
             points = TransformedPoints(points, transform, useXZ);
             Bounds = CalculateBounds(points);
         }
+
         public static void DrawPolygon(Vector2[] poly, bool useXZ)
         {
             for (int i = 0; i < poly.Length; i++)
@@ -34,6 +37,7 @@ namespace HexClicker.Navigation
                     Gizmos.DrawLine(p0, p1);
             }
         }
+
         public static void DrawPolygon(Vector3[] poly)
         {
             for (int i = 0; i < poly.Length; i++)
@@ -43,7 +47,9 @@ namespace HexClicker.Navigation
                 Gizmos.DrawLine(p0, p1);
             }
         }
-        public static void DrawPolygon(Polygon poly, bool useXZ) => DrawPolygon(poly.points, useXZ);
+
+        public static void DrawPolygon(Polygon2 poly, bool useXZ) => DrawPolygon(poly.points, useXZ);
+
         public static Vector2[] TransformedPoints(Vector2[] points, Transform transform, bool useXZ)
         {
             Vector2[] p = new Vector2[points.Length];
@@ -56,6 +62,7 @@ namespace HexClicker.Navigation
             }
             return p;
         }
+
         public static Vector3[] TransformedPoints3(Vector2[] points, Transform transform, bool useXZ)
         {
             Vector3[] p = new Vector3[points.Length];
@@ -68,6 +75,7 @@ namespace HexClicker.Navigation
             }
             return p;
         }
+
         public static Vector2[] InverseTransformedPoints(Vector2[] points, Transform transform, bool useXZ)
         {
 
@@ -81,6 +89,7 @@ namespace HexClicker.Navigation
             }
             return p;
         }
+
         public static Bounds2 CalculateBounds(Vector2[] points)
         {
             if (points == null)
@@ -110,6 +119,39 @@ namespace HexClicker.Navigation
                 maxY = maxY
             };
         }
+
+        public static List<float> ScanRayIntersections(Vector2[] points, Vector2 p, bool sort)
+        {
+            List<float> intersections = new List<float>();
+
+            Vector2 rayDirection = new Vector2(1, 0);
+
+            for (int i = 0; i < points.Length; i++)
+            {
+                Vector2 p0 = points[i];
+                Vector2 p1 = points[(i + 1) % points.Length];
+
+                if (p0.y > p.y && p1.y > p.y)
+                    continue;
+
+                if (p0.y <= p.y && p1.y <= p.y)
+                    continue;
+
+                float t1 = (p1.x - p0.x) * (p.y - p0.y) / (p1.y - p0.y) - (p.x - p0.x);
+                float t2 = (p.y - p0.y) / (p1.y - p0.y);
+
+                if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0))
+                {
+                    intersections.Add(p.x + t1);
+                }
+            }
+
+            if (sort)
+                intersections.Sort((a, b) => a.CompareTo(b));
+
+            return intersections;
+        }
+
         public static List<float> ScanLineIntersections(Vector2[] points, float y, bool sort)
         {
             List<float> intersections = new List<float>();
@@ -138,6 +180,7 @@ namespace HexClicker.Navigation
 
             return intersections;
         }
+
         public static bool ScanLineIntersection(Vector2 p0, Vector2 p1, out float x, float y)
         {
             if (p0.y > y && p1.y > y)
@@ -161,7 +204,14 @@ namespace HexClicker.Navigation
             x = 0;
             return false;
         }
-        public static bool LineRayIntersection(Vector2 rayOrigin, Vector2 rayDirection, Vector2 point1, Vector2 point2, out Vector2 intersection, out float distance)
+
+        public static bool PolygonContainsPoint(Vector2[] poly, Vector2 point)
+        {
+            List<float> intersections = ScanRayIntersections(poly, point, false);
+            return intersections.Count % 2 == 0;
+        }
+
+        public static bool LineRayIntersection(Vector2 rayOrigin, Vector2 rayDirection, Vector2 point1, Vector2 point2, out Vector2 intersection, out float sqDistance)
         {
             Vector2 v1 = rayOrigin - point1;
             Vector2 v2 = point2 - point1;
@@ -171,26 +221,25 @@ namespace HexClicker.Navigation
             if (Mathf.Abs(dot) < 0.0000001f)
             {
                 intersection = Vector2.zero;
-                distance = -1;
+                sqDistance = -1;
                 return false;
             }
 
             float t1 = v2.Cross(v1) / dot;
             float t2 = v1.Dot(v3) / dot;
 
-            Debug.Log(dot);
-
             if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0))
             {
                 intersection = rayOrigin + rayDirection * t1;
-                distance = t1;
+                sqDistance = t1;
                 return true;
             }
 
             intersection = Vector2.zero;
-            distance = -1;
+            sqDistance = -1;
             return false;
         }
+
         public static bool LineSegmentIntersection(Vector2 l1Start, Vector2 l1End, Vector2 l2Start, Vector2 l2End, out Vector2 intersection)
         {
             intersection = Vector3.zero;
@@ -247,6 +296,7 @@ namespace HexClicker.Navigation
             intersection = new Vector2((float)(l1Start.x + r * deltaBAx), (float)(l1Start.y + r * deltaBAy));
             return true;
         }
+
         public static List<Vector2Int> VoxelTraverse(Vector2 p0, Vector2 p1, Vector2 voxelSize, Vector2 voxelOffset)
         {
             List<Vector2Int> line = new List<Vector2Int>();
@@ -285,6 +335,7 @@ namespace HexClicker.Navigation
 
             return line;
         }
+
         public static List<Vector2Int> VoxelTraverseOutline(Vector2[] poly, Vector2 voxelSize, Vector2 voxelOffset, bool removeDuplicates)
         {
             List<Vector2Int> outline = new List<Vector2Int>();
@@ -304,10 +355,9 @@ namespace HexClicker.Navigation
             }
             return outline;
         }
-        public static List<Vector2Int> ScanLineFill(Vector2[] poly, Vector2 voxelSize, Vector2 voxelOffset)
-        {
-            return ScanLineFill(poly, CalculateBounds(poly), voxelSize, voxelOffset);
-        }
+
+        public static List<Vector2Int> ScanLineFill(Vector2[] poly, Vector2 voxelSize, Vector2 voxelOffset) => ScanLineFill(poly, CalculateBounds(poly), voxelSize, voxelOffset);
+
         public static List<Vector2Int> ScanLineFill(Vector2[] poly, Bounds2 bounds, Vector2 voxelSize, Vector2 voxelOffset)
         {
             int xMin = Mathf.RoundToInt((bounds.minX) / voxelSize.x - voxelOffset.x);
@@ -345,6 +395,127 @@ namespace HexClicker.Navigation
 
             return fill;
         }
-        public static List<Vector2Int> ScanLineFill(Polygon poly, Vector2 voxelSize, Vector2 voxelOffset) => ScanLineFill(poly.points, poly.Bounds, voxelSize, voxelOffset);
+        public static List<Vector2Int> ScanLineFill(Polygon2 poly, Vector2 voxelSize, Vector2 voxelOffset) => ScanLineFill(poly.points, poly.Bounds, voxelSize, voxelOffset);
+
+        public static Vector2 NearestPointOnLineSegment(Vector2 lineStart, Vector2 lineEnd, Vector2 target, out float sqDistance)
+        {
+            Vector2 v = lineEnd - lineStart;
+            Vector2 u = lineStart - target;
+            float vu = v.x * u.x + v.y * u.y;
+            float vv = v.x * v.x + v.y * v.y;
+            float t = -vu / vv;
+
+            if (t >= 0 && t <= 1)
+            {
+                Vector2 p = VectorToSegment2D(t, Vector2.zero, lineStart, lineEnd);
+                sqDistance = SqLength(p - target);
+                return p;
+            }
+
+            float g0 = SqLength(VectorToSegment2D(0, target, lineStart, lineEnd));
+            float g1 = SqLength(VectorToSegment2D(1, target, lineStart, lineEnd));
+
+            if (g0 <= g1)
+            {
+                sqDistance = g0;
+                return lineStart;
+            }
+            else
+            {
+                sqDistance = g1;
+                return lineEnd;
+            }
+
+            Vector2 VectorToSegment2D(float T, Vector2 P, Vector2 A, Vector2 B) => new Vector2(
+                (1 - T) * A.x + T * B.x - P.x,
+                (1 - T) * A.y + T * B.y - P.y
+            );
+        }
+
+        public static Vector2 NearestPointOnPolyEdge(Vector2[] poly, Vector2 target, out float sqDistance)
+        {
+            Vector2 nearestPoint = target;
+            sqDistance = float.MaxValue;
+
+            for (int i = 0; i < poly.Length; i++)
+            {
+                Vector2 p0 = poly[i];
+                Vector2 p1 = poly[(i + 1) % poly.Length];
+
+                Vector2 n = NearestPointOnLineSegment(p0, p1, target, out float d);
+
+                if (d < sqDistance)
+                {
+                    nearestPoint = n;
+                    sqDistance = d;
+                }
+            }
+
+            return nearestPoint;
+        }
+
+        public static Vector2 NearestPointOnPolyEdge(Polygon2 poly, Vector2 target, out float sqDistance) => NearestPointOnPolyEdge(poly.points, target, out sqDistance);
+
+        public static bool Raycast(Vector2[] poly, Vector2 rayOrigin, Vector2 rayDirection, out Vector2 intersection, out float sqDistance)
+        {
+            intersection = default;
+            sqDistance = float.MaxValue;
+
+            if (RaycastAll(poly, rayOrigin, rayDirection, out Vector2[] intersections, out float[] sqDistances))
+            {
+                intersection = intersections[0];
+                sqDistance = sqDistances[0];
+                return true;
+            }
+            return false;
+        }
+
+        public static bool RaycastAny(Vector2[] poly, Vector2 rayOrigin, Vector2 rayDirection, out Vector2 intersection, out float sqDistance)
+        {
+            for (int i = 0; i < poly.Length; i++)
+            {
+                Vector2 p0 = poly[i];
+                Vector2 p1 = poly[(i + 1) % poly.Length];
+                if (LineRayIntersection(rayOrigin, rayDirection, p0, p1, out intersection, out sqDistance))
+                {
+                    return true;
+                }
+            }
+            intersection = default;
+            sqDistance = float.MaxValue;
+            return false;
+        }
+
+        public static bool RaycastAll(Vector2[] poly, Vector2 rayOrigin, Vector2 rayDirection, out Vector2[] intersections, out float[] sqDistances)
+        {
+            List<Vector2> list = new List<Vector2>();
+
+            for (int i = 0; i < poly.Length; i++)
+            {
+                Vector2 p0 = poly[i];
+                Vector2 p1 = poly[(i + 1) % poly.Length];
+                if (LineRayIntersection(rayOrigin, rayDirection, p0, p1, out Vector2 inter, out float dist))
+                {
+                    list.Add(inter);
+                }
+            }
+
+            list.Sort((Vector2 a, Vector2 b) => SqLength(a - rayOrigin).CompareTo(SqLength(b - rayOrigin)));
+
+            intersections = list.ToArray();
+            sqDistances = new float[intersections.Length];
+            for (int i = 0; i < intersections.Length; i++)
+                sqDistances[i] = SqLength(intersections[i] - rayOrigin);
+
+            return intersections.Length > 0;
+        }
+
+        public static float SqLength(Vector2 p) => p.x * p.x + p.y * p.y;
+
+        public static bool Raycast(Polygon2 poly, Vector2 rayOrigin, Vector2 rayDirection, out Vector2 intersection, out float sqDistance) => Raycast(poly.points, rayOrigin, rayDirection, out intersection, out sqDistance);
+
+        public static bool RaycastAny(Polygon2 poly, Vector2 rayOrigin, Vector2 rayDirection, out Vector2 intersection, out float sqDistance) => RaycastAny(poly.points, rayOrigin, rayDirection, out intersection, out sqDistance);
+
+        public static bool RaycastAll(Polygon2 poly, Vector2 rayOrigin, Vector2 rayDirection, out Vector2[] intersections, out float[] sqDistances) => RaycastAll(poly.points, rayOrigin, rayDirection, out intersections, out sqDistances);
     }
 }

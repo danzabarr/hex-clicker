@@ -16,7 +16,7 @@ namespace HexClicker.World
         public static readonly float TileSize = 8.0f;
 
         public static readonly float GrassRegrowthInterval = .5f;
-        public static readonly float GrassRegrowthAmount = .001f;
+        public static readonly float GrassRegrowthAmount = .002f;
 
         private float grassRegrowthCounter;
 
@@ -81,6 +81,7 @@ namespace HexClicker.World
         public int Width => width;
         public int Height => height;
         public int TileCount => width * height;
+
         /// <summary>
         /// Returns the tile from the array at the supplied coordinates, or null if out of range.
         /// </summary>
@@ -93,15 +94,19 @@ namespace HexClicker.World
                 return storeX < 0 || storeY < 0 || storeX >= width || storeY >= height ? null : tiles[storeX + storeY * width];
             }
         }
+
         /// <summary>
         /// Returns the tile at a given index in the array. NO CHECKS!
         /// </summary>
         public Tile this[int index] => tiles[index];
+
         /// <summary>
         /// Iterator for the tile array.
         /// </summary>
         public IEnumerator<Tile> GetEnumerator() => ((IEnumerable<Tile>)tiles).GetEnumerator();
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         /// <summary>
         /// Returns an array containing the the six neighbouring tiles (or null if the neighbouring tile is out of range) around the supplied coordinates, starting with the tile in the positive X direction, and rotating clockwise.
         /// </summary>
@@ -117,27 +122,33 @@ namespace HexClicker.World
             this[tileX + 1, tileY - 1],
             };
         }
-        void OnEnable()
+
+        private void OnEnable()
         {
             Instance = this;
         }
-        void Awake()
+
+        private void Awake()
         {
             Instance = this;
             Generate();
             GenerateSkirt();
             GenerateNavigationGraph();
+
+        }
+
+        private void Start()
+        {
             RegionManager.SetRegion(1, 0, 0);
             RegionManager.UpdateTileVisibility();
+            ShaderUpload();
         }
-        void Start()
+
+        private void OnValidate()
         {
             ShaderUpload();
         }
-        void OnValidate()
-        {
-            ShaderUpload();
-        }
+
         private void ShaderUpload()
         {
             //Globals used by multiple shaders
@@ -181,10 +192,9 @@ namespace HexClicker.World
             if (cover)
             {
                 grassRegrowthCounter -= GrassRegrowthInterval;
-                NavigationGraph.GrassRegrowth(GrassRegrowthAmount);
+                StartCoroutine(GrassRegrowth(GrassRegrowthAmount));
+                //NavigationGraph.GrassRegrowth(GrassRegrowthAmount);
             }
-            //StartCoroutine(UpdateMasks(cover));
-
             foreach (Tile tile in tiles)
             {
                 tile.UpdateMask(cover);
@@ -192,6 +202,22 @@ namespace HexClicker.World
 
             #endregion;
         }
+
+        IEnumerator GrassRegrowth(float amount)
+        {
+            int counter = 0;
+            foreach (Node node in NavigationGraph.Nodes)
+            {
+                counter++;
+                node.DesirePathCost += amount;
+                if (counter >= NavigationGraph.NodesPerUpdate)
+                {
+                    counter = 0;
+                    yield return null;
+                }
+            }
+        }
+
         IEnumerator UpdateMasks(bool cover)
         {
             foreach (Tile tile in tiles)
@@ -206,16 +232,21 @@ namespace HexClicker.World
             if (navigationDrawGraph)
                 NavigationGraph.OnDrawGizmos();
         }
+
         /// <summary>
         /// Returns the height of the terrain at the supplied x and z coordinates. Does not necessarily return the height of the mesh according to resolution.
         /// </summary>
         public float SampleHeight(float x, float z) => terrainNoiseCurve.Evaluate(Perlin.Noise(x + SeedOffsetX, z + SeedOffsetY, terrainNoiseSettings));
+       
         /// <summary>
         /// Returns the world position which is at the height of the terrain, for the x and z coordinates of the supplied position.
         /// </summary>
         public Vector3 OnTerrain(float x, float z) => new Vector3(x, SampleHeight(x, z), z);
+
         public Vector3 OnTerrain(Vector2 p) => OnTerrain(p.x, p.y);
+
         public Vector3 OnTerrain(Vector3 p) => OnTerrain(p.x, p.z);
+
         /// <summary>
         /// Returns true if there is a tile beneath the supplied x and z coordinates.
         /// </summary>
@@ -225,15 +256,18 @@ namespace HexClicker.World
             tile = this[hex.x, hex.y];
             return tile != null;
         }
+
         public bool SampleTile(float x, float z)
         {
             Vector2Int hex = HexUtils.HexRound(HexUtils.CartesianToHex(x, z, TileSize));
             return this[hex.x, hex.y] != null;
         }
+
         /// <summary>
         /// Samples a value used for determining whether a tree should grow at the supplied world XZ coordinates
         /// </summary>
         public float SampleTree(float x, float z) => Perlin.Noise(x + SeedOffsetX + 10000, z + SeedOffsetY + 10000, treesNoiseSettings);
+
         /// <summary>
         /// Returns the 'temperature' value for a given world position.
         /// </summary>
@@ -347,14 +381,11 @@ namespace HexClicker.World
 
         }
         
-        
         [ContextMenu("Generate Navigation Graph", false, 2)]
         public void GenerateNavigationGraph()
         {
             NavigationGraph.Generate(this);
         }
-
-        
 
         [ContextMenu("Generate Skirt")]
         public void GenerateSkirt()
@@ -619,7 +650,6 @@ namespace HexClicker.World
             skirtMeshes[3] = m3;
         }
        
-
         #region Unused
         /*
      public void GenerateNavigationMesh()

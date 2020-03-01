@@ -21,7 +21,9 @@ namespace HexClicker.Navigation
 
         public readonly Vector2Int Index;
         public readonly Vector3 Position;
-        public readonly List<Neighbour> Neighbours = new List<Neighbour>();
+        public readonly List<Neighbour> Neighbours = new List<Neighbour>(1);
+        public readonly bool RaycastSkippable;
+        public readonly bool ZeroDistance;
 
         private float desirePathCost = MaxDesirePathCost;
         public float DesirePathCost
@@ -38,16 +40,48 @@ namespace HexClicker.Navigation
         {
             Index = hex;
             Position = position;
+            RaycastSkippable = true;
         }
+
         public Node(Vector3 position)
         {
             Position = position;
+            RaycastSkippable = true;
         }
+
+        public Node(Vector3 position, bool raycastSkippable, bool zeroDistance)
+        {
+            Position = position;
+            RaycastSkippable = raycastSkippable;
+            ZeroDistance = zeroDistance;
+        }
+
         public void RemoveLastAddedNeighbour()
         {
             if (Neighbours.Count > 0)
                 Neighbours.RemoveAt(Neighbours.Count - 1);
         }
+        
+        public void RemoveNeighbour(Node node, bool all = true)
+        {
+            for (int i = Neighbours.Count - 1; i >= 0; i--)
+                if (Neighbours[i].Node == node)
+                {
+                    Neighbours.RemoveAt(i);
+                    if (!all)
+                        return;
+                }
+        }
+
+        public void Disconnect()
+        {
+            for (int i = Neighbours.Count - 1; i >= 0; i--)
+            {
+                Neighbours[i].Node.RemoveNeighbour(this);
+                Neighbours.RemoveAt(i);
+            }
+        }
+
         public static bool Connect(Node n1, Node n2, bool check = true)
         {
             if (n1 == null || n2 == null)
@@ -61,6 +95,7 @@ namespace HexClicker.Navigation
             n2.Neighbours.Add(new Neighbour(n1, distance));
             return true;
         }
+
         public static bool Connected(Node n1, Node n2)
         {
             foreach (Neighbour n in n1.Neighbours)
@@ -68,6 +103,7 @@ namespace HexClicker.Navigation
                     return true;
             return false;
         }
-        public static float Distance(Node n1, Node n2) => Vector3.Distance(n1.Position, n2.Position);
+
+        public static float Distance(Node n1, Node n2) => (n1.ZeroDistance || n2.ZeroDistance) ? 0 : Vector3.Distance(n1.Position, n2.Position);
     }
 }

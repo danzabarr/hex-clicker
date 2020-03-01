@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace HexClicker.Buildings
 {
@@ -55,7 +56,7 @@ namespace HexClicker.Buildings
                 {
                     BoxCollider box = c as BoxCollider;
 
-                    Matrix4x4 matrix = parentTransform * RelativeMatrix(box.transform, parent.transform);
+                    Matrix4x4 matrix = parentTransform * parent.transform.localToWorldMatrix * Matrix4x4.Translate(box.center) * box.transform.localToWorldMatrix * parent.transform.worldToLocalMatrix;
 
                     Vector3 center = matrix.ExtractPosition();
                     Quaternion orientation = matrix.ExtractRotation();

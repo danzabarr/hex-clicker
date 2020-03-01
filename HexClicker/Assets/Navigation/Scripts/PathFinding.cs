@@ -205,7 +205,7 @@ namespace HexClicker.Navigation
             Result result = PathFind(startNode, endNode, maxDistance, maxTries, takeExistingPaths, out path, thread);
 
             foreach (Node neighbour in endNeighbours)
-                neighbour.RemoveLastAddedNeighbour();
+                neighbour.RemoveNeighbour(endNode, false);
 
             return result;
         }

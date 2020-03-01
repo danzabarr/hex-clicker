@@ -29,7 +29,7 @@ namespace HexClicker.Buildings
                 Matrix4x4 parentTransform = Matrix4x4.TRS(hitInfo.point, Quaternion.Euler(0, placingRotation, 0), Vector3.one);
 
                 placingObject.ToTerrain(parentTransform);
-                if (mouse && mouse.RegionID == 1 && !placingObject.CheckCollisions(parentTransform, LayerMask.GetMask("Buildings", "Water")))
+                if (mouse && mouse.RegionID == 1 && !placingObject.CheckCollisions(parentTransform, LayerMask.GetMask("Buildings", "Units", "Water", "Rocks")))
                 {
                     placingObject.Draw(parentTransform, LayerMask.NameToLayer("Placing"), null, true);
 
