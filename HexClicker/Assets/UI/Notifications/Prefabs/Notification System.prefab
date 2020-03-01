@@ -88,6 +88,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   notificationPrefab: {fileID: 634077547746859391, guid: e53d0b3dd5609274891edb392ee954e9,
     type: 3}
-  padding: {x: 0, y: 0}
+  padding: {x: 10, y: 10}
   spacing: 5
   maxNotificationsDisplayed: 4

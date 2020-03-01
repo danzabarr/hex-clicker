@@ -60,7 +60,7 @@ MonoBehaviour:
     m_Top: 20
     m_Bottom: 20
   m_ChildAlignment: 1
-  m_Spacing: 0
+  m_Spacing: 10
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -245,12 +245,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Body.
-
-    Oh hell yes.'
+  m_text: Body.
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: a6d122b63e4cdf446834499c47f2ab0e, type: 2}
-  m_sharedMaterial: {fileID: 9207694159376240737, guid: a6d122b63e4cdf446834499c47f2ab0e,
+  m_fontAsset: {fileID: 11400000, guid: 2ad029f1ceeb6094d9c92a8c55cd0278, type: 2}
+  m_sharedMaterial: {fileID: 9207694159376240737, guid: 2ad029f1ceeb6094d9c92a8c55cd0278,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -314,15 +312,15 @@ MonoBehaviour:
   m_firstVisibleCharacter: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 20, z: 0, w: 20}
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 8212304991947644776}
-    characterCount: 18
+    characterCount: 5
     spriteCount: 0
-    spaceCount: 3
-    wordCount: 4
+    spaceCount: 0
+    wordCount: 1
     linkCount: 0
-    lineCount: 2
+    lineCount: 1
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -365,7 +363,6 @@ GameObject:
   - component: {fileID: 8212304992069288021}
   - component: {fileID: 8212304992069288019}
   - component: {fileID: 8212304992069288020}
-  - component: {fileID: 6619140695198887652}
   m_Layer: 5
   m_Name: Title
   m_TagString: Untagged
@@ -421,8 +418,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Title
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8ef61024a2d56704ebde29ba50ccad81, type: 2}
-  m_sharedMaterial: {fileID: 5600184869767703630, guid: 8ef61024a2d56704ebde29ba50ccad81,
+  m_fontAsset: {fileID: 11400000, guid: 191f88bf67a18844bb17fa0866ec0e18, type: 2}
+  m_sharedMaterial: {fileID: 5600184869767703630, guid: 191f88bf67a18844bb17fa0866ec0e18,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -512,20 +509,6 @@ MonoBehaviour:
   - {fileID: 0}
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &6619140695198887652
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8212304992069288022}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_HorizontalFit: 0
-  m_VerticalFit: 2
 --- !u!1 &8212304992788020315
 GameObject:
   m_ObjectHideFlags: 0
@@ -1239,6 +1222,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: aaa2142645dbdb54ea534fa4f981b36c, type: 3}
+--- !u!224 &8212304991357323229 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 2349500981789500408, guid: aaa2142645dbdb54ea534fa4f981b36c,
+    type: 3}
+  m_PrefabInstance: {fileID: 5867325346167907365}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &8212304991357323227 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2349500981789500414, guid: aaa2142645dbdb54ea534fa4f981b36c,
@@ -1263,9 +1252,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!224 &8212304991357323229 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 2349500981789500408, guid: aaa2142645dbdb54ea534fa4f981b36c,
-    type: 3}
-  m_PrefabInstance: {fileID: 5867325346167907365}
-  m_PrefabAsset: {fileID: 0}
