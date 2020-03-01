@@ -5,7 +5,7 @@ namespace HexClicker.Navigation
 {
     public class PathIterator
     {
-        private readonly Vector3[] points;
+        private readonly Node[] nodes;
         private readonly float[] distances;
         private int i;
         private float d0, d1;
@@ -13,11 +13,13 @@ namespace HexClicker.Navigation
         public float CurrentDistance { get; private set; }
         public float T => Mathf.Clamp(CurrentDistance / TotalDistance, 0, 1);
         public Vector3 CurrentPosition { get; private set; }
+        public Node NodeInfront { get; private set; }
+        public Node NodeBehind { get; private set; }
         public PathIterator(List<PathFinding.Point> path)
         {
-            points = new Vector3[path.Count];
+            nodes = new Node[path.Count];
             for (int i = 0; i < path.Count; i++)
-                points[i] = path[i].Node.Position;
+                nodes[i] = path[i].Node;
 
             distances = new float[path.Count - 1];
             for (int i = 0; i < path.Count - 1; i++)
@@ -26,7 +28,9 @@ namespace HexClicker.Navigation
                 TotalDistance += distances[i];
             }
 
-            CurrentPosition = points.Length > 0 ? points[0] : Vector3.zero;
+            CurrentPosition = nodes.Length > 0 ? nodes[0].Position : Vector3.zero;
+            NodeBehind = nodes.Length > 0 ? nodes[0] : null;
+            NodeInfront = nodes.Length > 0 ? nodes[0] : null;
 
             if (distances.Length > 0)
                 d1 = distances[0];
@@ -37,39 +41,45 @@ namespace HexClicker.Navigation
             if (distance == CurrentDistance)
                 return;
 
-            if (points.Length == 0)
+            if (nodes.Length == 0)
             {
                 i = 0;
                 d0 = 0;
                 d1 = 0;
                 CurrentDistance = 0;
                 CurrentPosition = Vector3.zero;
+                NodeBehind = null;
+                NodeInfront = null;
                 return;
             }
 
-            if (points.Length == 1 || distance < 0)
+            if (nodes.Length == 1 || distance < 0)
             {
                 i = 0;
                 d0 = 0;
                 d1 = 0;
                 CurrentDistance = 0;
-                CurrentPosition = points[0];
+                CurrentPosition = nodes[0].Position;
+                NodeBehind = nodes[0];
+                NodeInfront = nodes[0];
                 return;
             }
 
             if (distance >= TotalDistance)
             {
-                i = points.Length - 1;
+                i = nodes.Length - 1;
                 d0 = TotalDistance - distances[distances.Length - 1];
                 d1 = TotalDistance;
                 CurrentDistance = TotalDistance;
-                CurrentPosition = points[points.Length - 1];
+                CurrentPosition = nodes[nodes.Length - 1].Position;
+                NodeBehind = nodes[nodes.Length - 2];
+                NodeInfront = nodes[nodes.Length - 1];
                 return;
             }
 
             CurrentDistance = distance;
             float sum = 0;
-            for (int i = 0; i < points.Length - 1; i++)
+            for (int i = 0; i < nodes.Length - 1; i++)
             {
                 float d = distances[i];
                 d0 = sum;
@@ -77,21 +87,25 @@ namespace HexClicker.Navigation
                 if (distance < sum + d)
                 {
                     float t = (distance - sum) / d;
-                    CurrentPosition = Vector3.Lerp(points[i], points[i + 1], t);
+                    CurrentPosition = Vector3.Lerp(nodes[i].Position, nodes[i + 1].Position, t);
+                    NodeBehind = nodes[i];
+                    NodeInfront = nodes[i + 1];
                     this.i = i;
                     return;
                 }
                 sum += d;
             }
 
-            CurrentPosition = points[points.Length - 1];
+            CurrentPosition = nodes[nodes.Length - 1].Position;
+            NodeBehind = nodes[nodes.Length - 2];
+            NodeInfront = nodes[nodes.Length - 1];
         }
         public float AdvanceDistance(float amount)
         {
-            if (points == null)
+            if (nodes == null)
                 return 0;
 
-            if (points.Length <= 1)
+            if (nodes.Length <= 1)
                 return 0;
 
             float distance = Mathf.Clamp(CurrentDistance + amount, 0, TotalDistance);
@@ -109,13 +123,17 @@ namespace HexClicker.Navigation
                     if (distance < sum + d)
                     {
                         float t = (distance - sum) / d;
-                        CurrentPosition = Vector3.Lerp(points[i], points[i + 1], t);
+                        CurrentPosition = Vector3.Lerp(nodes[i].Position, nodes[i + 1].Position, t);
+                        NodeBehind = nodes[i];
+                        NodeInfront = nodes[i + 1];
                         return amount;
                     }
                     sum += d;
                 }
                 i--;
-                CurrentPosition = points[points.Length - 1];
+                CurrentPosition = nodes[nodes.Length - 1].Position;
+                NodeBehind = nodes[nodes.Length - 2];
+                NodeInfront = nodes[nodes.Length - 1];
 
                 return amount;
             }
@@ -131,12 +149,16 @@ namespace HexClicker.Navigation
                     if (distance >= sum - d)
                     {
                         float t = (sum - distance) / d;
-                        CurrentPosition = Vector3.Lerp(points[i], points[i + 1], 1 - t);
+                        CurrentPosition = Vector3.Lerp(nodes[i].Position, nodes[i + 1].Position, 1 - t);
+                        NodeBehind = nodes[i + 1];
+                        NodeInfront = nodes[i];
                         return amount;
                     }
                     sum -= d;
                 }
-                CurrentPosition = points[0];
+                CurrentPosition = nodes[0].Position;
+                NodeBehind = nodes[1];
+                NodeInfront = nodes[0];
 
                 return amount;
             }
@@ -145,33 +167,33 @@ namespace HexClicker.Navigation
         }
         public Vector3 CalculatePosition(float distance)
         {
-            if (points.Length == 0)
+            if (nodes.Length == 0)
                 return Vector3.zero;
 
-            if (points.Length == 1)
-                return points[0];
+            if (nodes.Length == 1)
+                return nodes[0].Position;
 
             if (distance < 0)
-                return points[0];
+                return nodes[0].Position;
 
             if (distance >= TotalDistance)
-                return points[points.Length - 1];
+                return nodes[nodes.Length - 1].Position;
 
             float sum = 0;
 
-            for (int i = 0; i < points.Length - 1; i++)
+            for (int i = 0; i < nodes.Length - 1; i++)
             {
                 float d = distances[i];
                 if (distance < sum + d)
                 {
                     float t = (distance - sum) / d;
 
-                    return Vector3.Lerp(points[i], points[i + 1], t);
+                    return Vector3.Lerp(nodes[i].Position, nodes[i + 1].Position, t);
                 }
                 sum += d;
             }
 
-            return points[points.Length - 1];
+            return nodes[nodes.Length - 1].Position;
         }
     }
 }

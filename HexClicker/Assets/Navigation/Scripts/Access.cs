@@ -1,4 +1,5 @@
-﻿using HexClicker.World;
+﻿using HexClicker.Buildings;
+using HexClicker.World;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,22 +20,19 @@ namespace HexClicker.Navigation
             public Vector3 outside;
         }
 
+        [SerializeField] private Building parent;
         public bool showHandles;
         [SerializeField] private Path[] paths;
 
-        public Node Enter {get; private set; }
-        public Node Exit { get; private set; }
-
         private List<Node> links;
+        private List<Node> insideNodes;
         private List<Node> outsideNodes;
 
         public void ConnectToGraph()
         {
             Map map = Map.Instance;
 
-            Exit = new Node(transform.position, false, true);
-            Enter = new Node(transform.position, false, true);
-
+            insideNodes = new List<Node>();
             outsideNodes = new List<Node>();
 
             foreach(Path path in paths)
@@ -42,25 +40,26 @@ namespace HexClicker.Navigation
                 if (!path.isEntrance && !path.isExit)
                     continue;
 
-                Node inside = new Node(map.OnTerrain(transform.TransformPoint(path.inside)), false, false);
-                Node outside = new Node(map.OnTerrain(transform.TransformPoint(path.outside)), false, false);
+                Node inside = new Node(map.OnTerrain(transform.TransformPoint(path.inside)), false, false, true);
+                Node outside = new Node(map.OnTerrain(transform.TransformPoint(path.outside)), false, false, true);
                 float distance = Node.Distance(inside, outside);
 
+                insideNodes.Add(inside);
                 outsideNodes.Add(outside);
 
                 links = NavigationGraph.NearestSquareNodes(outside.Position);
 
                 if (path.isEntrance)
                 {
-                    inside.Neighbours.Add(new Node.Neighbour(Enter, 0));
-                    outside.Neighbours.Add(new Node.Neighbour(outside, distance));
+                    inside.Neighbours.Add(new Node.Neighbour(parent.Enter, 0));
+                    outside.Neighbours.Add(new Node.Neighbour(inside, distance));
                     foreach (Node link in links)
                         link.Neighbours.Add(new Node.Neighbour(outside, Node.Distance(link, outside)));
                 }
 
                 if (path.isExit)
                 {
-                    Exit.Neighbours.Add(new Node.Neighbour(inside, 0));
+                    parent.Exit.Neighbours.Add(new Node.Neighbour(inside, 0));
                     inside.Neighbours.Add(new Node.Neighbour(outside, distance));
                     foreach (Node link in links)
                         outside.Neighbours.Add(new Node.Neighbour(link, Node.Distance(outside, link)));
@@ -79,8 +78,10 @@ namespace HexClicker.Navigation
                 foreach(Node o in outsideNodes)
                     l.RemoveNeighbour(o);
 
-            Exit = null;
-            Enter = null;
+            foreach (Node i in insideNodes)
+                parent.Exit.RemoveNeighbour(i);
+
+
             outsideNodes = null;
             links = null;
         }

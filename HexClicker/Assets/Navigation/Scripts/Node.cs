@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace HexClicker.Navigation
 {
+    [System.Serializable]
     public class Node
     {
         public static readonly float MinDesirePathCost = .5f;
@@ -24,6 +25,7 @@ namespace HexClicker.Navigation
         public readonly List<Neighbour> Neighbours = new List<Neighbour>(1);
         public readonly bool RaycastSkippable;
         public readonly bool ZeroDistance;
+        public readonly bool AccessNode;
 
         private float desirePathCost = MaxDesirePathCost;
         public float DesirePathCost
@@ -49,11 +51,12 @@ namespace HexClicker.Navigation
             RaycastSkippable = true;
         }
 
-        public Node(Vector3 position, bool raycastSkippable, bool zeroDistance)
+        public Node(Vector3 position, bool raycastSkippable, bool zeroDistance, bool accessNode)
         {
             Position = position;
             RaycastSkippable = raycastSkippable;
             ZeroDistance = zeroDistance;
+            AccessNode = accessNode;
         }
 
         public void RemoveLastAddedNeighbour()

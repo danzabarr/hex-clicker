@@ -148,16 +148,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c28c762291ba07f4b833693e025cefba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showHandles: 0
+  parent: {fileID: 629045668572576133}
+  showHandles: 1
   paths:
   - isEntrance: 1
     isExit: 1
     inside: {x: -0.5, y: 0, z: -0.625}
-    outside: {x: -1.5000434, y: 0, z: -0.625}
+    outside: {x: -1.25, y: 0, z: -0.625}
   - isEntrance: 1
     isExit: 1
     inside: {x: 0.25, y: 0, z: 0.5}
-    outside: {x: 0.25, y: 0, z: 1.5}
+    outside: {x: 0.25, y: 0, z: 1.25}
 --- !u!65 &3507713440063851876
 BoxCollider:
   m_ObjectHideFlags: 0

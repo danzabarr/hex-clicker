@@ -31,6 +31,22 @@ namespace HexClicker.Navigation
             outlinePoints = Polygon2.VoxelTraverseOutline(transformedPoints, voxelSize, voxelOffset, true).ToArray();
         }
 
+        public bool InsidePolygon(Vector3 point)
+        {
+            return Polygon2.PolygonContainsPoint(points, point.xz());
+        }
+
+        public bool InsideArea(Vector2Int point)
+        {
+            foreach (Vector2Int p in FillPoints)
+                if (point == p)
+                    return true;
+            foreach (Vector2Int p in OutlinePoints)
+                if (point == p)
+                    return true;
+            return false;
+        }
+
         private void OnValidate()
         {
             Recalculate();

@@ -5,7 +5,8 @@ namespace HexClicker.Buildings
 {
     public class BuildingPart : MonoBehaviour
     {
-        public Building parent;
+        [SerializeField] private Building parent;
+        public Building Parent => parent;
         public Mesh PlacingMesh { get; private set; }
         public Material PlacingMaterial { get; private set; }
         public Matrix4x4 PlacingTransform { get; private set; }

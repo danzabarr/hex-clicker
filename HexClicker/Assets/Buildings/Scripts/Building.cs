@@ -1,4 +1,5 @@
 ﻿using HexClicker.Navigation;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HexClicker.Buildings
@@ -7,15 +8,33 @@ namespace HexClicker.Buildings
     {
         private BuildingPart[] parts;
         private Area[] areas;
+        public Node Enter { get; private set; }
+        public Node Exit { get; private set; }
+
         private Access[] accesses;
 
         public void OnPlace()
         {
+            Enter = new Node(transform.position, false, true, true);
+            Exit = new Node(transform.position, false, true, true);
             ExtractParts();
             foreach (Area area in areas)
                 area.Apply();
             foreach (Access access in accesses)
                 access.ConnectToGraph();
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (ScreenCast.MouseTerrain.Cast(out RaycastHit hit))
+            {
+                //PathFinding.Result result = PathFinding.PathFind(Exit, hit.point, 5000, 10000, 1, true, out List<PathFinding.Point> path);
+                PathFinding.Result result = PathFinding.PathFind(hit.point, Enter, 5000, 10000, 1, true, out List<PathFinding.Point> path);
+                if (result == PathFinding.Result.Success)
+                {
+                    PathFinding.DrawPath(path, true);
+                }
+            }
         }
 
         public void ExtractParts()

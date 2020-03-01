@@ -19,9 +19,9 @@ namespace HexClicker.Buildings
         private void Update()
         {
             if (Input.GetKey(KeyCode.LeftArrow))
-                placingRotation--;
+                placingRotation -= 5;
             if (Input.GetKey(KeyCode.RightArrow))
-                placingRotation++;
+                placingRotation += 5;
 
             if (ScreenCast.MouseTerrain.Cast(out RaycastHit hitInfo))//Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")) && hitInfo.collider.GetComponent<HexTile>())
             {
