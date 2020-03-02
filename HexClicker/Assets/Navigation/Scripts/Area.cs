@@ -6,11 +6,11 @@ namespace HexClicker.Navigation
     public class Area : MonoBehaviour
     {
         public bool showHandles;
-        private static readonly bool useXZ = true;
-        public Color outline = Color.white;
-        public Color fill = new Color(1, 1, 1, .2f);
+        public static readonly Color outlineColor = new Color(1, 0, 0, .2f);
+        public static readonly Color fillColor = new Color(1, 1, 1, .2f);
 
-        [SerializeField] private bool inaccessible;
+        [SerializeField] private bool calculateOutline;
+        [SerializeField] private bool calculateFill = true;
         [SerializeField] private Vector2[] points;
 
         private Vector2Int[] fillPoints, outlinePoints;
@@ -25,10 +25,10 @@ namespace HexClicker.Navigation
         {
             Vector2 voxelSize = Vector2.one * World.Map.TileSize / NavigationGraph.Resolution;
             Vector2 voxelOffset = Vector2.one * 0;
-            transformedPoints = Polygon2.TransformedPoints(points, transform, useXZ);
+            transformedPoints = Polygon2.TransformedPoints(points, transform, true);
             transformedBounds = Polygon2.CalculateBounds(transformedPoints);
-            fillPoints = Polygon2.ScanLineFill(transformedPoints, transformedBounds, voxelSize, voxelOffset).ToArray();
-            outlinePoints = Polygon2.VoxelTraverseOutline(transformedPoints, voxelSize, voxelOffset, true).ToArray();
+            if (calculateFill) fillPoints = Polygon2.ScanLineFill(transformedPoints, transformedBounds, voxelSize, voxelOffset).ToArray();
+            if (calculateOutline) outlinePoints = Polygon2.VoxelTraverseOutline(transformedPoints, voxelSize, voxelOffset, true).ToArray();
         }
 
         public bool InsidePolygon(Vector3 point)
@@ -38,12 +38,14 @@ namespace HexClicker.Navigation
 
         public bool InsideArea(Vector2Int point)
         {
-            foreach (Vector2Int p in FillPoints)
-                if (point == p)
-                    return true;
-            foreach (Vector2Int p in OutlinePoints)
-                if (point == p)
-                    return true;
+            if (calculateFill)
+                foreach (Vector2Int p in FillPoints)
+                    if (point == p)
+                        return true;
+            if (calculateOutline)
+                foreach (Vector2Int p in OutlinePoints)
+                    if (point == p)
+                        return true;
             return false;
         }
 
@@ -54,20 +56,13 @@ namespace HexClicker.Navigation
 
         private void Start()
         {
-            Apply();
+            ObstructArea();
         }
 
         private void OnDrawGizmos()
         {
-            Recalculate();
-            /*
             Gizmos.color = Color.white;
-            Polygon.DrawPolygon(transformedPoints, useXZ);
-            */
-            Gizmos.color = Color.white;
-            Polygon2.DrawPolygon(Polygon2.TransformedPoints3(points, transform, useXZ));
-
-            Gizmos.color = Color.green;
+            Polygon2.DrawPolygon(Polygon2.TransformedPoints3(points, transform, true));
         }
 
         private void OnDrawGizmosSelected()
@@ -78,41 +73,63 @@ namespace HexClicker.Navigation
 
             void DrawCube(Vector2Int p)
             {
-                Vector3 pos = ((p + voxelOffset) * voxelSize);
-                Vector3 size = voxelSize;
+                Vector3 pos = ((p + voxelOffset) * voxelSize).x0y();
+                Vector3 size = voxelSize.x0y();
 
-                if (useXZ)
-                {
-                    pos = pos.x0y();
-                    size = size.xzy();
-                }
                 if (map)
                     pos = map.OnTerrain(pos);
 
                 Gizmos.DrawCube(pos, size * .95f);
             }
 
-            Gizmos.color = fill;
-            foreach (Vector2Int p in fillPoints)
-                DrawCube(p);
+            if (calculateFill && fillPoints != null)
+            {
+                Gizmos.color = fillColor;
+                foreach (Vector2Int p in fillPoints)
+                    DrawCube(p);
+            }
 
-            Gizmos.color = outline;
-            foreach (Vector2Int p in outlinePoints)
-                DrawCube(p);
-
+            if (calculateOutline && outlinePoints != null)
+            {
+                Gizmos.color = outlineColor;
+                foreach (Vector2Int p in outlinePoints)
+                    DrawCube(p);
+            }
         }
 
-        [ContextMenu("Apply")]
-        public void Apply()
+        public void ObstructArea()
         {
             Recalculate();
-            foreach (Vector2Int p in fillPoints)
-                if (NavigationGraph.TryGetNode(p, out Node node))
-                    node.Accessible = false;
+            if (calculateFill)
+            {
+                foreach (Vector2Int p in fillPoints)
+                    if (NavigationGraph.TryGetNode(p, out Node node))
+                        node.Obstructions++;
+            }
+            if (calculateOutline)
+            {
+                foreach (Vector2Int p in outlinePoints)
+                    if (NavigationGraph.TryGetNode(p, out Node node))
+                        node.Obstructions++;
+            }
+        }
 
-            foreach (Vector2Int p in outlinePoints)
-                if (NavigationGraph.TryGetNode(p, out Node node))
-                    node.Accessible = false;
+        public void RevertArea()
+        {
+            if (calculateFill)
+            {
+                if (fillPoints != null)
+                foreach (Vector2Int p in fillPoints)
+                    if (NavigationGraph.TryGetNode(p, out Node node))
+                        node.Obstructions--;
+            }
+            if (calculateOutline)
+            {
+                if (outlinePoints != null)
+                foreach (Vector2Int p in outlinePoints)
+                    if (NavigationGraph.TryGetNode(p, out Node node))
+                        node.Obstructions--;
+            }
         }
     }
 }

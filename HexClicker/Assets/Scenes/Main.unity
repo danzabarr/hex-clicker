@@ -751,7 +751,7 @@ MonoBehaviour:
   treesMaximumHeight: 1.5
   treesMinimumScale: 0.5
   treesMaximumScale: 1
-  treesRandomPosition: 0.6
+  treesRandomPosition: 1
   temperature: 1
   latitudeScale: 15
   altitudeTemperature: 0.5
@@ -3670,7 +3670,7 @@ MonoBehaviour:
   rotationAcceleration: 1000
   rotationDampening: 0.001
   zoomSpeed: 1
-  zoomAcceleration: 50
+  zoomAcceleration: 5
   zoomDampening: 0.01
   depthOfFieldFocusDistanceOffset: 0
   focusDuration: 1

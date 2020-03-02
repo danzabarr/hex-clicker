@@ -33,7 +33,7 @@ namespace HexClicker.Navigation
                     SerializedProperty element = points.GetArrayElementAtIndex(i);
                     //if (useXZ.boolValue)
                     //element.vector2Value = transform.InverseTransformPoint(Handles.PositionHandle(transform.TransformPoint(element.vector2Value.x0z()), transform.rotation)).xz();
-                    element.vector2Value = transform.InverseTransformPoint(Handles.PositionHandle(transform.TransformPoint(element.vector2Value.x0z()), Quaternion.identity)).xz();
+                    element.vector2Value = transform.InverseTransformPoint(Handles.PositionHandle(transform.TransformPoint(element.vector2Value.x0y()), Quaternion.identity)).xz();
                 }
                 serializedObject.ApplyModifiedProperties();
             }

@@ -19,19 +19,28 @@ namespace HexClicker.Buildings
             Exit = new Node(transform.position, false, true, true);
             ExtractParts();
             foreach (Area area in areas)
-                area.Apply();
+                area.ObstructArea();
             foreach (Access access in accesses)
                 access.ConnectToGraph();
         }
 
         private void OnDrawGizmosSelected()
         {
-            if (ScreenCast.MouseTerrain.Cast(out RaycastHit hit))
+            if (ScreenCast.MouseScene.Cast(out RaycastHit hit))
             {
-                //PathFinding.Result result = PathFinding.PathFind(Exit, hit.point, 5000, 10000, 1, true, out List<PathFinding.Point> path);
-                PathFinding.Result result = PathFinding.PathFind(hit.point, Enter, 5000, 10000, 1, true, out List<PathFinding.Point> path);
+                PathFinding.Result result;
+                List<PathFinding.Point> path;
+
+                BuildingPart bp = hit.collider.GetComponent<BuildingPart>();
+
+                if (bp != null)
+                    result = PathFinding.PathFind(Exit, bp.Parent.Enter, 5000, 10000, 1, true, out path);
+                else
+                    result = PathFinding.PathFind(Exit, hit.point, 5000, 10000, 1, true, out path);
+                
                 if (result == PathFinding.Result.Success)
                 {
+                    Gizmos.color = Color.green;
                     PathFinding.DrawPath(path, true);
                 }
             }

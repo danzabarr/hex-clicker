@@ -6,9 +6,9 @@ namespace HexClicker
 {
     public class ScreenCast : MonoBehaviour
     {
-        public static Instance MouseTerrain { get; private set; }
-        public static Instance CenterTerrain { get; private set; }
-        public static Instance MouseScene { get; private set; }
+        public static Instance MouseTerrain { get; private set; } = new Instance();
+        public static Instance CenterTerrain { get; private set; } = new Instance();
+        public static Instance MouseScene { get; private set; } = new Instance();
 
         private void Awake()
         {
@@ -40,7 +40,7 @@ namespace HexClicker
 
             private bool returned;
             private RaycastHit hit;
-
+            public Instance() { }
             public Instance(Camera camera, ScreenPosition positionType, Vector2 positionVector, float maxDistance, int layerMask)
             {
                 this.camera = camera;

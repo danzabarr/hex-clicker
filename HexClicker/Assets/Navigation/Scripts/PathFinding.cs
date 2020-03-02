@@ -289,11 +289,11 @@ namespace HexClicker.Navigation
             Node startNode = new Node(start);
             Node endNode = new Node(end);
 
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start);
+            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
             if (startNeighbours.Count <= 0)
                 return Result.FailureNoPath;
 
-            List<Node> endNeighbours = NavigationGraph.NearestSquareNodes(end);
+            List<Node> endNeighbours = NavigationGraph.NearestSquareNodes(end, true);
             if (endNeighbours.Count <= 0)
                 return Result.FailureNoPath;
 
@@ -301,7 +301,7 @@ namespace HexClicker.Navigation
                 startNode.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(startNode, neighbour)));
 
             foreach (Node neighbour in endNeighbours)
-                Node.Connect(neighbour, endNode, false);
+                neighbour.Neighbours.Add(new Node.Neighbour(endNode, Node.Distance(neighbour, endNode)));
 
             Result result = PathFind(startNode, endNode, maxDistance, maxTries, takeExistingPaths, out path, thread);
 
@@ -318,7 +318,7 @@ namespace HexClicker.Navigation
             Node startNode = new Node(start);
             Node endNode = new Node(end);
 
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start);
+            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
 
             for (int i = 0; i < firstNeighbour.Length; i++)
                 if (firstNeighbour[i] != null)
@@ -327,7 +327,7 @@ namespace HexClicker.Navigation
             if (startNeighbours.Count <= 0)
                 return Result.FailureNoPath;
 
-            List<Node> endNeighbours = NavigationGraph.NearestSquareNodes(end);
+            List<Node> endNeighbours = NavigationGraph.NearestSquareNodes(end, true);
             if (endNeighbours.Count <= 0)
                 return Result.FailureNoPath;
 
@@ -335,7 +335,7 @@ namespace HexClicker.Navigation
                 startNode.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(startNode, neighbour)));
 
             foreach (Node neighbour in endNeighbours)
-                Node.Connect(neighbour, endNode, false);
+                neighbour.Neighbours.Add(new Node.Neighbour(endNode, Node.Distance(neighbour, endNode)));
 
             Result result = PathFind(startNode, endNode, maxDistance, maxTries, takeExistingPaths, out path, thread);
 
@@ -351,7 +351,7 @@ namespace HexClicker.Navigation
 
             Node startNode = new Node(start);
 
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start);
+            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
             if (startNeighbours.Count <= 0)
                 return Result.FailureNoPath;
 
@@ -369,7 +369,7 @@ namespace HexClicker.Navigation
 
             Node startNode = new Node(start);
 
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start);
+            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
 
             for (int i = 0; i < firstNeighbour.Length; i++)
                 if (firstNeighbour[i] != null)
@@ -392,12 +392,12 @@ namespace HexClicker.Navigation
 
             Node endNode = new Node(end);
 
-            List<Node> endNeighbours = NavigationGraph.NearestSquareNodes(end);
+            List<Node> endNeighbours = NavigationGraph.NearestSquareNodes(end, true);
             if (endNeighbours.Count <= 0)
                 return Result.FailureNoPath;
 
             foreach (Node neighbour in endNeighbours)
-                Node.Connect(neighbour, endNode, false);
+                neighbour.Neighbours.Add(new Node.Neighbour(endNode, Node.Distance(neighbour, endNode)));
 
             Result result = PathFind(start, endNode, maxDistance, maxTries, takeExistingPaths, out path, thread);
 

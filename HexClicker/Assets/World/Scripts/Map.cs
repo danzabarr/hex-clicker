@@ -134,7 +134,7 @@ namespace HexClicker.World
             Generate();
             GenerateSkirt();
             GenerateNavigationGraph();
-
+            GenerateTrees();
         }
 
         private void Start()
@@ -203,7 +203,7 @@ namespace HexClicker.World
             #endregion;
         }
 
-        IEnumerator GrassRegrowth(float amount)
+        private IEnumerator GrassRegrowth(float amount)
         {
             int counter = 0;
             foreach (Node node in NavigationGraph.Nodes)
@@ -218,7 +218,7 @@ namespace HexClicker.World
             }
         }
 
-        IEnumerator UpdateMasks(bool cover)
+        private IEnumerator UpdateMasks(bool cover)
         {
             foreach (Tile tile in tiles)
             {
@@ -227,7 +227,7 @@ namespace HexClicker.World
             }
         }
 
-        void OnDrawGizmos()
+        private void OnDrawGizmos()
         {
             if (navigationDrawGraph)
                 NavigationGraph.OnDrawGizmos();
@@ -298,7 +298,7 @@ namespace HexClicker.World
             NavigationGraph.Clear();
             RegionManager.Clear();
         }
-        
+
         /// <summary>
         /// Generates the map in all respects. Resets all regions and regenerates trees.
         /// </summary>
@@ -310,7 +310,7 @@ namespace HexClicker.World
             Clear();
 
             tiles = new Tile[width * height];
-            
+
 
             Random.InitState(seed);
             SeedOffsetX = Random.value * 10000;
@@ -331,48 +331,58 @@ namespace HexClicker.World
                     tiles[x + z * width].GenerateMesh(this, hexX, hexY, true);
                 }
             #endregion
-            #region Generate Trees
 
+        }
+        public void GenerateTrees()
+            {
             treesRenderer = new InstancedRenderer();
             Random.InitState(seed);
-            foreach (Tile tile in tiles)
+            //foreach (Tile tile in tiles)
+            //{
+            //    Vector3[] vertices = tile.Mesh.vertices;
+            //
+            //    for (int i = 0; i < vertices.Length - TileResolution * 3; i++)
+            //    {
+
+            foreach(Node node in NavigationGraph.Nodes)
             {
-                Vector3[] vertices = tile.Mesh.vertices;
+                if (node.Index.x % 2 == 0)
+                    continue;
+                if (node.Index.y % 2 == 0)
+                    continue;
+                //Vector3 position = OnTerrain(tile.transform.position + vertices[i] + new Vector3(Random.value - 0.5f, 0, Random.value - 0.5f) * TileSize / TileResolution * treesRandomPosition);
+                Vector3 position = OnTerrain(node.Position + new Vector3(Random.value - 0.5f, 0, Random.value - 0.5f) * TileSize / NavigationGraph.Resolution * treesRandomPosition);
+                if (position.y < treesMinimumAltitude)
+                    continue;
 
-                for (int i = 0; i < vertices.Length - TileResolution * 3; i++)
-                {
-                    Vector3 position = OnTerrain(tile.transform.position + vertices[i] + new Vector3(Random.value - 0.5f, 0, Random.value - 0.5f) * TileSize / TileResolution * treesRandomPosition);
+                if (position.y > treesMaximumAltitude)
+                    continue;
 
-                    if (position.y < treesMinimumAltitude)
-                        continue;
+                float treeSample = SampleTree(position.x, position.z);
 
-                    if (position.y > treesMaximumAltitude)
-                        continue;
+                if (treeSample < treesThreshold)
+                    continue;
 
-                    float treeSample = SampleTree(position.x, position.z);
+                float temperatureSample = SampleTemperature(position.x, position.y, position.z);
 
-                    if (treeSample < treesThreshold)
-                        continue;
+                if (temperatureSample > treesMaximumTemperature)
+                    continue;
 
-                    float temperatureSample = SampleTemperature(position.x, position.y, position.z);
+                if (temperatureSample < treesMinimumTemperature)
+                    continue;
 
-                    if (temperatureSample > treesMaximumTemperature)
-                        continue;
+                Quaternion rotation = Quaternion.Euler(0, 90, 0);// Quaternion.Euler(0, Random.Range(-180, 180), 0);
+                Vector3 scale = new Vector3(1, Random.Range(treesMinimumHeight, treesMaximumHeight), 1) * Random.Range(treesMinimumScale, treesMaximumScale) * treeSample * treeSample * 2;
+                Color color = treesColor.Evaluate(Random.value);
+                //tile.TreesCount++;
 
-                    if (temperatureSample < treesMinimumTemperature)
-                        continue;
+                treesRenderer.Add(Matrix4x4.TRS(position, rotation, scale), color);
 
-                    Quaternion rotation = Quaternion.Euler(0, 90, 0);// Quaternion.Euler(0, Random.Range(-180, 180), 0);
-                    Vector3 scale = new Vector3(1, Random.Range(treesMinimumHeight, treesMaximumHeight), 1) * Random.Range(treesMinimumScale, treesMaximumScale);
-                    Color color = treesColor.Evaluate(Random.value);
-                    tile.TreesCount++;
-
-                    treesRenderer.Add(Matrix4x4.TRS(position, rotation, scale), color);
+                node.Obstructions++;
 
                     // colors[i] = Color.Lerp(Color.red, Color.blue, Random.value);
-                }
+                //}
             }
-            #endregion
         }
 
         private void ControlModeUnits()
@@ -434,7 +444,7 @@ namespace HexClicker.World
                 if (i == 0)
                 {
                     Vector3 c0 = OnTerrain(p0);
-                    Vector3 c1 = p0.xyz(bottom);
+                    Vector3 c1 = p0.xny(bottom);
                     v0.Add(c0);
                     v0.Add(c1);
                 }
@@ -442,7 +452,7 @@ namespace HexClicker.World
                 for (int j = 1; j < TileResolution + 1; j++)
                 {
                     Vector3 c2 = OnTerrain(Vector2.Lerp(p0, p1, (float)j / TileResolution));
-                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xyz(bottom);
+                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xny(bottom);
                     v0.Add(c2);
                     v0.Add(c3);
 
@@ -484,7 +494,7 @@ namespace HexClicker.World
                 if (i == 0)
                 {
                     Vector3 c0 = OnTerrain(p0);
-                    Vector3 c1 = p0.xyz(bottom);
+                    Vector3 c1 = p0.xny(bottom);
                     v1.Add(c0);
                     v1.Add(c1);
                 }
@@ -492,7 +502,7 @@ namespace HexClicker.World
                 for (int j = 1; j < TileResolution + 1; j++)
                 {
                     Vector3 c2 = OnTerrain(Vector2.Lerp(p0, p1, (float)j / TileResolution));
-                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xyz(bottom);
+                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xny(bottom);
                     v1.Add(c2);
                     v1.Add(c3);
 
@@ -539,7 +549,7 @@ namespace HexClicker.World
                 if (i == 0)
                 {
                     Vector3 c0 = OnTerrain(p0);
-                    Vector3 c1 = p0.xyz(bottom);
+                    Vector3 c1 = p0.xny(bottom);
                     v2.Add(c0);
                     v2.Add(c1);
                 }
@@ -547,7 +557,7 @@ namespace HexClicker.World
                 for (int j = 1; j < TileResolution + 1; j++)
                 {
                     Vector3 c2 = OnTerrain(Vector2.Lerp(p0, p1, (float)j / TileResolution));
-                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xyz(bottom);
+                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xny(bottom);
                     v2.Add(c2);
                     v2.Add(c3);
 
@@ -594,7 +604,7 @@ namespace HexClicker.World
                 if (i == 0)
                 {
                     Vector3 c0 = OnTerrain(p0);
-                    Vector3 c1 = p0.xyz(bottom);
+                    Vector3 c1 = p0.xny(bottom);
                     v3.Add(c0);
                     v3.Add(c1);
                 }
@@ -602,7 +612,7 @@ namespace HexClicker.World
                 for (int j = 1; j < TileResolution + 1; j++)
                 {
                     Vector3 c2 = OnTerrain(Vector2.Lerp(p0, p1, (float)j / TileResolution));
-                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xyz(bottom);
+                    Vector3 c3 = Vector2.Lerp(p0, p1, (float)j / TileResolution).xny(bottom);
                     v3.Add(c2);
                     v3.Add(c3);
 

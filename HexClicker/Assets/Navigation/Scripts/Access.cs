@@ -47,7 +47,7 @@ namespace HexClicker.Navigation
                 insideNodes.Add(inside);
                 outsideNodes.Add(outside);
 
-                links = NavigationGraph.NearestSquareNodes(outside.Position);
+                links = NavigationGraph.NearestSquareNodes(outside.Position, false);
 
                 if (path.isEntrance)
                 {
@@ -88,26 +88,30 @@ namespace HexClicker.Navigation
 
         private void OnDrawGizmos()
         {
-            foreach(Path path in paths)
+            Gizmos.color = Color.white;
+            foreach (Path path in paths)
             {
                 Vector3 insideWorld = transform.TransformPoint(path.inside);
                 Vector3 outsideWorld = transform.TransformPoint(path.outside);
 
                 Gizmos.DrawLine(insideWorld, outsideWorld);
                 if (path.isExit)
-                    DrawArrowHead(insideWorld, outsideWorld, .2f, 20);
+                    DrawArrowHead(insideWorld, outsideWorld, .1f, 20);
                 if (path.isEntrance)
-                    DrawArrowHead(outsideWorld, insideWorld, .2f, 20);
+                    DrawArrowHead(outsideWorld, insideWorld, .1f, 20);
             }
         }
 
         private void OnDrawGizmosSelected()
         {
-            foreach(Node node in outsideNodes)
+            if (outsideNodes != null)
             {
-                Gizmos.DrawCube(node.Position, Vector3.one * 0.05f);
-                foreach(Node.Neighbour neighbour in node.Neighbours)
-                    Gizmos.DrawLine(node.Position, neighbour.Node.Position);
+                Gizmos.color = Color.white;
+                foreach(Node node in outsideNodes)
+                {
+                    foreach(Node.Neighbour neighbour in node.Neighbours)
+                        Gizmos.DrawLine(node.Position, neighbour.Node.Position);
+                }
             }
         }
 

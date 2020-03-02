@@ -155,7 +155,7 @@ namespace HexClicker.Navigation
 
             return nodes.TryGetValue(new Vector2Int(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.z)), out node);
         }
-        public static List<Node> NearestSquareNodes(Vector3 position)
+        public static List<Node> NearestSquareNodes(Vector3 position, bool onlyAccessibleNodes)
         {
             List<Node> nearest = new List<Node>();
 
@@ -170,16 +170,16 @@ namespace HexClicker.Navigation
             int ceilZ = Mathf.CeilToInt(position.z);
             int floorZ = Mathf.FloorToInt(position.z);
 
-            if (nodes.TryGetValue(new Vector2Int(floorX, floorZ), out Node n0))
+            if (nodes.TryGetValue(new Vector2Int(floorX, floorZ), out Node n0) && (!onlyAccessibleNodes || n0.Accessible))
                 nearest.Add(n0);
 
-            if (nodes.TryGetValue(new Vector2Int(floorX, ceilZ), out Node n1))
+            if (nodes.TryGetValue(new Vector2Int(floorX, ceilZ), out Node n1) && (!onlyAccessibleNodes || n1.Accessible))
                 nearest.Add(n1);
 
-            if (nodes.TryGetValue(new Vector2Int(ceilX, floorZ), out Node n2))
+            if (nodes.TryGetValue(new Vector2Int(ceilX, floorZ), out Node n2) && (!onlyAccessibleNodes || n2.Accessible))
                 nearest.Add(n2);
 
-            if (nodes.TryGetValue(new Vector2Int(ceilX, ceilZ), out Node n3))
+            if (nodes.TryGetValue(new Vector2Int(ceilX, ceilZ), out Node n3) && (!onlyAccessibleNodes || n3.Accessible))
                 nearest.Add(n3);
 
             return nearest;
@@ -195,7 +195,7 @@ namespace HexClicker.Navigation
         {
             if (nodes != null)
             {
-                Vector3 size = new Vector3(.5f, .5f, .5f) * World.Map.TileSize / Resolution;
+                Vector3 size = Vector3.one * .25f * World.Map.TileSize / Resolution;
                 foreach (Node node in nodes.Values)
                 {
                     if (!node.Accessible)

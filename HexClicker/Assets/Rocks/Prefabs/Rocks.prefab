@@ -202,7 +202,8 @@ MonoBehaviour:
   showHandles: 0
   outline: {r: 1, g: 1, b: 1, a: 0.56078434}
   fill: {r: 1, g: 1, b: 1, a: 0.3019608}
-  inaccessible: 1
+  calculateOutline: 0
+  calculateFill: 1
   points:
   - {x: 0.45241594, y: 0.20966831}
   - {x: 0.276466, y: 0.22558478}

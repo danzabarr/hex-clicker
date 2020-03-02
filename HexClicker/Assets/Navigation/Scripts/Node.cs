@@ -34,7 +34,8 @@ namespace HexClicker.Navigation
             set => desirePathCost = Mathf.Clamp(value, MinDesirePathCost, MaxDesirePathCost);
         }
         public float MovementCost => DesirePathCost;// + roads + other stuff;
-        public bool Accessible { get; set; } = true;
+        public int Obstructions { get; set; }
+        public bool Accessible => Obstructions <= 0;
         public float NeighbourCost(int i, float takePaths) => Neighbours[i].Distance * Mathf.Lerp(1, (MovementCost + Neighbours[i].Node.MovementCost) / 2, takePaths);
         public bool NeighbourAccessible(int i) => true;
 

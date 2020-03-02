@@ -32,7 +32,7 @@ namespace HexClicker.Navigation
                 Vector2 p0 = poly[i];
                 Vector2 p1 = poly[(i + 1) % poly.Length];
                 if (useXZ)
-                    Gizmos.DrawLine(p0.x0z(), p1.x0z());
+                    Gizmos.DrawLine(p0.x0y(), p1.x0y());
                 else
                     Gizmos.DrawLine(p0, p1);
             }
@@ -56,7 +56,7 @@ namespace HexClicker.Navigation
             for (int i = 0; i < p.Length; i++)
             {
                 if (useXZ)
-                    p[i] = transform.TransformPoint(points[i].x0z()).xz();
+                    p[i] = transform.TransformPoint(points[i].x0y()).xz();
                 else
                     p[i] = transform.TransformPoint(points[i]);
             }
@@ -69,7 +69,7 @@ namespace HexClicker.Navigation
             for (int i = 0; i < p.Length; i++)
             {
                 if (useXZ)
-                    p[i] = transform.TransformPoint(points[i].x0z());
+                    p[i] = transform.TransformPoint(points[i].x0y());
                 else
                     p[i] = transform.TransformPoint(points[i]);
             }
@@ -83,7 +83,7 @@ namespace HexClicker.Navigation
             for (int i = 0; i < p.Length; i++)
             {
                 if (useXZ)
-                    p[i] = transform.InverseTransformPoint(points[i].x0z()).xz();
+                    p[i] = transform.InverseTransformPoint(points[i].x0y()).xz();
                 else
                     p[i] = transform.InverseTransformPoint(points[i]);
             }
