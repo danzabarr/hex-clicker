@@ -13,12 +13,33 @@ MonoBehaviour:
   m_Name: Cheese Frenzy
   m_EditorClassIdentifier: 
   id: 0
-  location: {x: 10, y: 8, z: 0}
-  timeLimit: 10
-  title: Cheese Frenzy
   body: You have ran out of cheese, and now you have ten seconds to go and fetch some.
-  hasLocation: 0
-  isTimeDependent: 1
   status: 2
-  type: 0
+  goals:
+  - body: Grab 3 pieces of cheese in ten seconds
+    status: 2
+    type: 0
+    hasTimer: 1
+    timer:
+      elapsed: 0
+      total: 10
+    hasCounter: 1
+    counter:
+      amount: 0
+      max: 3
+    hasLocation: 1
+    location: {x: 1, y: 0, z: 0}
+  - body: Make Dan sigh at least twice
+    status: 0
+    type: 0
+    hasTimer: 0
+    timer:
+      elapsed: 0
+      total: 0
+    hasCounter: 1
+    counter:
+      amount: 0
+      max: 2
+    hasLocation: 0
+    location: {x: 0, y: 0, z: 0}
   reward: Congrats, you fetched some cheese!

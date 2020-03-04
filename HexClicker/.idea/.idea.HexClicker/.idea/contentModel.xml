@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\maria\.Rider2019.3\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\maria\.Rider2019.3\system\resharper-host\local\Transient\ReSharperHost\v193\SolutionCaches\_HexClicker.194980215.00" t="ExcludeRecursive" />
+    <e p="D:\Unity Projects\hex-clicker-master\HexClicker" t="IncludeRecursive">
+      <e p="Assembly-CSharp-Editor.csproj" t="IncludeRecursive" />
+      <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
+      <e p="Assets" t="Include">
+        <e p="Buildings" t="Include">
+          <e p="Scripts" t="Include">
+            <e p="Building.cs" t="Include" />
+            <e p="BuildingManager.cs" t="Include" />
+            <e p="BuildingPart.cs" t="Include" />
+          </e>
+        </e>
+        <e p="Controls" t="Include">
+          <e p="CameraController.cs" t="Include" />
+        </e>
+        <e p="Extensions" t="Include">
+          <e p="ColorExtensions.cs" t="Include" />
+          <e p="MatrixExtensions.cs" t="Include" />
+          <e p="SerializedPropertyExtensions.cs" t="Include" />
+          <e p="Vector2Extensions.cs" t="Include" />
+          <e p="Vector3Extensions.cs" t="Include" />
+        </e>
+        <e p="GlobalShaders" t="Include">
+          <e p="Cutout.shader" t="Include" />
+          <e p="FogOfWar.cginc" t="Include" />
+          <e p="Opaque.shader" t="Include" />
+          <e p="ShadowTest.shader" t="Include" />
+        </e>
+        <e p="Grass" t="Include">
+          <e p="Shaders" t="Include">
+            <e p="CustomTessellation.cginc" t="Include" />
+            <e p="Grass.shader" t="Include" />
+            <e p="GrassBase.cginc" t="Include" />
+            <e p="TessellationExample.shader" t="Include" />
+          </e>
+        </e>
+        <e p="IO" t="Include">
+          <e p="SaveData.cs" t="Include" />
+          <e p="Utils.cs" t="Include" />
+        </e>
+        <e p="Misc" t="Include">
+          <e p="Editor" t="Include">
+            <e p="LayerAttributeEditor.cs" t="Include" />
+          </e>
+          <e p="Scripts" t="Include">
+            <e p="Counter.cs" t="Include" />
+            <e p="InstancedRenderer.cs" t="Include" />
+            <e p="LayerAttribute.cs" t="Include" />
+            <e p="MoveAround.cs" t="Include" />
+            <e p="OnTerrain.cs" t="Include" />
+            <e p="ScreenCast.cs" t="Include" />
+            <e p="Timer.cs" t="Include" />
+            <e p="XZPlane.cs" t="Include" />
+          </e>
+          <e p="Shaders" t="Include">
+            <e p="Instanced.shader" t="Include" />
+            <e p="InstancedCutout.shader" t="Include" />
+          </e>
+        </e>
+        <e p="Navigation" t="Include">
+          <e p="Editor" t="Include">
+            <e p="AccessEditor.cs" t="Include" />
+            <e p="AreaEditor.cs" t="Include" />
+          </e>
+          <e p="Scripts" t="Include">
+            <e p="Access.cs" t="Include" />
+            <e p="Agent.cs" t="Include" />
+            <e p="Area.cs" t="Include" />
+            <e p="Bounds2.cs" t="Include" />
+            <e p="BuildingNode.cs" t="Include" />
+            <e p="NavigationGraph.cs" t="Include" />
+            <e p="Node.cs" t="Include" />
+            <e p="PathFinding.cs" t="Include" />
+            <e p="PathIterator.cs" t="Include" />
+            <e p="Polygon2.cs" t="Include" />
+          </e>
+        </e>
+        <e p="Noise" t="Include">
+          <e p="NoiseSettings.cs" t="Include" />
+          <e p="NoiseUtils.cs" t="Include" />
+          <e p="Perlin.cs" t="Include" />
+          <e p="Simplex.cs" t="Include" />
+        </e>
+        <e p="PathMask" t="Include">
+          <e p="Scripts" t="Include">
+            <e p="MaskRevealer.cs" t="Include" />
+          </e>
+        </e>
+        <e p="Quests" t="Include">
+          <e p="Quest.cs" t="Include" />
+        </e>
+        <e p="Regions" t="Include">
+          <e p="Scripts" t="Include">
+            <e p="Region.cs" t="Include" />
+            <e p="RegionManager.cs" t="Include" />
+          </e>
+          <e p="Shaders" t="Include">
+            <e p="TransparentUV2.shader" t="Include" />
+          </e>
+        </e>
+        <e p="TextMesh Pro" t="Include">
+          <e p="Fonts" t="Include">
+            <e p="LiberationSans - OFL.txt" t="Include" />
+          </e>
+          <e p="Resources" t="Include">
+            <e p="LineBreaking Following Characters.txt" t="Include" />
+            <e p="LineBreaking Leading Characters.txt" t="Include" />
+            <e p="Shaders" t="Include">
+              <e p="TMP_Bitmap-Custom-Atlas.shader" t="Include" />
+              <e p="TMP_Bitmap-Mobile.shader" t="Include" />
+              <e p="TMP_Bitmap.shader" t="Include" />
+              <e p="TMP_SDF Overlay.shader" t="Include" />
+              <e p="TMP_SDF-Mobile Masking.shader" t="Include" />
+              <e p="TMP_SDF-Mobile Overlay.shader" t="Include" />
+              <e p="TMP_SDF-Mobile.shader" t="Include" />
+              <e p="TMP_SDF-Surface-Mobile.shader" t="Include" />
+              <e p="TMP_SDF-Surface.shader" t="Include" />
+              <e p="TMP_SDF.shader" t="Include" />
+              <e p="TMP_Sprite.shader" t="Include" />
+              <e p="TMPro.cginc" t="Include" />
+              <e p="TMPro_Properties.cginc" t="Include" />
+              <e p="TMPro_Surface.cginc" t="Include" />
+            </e>
+          </e>
+          <e p="Sprites" t="Include">
+            <e p="EmojiOne Attribution.txt" t="Include" />
+          </e>
+        </e>
+        <e p="Trees" t="Include">
+          <e p="Shaders" t="Include">
+            <e p="Tree.shader" t="Include" />
+          </e>
+          <e p="Tree.cs" t="Include" />
+          <e p="TreeRenderer.cs" t="Include" />
+        </e>
+        <e p="UI" t="Include">
+          <e p="Menus" t="Include">
+            <e p="MainMenu.cs" t="Include" />
+            <e p="PauseMenu.cs" t="Include" />
+          </e>
+          <e p="Notifications" t="Include">
+            <e p="Editor" t="Include">
+              <e p="NotificationSystemEditor.cs" t="Include" />
+            </e>
+            <e p="Scripts" t="Include">
+              <e p="Notification.cs" t="Include" />
+              <e p="NotificationSystem.cs" t="Include" />
+            </e>
+          </e>
+          <e p="Scripts" t="Include">
+            <e p="CanvasFader.cs" t="Include" />
+            <e p="Dialog.cs" t="Include" />
+            <e p="ResourceManager.cs" t="Include" />
+            <e p="UIMethods.cs" t="Include" />
+          </e>
+          <e p="Tooltip" t="Include">
+            <e p="Scripts" t="Include">
+              <e p="Tooltip.cs" t="Include" />
+              <e p="TooltipTarget.cs" t="Include" />
+            </e>
+          </e>
+          <e p="Tracker" t="Include">
+            <e p="Scripts" t="Include">
+              <e p="Item.cs" t="Include" />
+              <e p="Manager.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="Units" t="Include">
+          <e p="Scripts" t="Include">
+            <e p="Unit.cs" t="Include" />
+          </e>
+        </e>
+        <e p="Water4" t="Include">
+          <e p="Scripts" t="Include">
+            <e p="Displace.cs" t="Include" />
+            <e p="GerstnerDisplace.cs" t="Include" />
+            <e p="MeshContainer.cs" t="Include" />
+            <e p="PlanarReflection.cs" t="Include" />
+            <e p="SpecularLighting.cs" t="Include" />
+            <e p="Water.cs" t="Include" />
+            <e p="WaterBase.cs" t="Include" />
+            <e p="WaterTile.cs" t="Include" />
+          </e>
+          <e p="Shaders" t="Include">
+            <e p="FXWater4Advanced.shader" t="Include" />
+            <e p="FXWater4Simple.shader" t="Include" />
+            <e p="WaterInclude.cginc" t="Include" />
+          </e>
+        </e>
+        <e p="World" t="Include">
+          <e p="Editor" t="Include">
+            <e p="MapEditor.cs" t="Include" />
+          </e>
+          <e p="Scripts" t="Include">
+            <e p="HexUtils.cs" t="Include" />
+            <e p="Map.cs" t="Include" />
+            <e p="Tile.cs" t="Include" />
+          </e>
+          <e p="Shaders" t="Include">
+            <e p="Terrain.shader" t="Include" />
+            <e p="TerrainBase.cginc" t="Include" />
+          </e>
+        </e>
+      </e>
+      <e p="HexClicker.sln" t="IncludeFlat" />
+      <e p="obj" t="ExcludeRecursive" />
+      <e p="Packages" t="ExcludeRecursive" />
+      <e p="Temp\bin" t="ExcludeRecursive" />
+    </e>
+  </component>
+</project>
