@@ -40,8 +40,8 @@ namespace HexClicker.Navigation
                 if (!path.isEntrance && !path.isExit)
                     continue;
 
-                Node inside = new Node(map.OnTerrain(transform.TransformPoint(path.inside)), false, false, true);
-                Node outside = new Node(map.OnTerrain(transform.TransformPoint(path.outside)), false, false, true);
+                Node inside = new Node(map.OnTerrain(transform.TransformPoint(path.inside)), false);
+                Node outside = new Node(map.OnTerrain(transform.TransformPoint(path.outside)), false);
                 float distance = Node.Distance(inside, outside);
 
                 insideNodes.Add(inside);

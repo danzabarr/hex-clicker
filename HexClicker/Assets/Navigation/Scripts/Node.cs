@@ -23,9 +23,7 @@ namespace HexClicker.Navigation
         public readonly Vector2Int Index;
         public readonly Vector3 Position;
         public readonly List<Neighbour> Neighbours = new List<Neighbour>(1);
-        public readonly bool RaycastSkippable;
         public readonly bool ZeroDistance;
-        public readonly bool AccessNode;
 
         private float desirePathCost = MaxDesirePathCost;
         public float DesirePathCost
@@ -43,21 +41,17 @@ namespace HexClicker.Navigation
         {
             Index = hex;
             Position = position;
-            RaycastSkippable = true;
         }
 
         public Node(Vector3 position)
         {
             Position = position;
-            RaycastSkippable = true;
         }
 
-        public Node(Vector3 position, bool raycastSkippable, bool zeroDistance, bool accessNode)
+        public Node(Vector3 position, bool zeroDistance)
         {
             Position = position;
-            RaycastSkippable = raycastSkippable;
             ZeroDistance = zeroDistance;
-            AccessNode = accessNode;
         }
 
         public void RemoveLastAddedNeighbour()

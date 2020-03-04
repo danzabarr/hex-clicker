@@ -1,6 +1,7 @@
 ﻿using HexClicker.Navigation;
 using HexClicker.Noise;
 using HexClicker.Regions;
+using HexClicker.Trees;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -49,7 +50,7 @@ namespace HexClicker.World
         [SerializeField] private float treesMinimumScale;
         [SerializeField] private float treesMaximumScale;
         [SerializeField] [Range(0, 1)] private float treesRandomPosition;
-        private InstancedRenderer treesRenderer;
+        private TreeRenderer treesRenderer;
 
         [Header("Temperature")]
         [SerializeField] [Range(-10, 10)] private float temperature;
@@ -178,12 +179,6 @@ namespace HexClicker.World
             #region Render Skirts
             foreach (Mesh m in skirtMeshes)
                 Graphics.DrawMesh(m, Vector3.zero, Quaternion.identity, skirtMaterial, LayerMask.NameToLayer("Map Skirts"));
-            #endregion
-            #region Render Trees
-            if (treesRenderer != null)
-            {
-                treesRenderer.Draw(treesMesh, treesMaterial, LayerMask.NameToLayer("Trees"));
-            }
             #endregion
 
             #region Path Mask
@@ -334,8 +329,8 @@ namespace HexClicker.World
 
         }
         public void GenerateTrees()
-            {
-            treesRenderer = new InstancedRenderer();
+        {
+            treesRenderer = GetComponent<TreeRenderer>();
             Random.InitState(seed);
             //foreach (Tile tile in tiles)
             //{
@@ -376,7 +371,14 @@ namespace HexClicker.World
                 Color color = treesColor.Evaluate(Random.value);
                 //tile.TreesCount++;
 
-                treesRenderer.Add(Matrix4x4.TRS(position, rotation, scale), color);
+                treesRenderer.Add(new Trees.Tree()
+                {
+                    node = node.Index,
+                    position = position,
+                    rotation = 90,
+                    scale = scale,
+                    color = color
+                });
 
                 node.Obstructions++;
 

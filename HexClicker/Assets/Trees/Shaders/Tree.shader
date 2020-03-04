@@ -115,15 +115,14 @@ Shader "HexClicker/Tree"
 			vertexOutput vert(appdata v)
 			{
 				vertexOutput output;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_TRANSFER_INSTANCE_ID(v, output);
 
 				float3 modelPos = mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
 				float2 uv = modelPos.xz * _WindDistortionMap_ST.xy + _WindDistortionMap_ST.zw + _WindFrequency * _Time.y;
 				float2 windSample = (tex2Dlod(_WindDistortionMap, float4(uv, 0, 0)).xy * 2 - 1) * _WindStrength;
 
 				v.vertex.xz += windSample.xy * asin(v.vertex.y);
-
-				UNITY_SETUP_INSTANCE_ID(v);
-				UNITY_TRANSFER_INSTANCE_ID(v, output);
 
 				output.pos = UnityObjectToClipPos(v.vertex);
 				output.uv = v.texcoord;
@@ -201,6 +200,7 @@ Shader "HexClicker/Tree"
 			ENDCG
 		}
 
+		
 		Pass
 		{
 			Name "ShadowCaster"
@@ -233,16 +233,15 @@ Shader "HexClicker/Tree"
 				float2 uv : TEXCOORD1;
 			};
 
-
 			v2f vert(appdata_full v)
 			{
 				v2f o;
+				UNITY_SETUP_INSTANCE_ID(v);
 				float3 modelPos = mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
 				float2 uv = modelPos.xz * _WindDistortionMap_ST.xy + _WindDistortionMap_ST.zw + _WindFrequency * _Time.y;
 				float2 windSample = (tex2Dlod(_WindDistortionMap, float4(uv, 0, 0)).xy * 2 - 1) * _WindStrength;
 
 				v.vertex.xz += windSample.xy * asin(v.vertex.y);
-				UNITY_SETUP_INSTANCE_ID(v);
 				o.uv = v.texcoord;
 				TRANSFER_SHADOW_CASTER(o)
 				return o;

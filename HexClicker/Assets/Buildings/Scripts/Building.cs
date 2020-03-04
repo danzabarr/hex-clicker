@@ -8,15 +8,15 @@ namespace HexClicker.Buildings
     {
         private BuildingPart[] parts;
         private Area[] areas;
-        public Node Enter { get; private set; }
-        public Node Exit { get; private set; }
+        public BuildingNode Enter { get; private set; }
+        public BuildingNode Exit { get; private set; }
 
         private Access[] accesses;
 
         public void OnPlace()
         {
-            Enter = new Node(transform.position, false, true, true);
-            Exit = new Node(transform.position, false, true, true);
+            Enter = new BuildingNode(this);
+            Exit = new BuildingNode(this);
             ExtractParts();
             foreach (Area area in areas)
                 area.ObstructArea();
@@ -34,9 +34,9 @@ namespace HexClicker.Buildings
                 BuildingPart bp = hit.collider.GetComponent<BuildingPart>();
 
                 if (bp != null)
-                    result = PathFinding.PathFind(Exit, bp.Parent.Enter, 5000, 10000, 1, true, out path);
+                    result = PathFinding.PathFind(Exit, bp.Parent.Enter, 5000, 1, out path);
                 else
-                    result = PathFinding.PathFind(Exit, hit.point, 5000, 10000, 1, true, out path);
+                    result = PathFinding.PathFind(Exit, hit.point, 5000, 1, out path);
                 
                 if (result == PathFinding.Result.Success)
                 {

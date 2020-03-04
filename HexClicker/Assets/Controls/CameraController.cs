@@ -74,16 +74,19 @@ namespace HexClicker.Controls
                 inputMovement.z++;
                 ClearFocus();
             }
+
             if (Input.GetKey(KeyCode.A))
             {
                 inputMovement.x--;
                 ClearFocus();
             }
+
             if (Input.GetKey(KeyCode.S))
             {
                 inputMovement.z--;
                 ClearFocus();
             }
+
             if (Input.GetKey(KeyCode.D))
             {
                 inputMovement.x++;

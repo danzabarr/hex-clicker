@@ -146,14 +146,19 @@ namespace HexClicker.Navigation
             nodes = null;
         }
 
+        public static Vector2Int NodePos(Vector3 worldPos)
+        {
+            worldPos *= Resolution / World.Map.TileSize;
+            return new Vector2Int(Mathf.RoundToInt(worldPos.x), Mathf.RoundToInt(worldPos.z));
+        }
+
         public static bool NearestSquareNode(Vector3 position, out Node node)
         {
             node = default;
             if (nodes == null)
                 return false;
-            position *= Resolution / World.Map.TileSize;
 
-            return nodes.TryGetValue(new Vector2Int(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.z)), out node);
+            return nodes.TryGetValue(NodePos(position), out node);
         }
         public static List<Node> NearestSquareNodes(Vector3 position, bool onlyAccessibleNodes)
         {

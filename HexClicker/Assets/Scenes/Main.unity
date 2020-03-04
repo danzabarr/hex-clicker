@@ -622,6 +622,7 @@ GameObject:
   - component: {fileID: 375412088}
   - component: {fileID: 375412089}
   - component: {fileID: 375412091}
+  - component: {fileID: 375412090}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -800,7 +801,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 375412085}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e40ad4855056c842b7fefdd1b27bef6, type: 3}
   m_Name: 
@@ -815,6 +816,23 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 70e81c210cb3f9a42937d6608aca0809, type: 2}
   - {fileID: 2100000, guid: a88e5609de377d74ea3dbc85d91336c8, type: 2}
   placingRegionID: 1
+--- !u!114 &375412090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 375412085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0db50f2288e344049ab6c65270017204, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
+  material: {fileID: 2100000, guid: b1b08183ce3b6a04c9be0191b2cca170, type: 2}
+  shadowCastingMode: 1
+  receiveShadows: 1
+  layer: 11
 --- !u!114 &375412091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1777,8 +1795,8 @@ MonoBehaviour:
       colorBlindnessType: 0
       colorBlindnessStrength: 1
   m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
-  m_ShowToolkit: 0
-  m_ShowCustomSorter: 0
+  m_ShowToolkit: 1
+  m_ShowCustomSorter: 1
   breakBeforeColorGrading: 0
   m_BeforeTransparentBundles: []
   m_BeforeStackBundles: []
