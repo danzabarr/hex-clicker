@@ -18,10 +18,16 @@ namespace HexClicker.UI.QuestTracker
         public bool TrackQuest(string title, UnityAction onClick, string[] objectives)
         {
             if (title == null)
+            {
+                Debug.LogWarning("Failed to track quest because the title is null.");
                 return false;
+            }
 
             if (trackedQuests.ContainsKey(title))
+            {
+                Debug.LogWarning("Failed to track quest: '" + title + "' because it is already being tracked. Use UpdateQuest to update a quest's objectives.");
                 return false;
+            }
 
             TrackedQuest quest = Instantiate(questPrefab, transform);
             quest.Title = title;
@@ -44,6 +50,7 @@ namespace HexClicker.UI.QuestTracker
                 Layout();
                 return true;
             }
+            Debug.LogWarning("Failed to stop tracking quest: '" + title + "' because it doesn't exist.");
             return false;
         }
 
@@ -58,6 +65,7 @@ namespace HexClicker.UI.QuestTracker
                 Layout();
                 return true;
             }
+            Debug.LogWarning("Failed to update the quest: '" + title + "', with new objectives: " + string.Join(", ", objectives));
             return false;
         }
 
@@ -66,12 +74,13 @@ namespace HexClicker.UI.QuestTracker
         /// </summary>
         public bool UpdateQuest(string title, int index, string objective)
         {
-            if (trackedQuests.TryGetValue(title, out TrackedQuest quest))
+            if (trackedQuests.TryGetValue(title, out TrackedQuest quest)
+                && quest.SetObjective(index, objective))
             {
-                quest.SetObjective(index, objective);
                 Layout();
                 return true;
             }
+            Debug.LogWarning("Failed to update the quest: '" + title + "', with objective: '" + objective + "' at index: " + index);
             return false;
         }
 
@@ -100,17 +109,22 @@ namespace HexClicker.UI.QuestTracker
             string title = "It's a Family Affair";
             TrackQuest(title, () => Debug.Log(title), new string[]
             {
-                FormatObjective("Kill Bob", 4),
-                FormatObjective("Kill Susan", Color.red, 2),
-                FormatCounter("Kill the Children", new Counter(2, 2), Color.green, 1),
-                FormatCountDown("Time Remaining", new Timer(0, 60))
+                //You can always include unformatted strings, like the one below.
+                "You want to kill everyone in the family, because you're a psychopath.\nDon't let them block your escape routes!\n",
+                FormatObjective("Kill Bob"),
+                FormatObjectiveFailed("Kill Susan"),
+                FormatCounter("Kill the Children", new Counter(2, 2)),
+                FormatObjectiveCompleted("Kill Grandma"),
+                FormatCounter("Kill the Guinea Pigs", new Counter(1, 5)),
+                FormatCounterFailable("Escape Routes Blocked", new Counter(3, 3)),
+                FormatCountdownFailable("Time Remaining", new Timer(0, 60))
             });
         }
 
         public void Update()
         {
             timer += Time.deltaTime;
-            UpdateQuest("It's a Family Affair", 3, FormatCountDown("Time Remaining", timer, -1));
+            UpdateQuest("It's a Family Affair", 7, FormatCountdownFailable("Time Remaining", timer));
         }
 
 
@@ -123,12 +137,15 @@ namespace HexClicker.UI.QuestTracker
             TrackQuest(title, () => Debug.Log(title), new string[]
             {
                 FormatCounter("Collect Firewood", new Counter(0, 10)),
-                FormatCounter("Chop Onions", new Counter(0, 2)),
+                FormatCounter("Chop Onions", new Counter(2, 2)),
                 FormatCounter("Feed Cats", new Counter(0, 28)),
             });
         }
+
         private static string RandomQuestTitle()
         {
+            if (QuestTitles.Count <= 0)
+                return null;
             int r = Random.Range(0, QuestTitles.Count);
             string title = QuestTitles[r];
             QuestTitles.RemoveAt(r);
@@ -153,77 +170,97 @@ namespace HexClicker.UI.QuestTracker
 
         #endregion
 
-        #region Formatting
-        //
         //  The following are some methods of creating formatted strings for the tracker.
-        //  Strings should indent 1.2em to make them look nice.
-        //  The indent can contain a sprite, intended for a checkbox or highlight or some other icon.
-        //
-        //  <sprite=0><indent=1.2em>...</indent>
-        //
+        #region Formatting
 
-        public static string FormatObjective(string label, Color color, int sprite = -1)
+        /// <summary>
+        /// Formats an objective with a checkbox.
+        /// </summary>
+        public static string FormatObjective(string label)
         {
-            string formattedString = "<indent=1.2em><color=#" + ColorUtility.ToHtmlStringRGBA(color) + ">" + label + "</color></indent>";
-            if (sprite >= 0)
-                return "<sprite=" + sprite + ">" + formattedString;
-            return formattedString;
+            return "<sprite name=\"checkbox_empty\"><indent=1.2em>" + label + "</indent>";
         }
 
-        public static string FormatCounter(string label, Counter counter, Color color, int sprite = -1)
+        /// <summary>
+        /// Formats an objective with a ticked checkbox that displays 'Completed'.
+        /// </summary>
+        public static string FormatObjectiveCompleted(string label)
         {
-            string formattedString = "<indent=1.2em><color=#" + ColorUtility.ToHtmlStringRGBA(color) + ">" + label + ": " + counter.Amount + "/" + counter.Max + "</color></indent>";
-            if (sprite >= 0)
-                return "<sprite=" + sprite + ">" + formattedString;
-            return formattedString;
+            return "<sprite name=\"checkbox_tick\" color=#00FF00><indent=1.2em><color=#00FF00>" + label + " (Completed)</color></indent>";
         }
 
-        public static string FormatTimer(string label, Timer timer, Color color, int sprite = -1)
+        /// <summary>
+        /// Formats an objective with a crossed checkbox that displays 'Failed'.
+        /// </summary>
+        public static string FormatObjectiveFailed(string label)
         {
-            string formattedString = "<indent=1.2em><color=#" + ColorUtility.ToHtmlStringRGBA(color) + ">" + label + ": " + timer.FormatElapsedTotalCent + "</color></indent>";
-            if (sprite >= 0)
-                return "<sprite=" + sprite + ">" + formattedString;
-            return formattedString;
+            return "<sprite name=\"checkbox_cross\" color=#FF0000><indent=1.2em><color=#FF0000>" + label + " (Failed)</color></indent>";
         }
 
-        public static string FormatCountDown(string label, Timer timer, Color color, int sprite = -1)
+        /// <summary>
+        /// Formats a counter with a checkbox that displays 'Completed' when the counter is at its max.
+        /// </summary>
+        public static string FormatCounter(string label, Counter counter)
         {
-            string formattedString = "<indent=1.2em><color=#" + ColorUtility.ToHtmlStringRGBA(color) + ">" + label + ": " + timer.FormatRemaining + "</color></indent>";
-            if (sprite >= 0)
-                return "<sprite=" + sprite + ">" + formattedString;
-            return formattedString;
+            if (counter.Maxed)
+                return "<sprite name=\"checkbox_tick\" color=#00FF00><indent=1.2em><color=#00FF00>" + label + ": " + counter.Amount + "/" + counter.Max + " (Completed)</color></indent>";
+            else
+                return "<sprite name=\"checkbox_empty\"><indent=1.2em>" + label + ": " + counter.Amount + "/" + counter.Max + "</indent>";
         }
 
-        public static string FormatObjective(string label, int sprite = -1)
+        /// <summary>
+        /// Formats a counter that displays 'Failed' when the counter is at its max.
+        /// </summary>
+        public static string FormatCounterFailable(string label, Counter counter)
         {
-            string formattedString = "<indent=1.2em>" + label + "</indent>";
-            if (sprite >= 0)
-                return "<sprite=" + sprite + ">" + formattedString;
-            return formattedString;
+            if (counter.Maxed)
+                return "<sprite name=\"checkbox_cross\" color=#FF0000><indent=1.2em><color=#FF0000>" + label + ": " + counter.Amount + "/" + counter.Max + " (Failed)</color></indent>";
+            else
+                return "<sprite name=\"checkbox_empty\"><indent=1.2em>" + label + ": " + counter.Amount + "/" + counter.Max + "</indent>";
         }
 
-        public static string FormatCounter(string label, Counter counter, int sprite = -1)
+        /// <summary>
+        /// Formats a timer that displays 'Completed' when the timer has completely elapsed.
+        /// </summary>
+        public static string FormatTimerCompletable(string label, Timer timer)
         {
-            string formattedString = "<indent=1.2em>" + label + ": " + counter.Amount + "/" + counter.Max + "</indent>";
-            if (sprite >= 0)
-                return "<sprite=" + sprite + ">" + formattedString;
-            return formattedString;
+            if (timer.Completed)
+                return "<indent=1.2em><color=#00FF00>" + label + ": " + timer.FormatTimer + " (Completed)</color></indent>";
+            else 
+                return "<indent=1.2em>" + label + ": " + timer.FormatTimer + "</indent>";
         }
 
-        public static string FormatTimer(string label, Timer timer, int sprite = -1)
+        /// <summary>
+        /// Formats a timer that displays 'Failed' when the timer has completely elapsed.
+        /// </summary>
+        public static string FormatTimerFailable(string label, Timer timer)
         {
-            string formattedString = "<indent=1.2em>" + label + ": " + timer.FormatElapsedTotalCent + "</indent>";
-            if (sprite >= 0)
-                return "<sprite=" + sprite + ">" + formattedString;
-            return formattedString;
+            if (timer.Completed)
+                return "<indent=1.2em><color=#FF0000>" + label + ": " + timer.FormatTimer + " (Failed)</color></indent>";
+            else
+                return "<indent=1.2em>" + label + ": " + timer.FormatTimer + "</indent>";
         }
 
-        public static string FormatCountDown(string label, Timer timer, int sprite = -1)
+        /// <summary>
+        /// Formats a countdown that displays 'Completed' when the countdown has ended.
+        /// </summary>
+        public static string FormatCountdownCompletable(string label, Timer timer)
         {
-            string formattedString = "<indent=1.2em>" + label + ": " + timer.FormatRemaining + "</indent>";
-            if (sprite >= 0)
-                return "<sprite=" + sprite + ">" + formattedString;
-            return formattedString;
+            if (timer.Completed)
+                return "<indent=1.2em><color=#00FF00>" + label + ": " + timer.FormatCountdown + " (Completed)</color></indent>";
+            else
+                return "<indent=1.2em>" + label + ": " + timer.FormatCountdown + "</indent>";
+        }
+
+        /// <summary>
+        /// Formats a countdown that displays 'Failed' when the countdown has ended.
+        /// </summary>
+        public static string FormatCountdownFailable(string label, Timer timer)
+        {
+            if (timer.Completed)
+                return "<indent=1.2em><color=#FF0000>" + label + ": " + timer.FormatCountdown + " (Failed)</color></indent>";
+            else
+                return "<indent=1.2em>" + label + ": " + timer.FormatCountdown + "</indent>";
         }
 
         #endregion

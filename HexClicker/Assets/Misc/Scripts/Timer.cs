@@ -148,6 +148,10 @@ namespace HexClicker
 
         public string FormatCent => $"{FractionElapsed:p0}";
 
+        public string FormatTimer => FormatElapsedTotalCent;
+
+        public string FormatCountdown => FormatRemaining;
+
         public static string FormatMSP(float elapsed, float total)
         {
             TimeSpan e = TimeSpan.FromSeconds(elapsed);

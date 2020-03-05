@@ -35,12 +35,13 @@ namespace HexClicker.UI.QuestTracker
         /// <summary>
         /// Set the objective at a given index
         /// </summary>
-        public void SetObjective(int index, string objective)
+        public bool SetObjective(int index, string objective)
         {
             if (index < 0 || index >= objectives.Length)
-                return;
+                return false;
             objectives[index] = objective;
             body.text = string.Join("\n", objectives);
+            return true;
         }
 
         /// <summary>
