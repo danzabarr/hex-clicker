@@ -92,6 +92,12 @@ namespace HexClicker
             elapsed += time;
         }
 
+        public static Timer operator +(Timer c, float a)
+        {
+            c.elapsed += a;
+            return c;
+        }
+
         public void Reset()
         {
             elapsed = 0;
