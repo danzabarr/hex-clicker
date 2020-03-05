@@ -44,13 +44,14 @@ namespace HexClicker.UI.Notifications
 
         private void Update()
         {
-            const float speed = 10;
+            const float speed = 5;
             transform.localPosition = Vector3.Lerp(transform.localPosition, _targetPosition, Time.deltaTime * speed);
         }
 
         public void Close()
         {
             NotificationSystem.Instance.Remove(this);
+            _targetPosition.x += 200;
             StartFadeOut(true);
         }
 

@@ -31,7 +31,7 @@ namespace HexClicker.Units
         }
         private void MoveMouseClick()
         {
-            if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButtonDown(1) && !UI.UIMethods.IsMouseOverUI)
             {
                 if (ScreenCast.MouseScene.Cast(out RaycastHit hitInfo))
                 {

@@ -15,7 +15,7 @@ namespace HexClicker.UI.QuestTracker
         /// Displays a quest in the tracker with the supplied title and objectives.
         /// Clicking the quest in the tracker will call the onClick action.
         /// </summary>
-        public bool TrackQuest(string title, UnityAction onClick, string[] objectives)
+        public bool TrackQuest(string title, UnityAction onClick, params string[] objectives)
         {
             if (title == null)
             {
@@ -57,7 +57,7 @@ namespace HexClicker.UI.QuestTracker
         /// <summary>
         /// If it exists, update the objectives of the quest of the given title.
         /// </summary>
-        public bool UpdateQuest(string title, string[] objectives)
+        public bool UpdateQuest(string title, params string[] objectives)
         {
             if (trackedQuests.TryGetValue(title, out TrackedQuest quest))
             {
@@ -107,10 +107,10 @@ namespace HexClicker.UI.QuestTracker
             //
 
             string title = "It's a Family Affair";
-            TrackQuest(title, () => Debug.Log(title), new string[]
-            {
+            TrackQuest(title, () => Notifications.NotificationSystem.Instance.Post("Quest", title),
                 //You can always include unformatted strings, like the one below.
-                "You want to kill everyone in the family, because you're a psychopath.\nDon't let them block your escape routes!\n",
+                "You want to kill everyone in the family, because you're a psychopath.",
+                "Don't let them block your escape routes!",
                 FormatObjective("Kill Bob"),
                 FormatObjectiveFailed("Kill Susan"),
                 FormatCounter("Kill the Children", new Counter(2, 2)),
@@ -118,13 +118,21 @@ namespace HexClicker.UI.QuestTracker
                 FormatCounter("Kill the Guinea Pigs", new Counter(1, 5)),
                 FormatCounterFailable("Escape Routes Blocked", new Counter(3, 3)),
                 FormatCountdownFailable("Time Remaining", new Timer(0, 60))
-            });
+            );
+
+            TrackQuest("A Simple Man", () => Notifications.NotificationSystem.Instance.Post("Quest", "A Simple Man"),
+                "You are hungry.",
+                FormatCounter("Eat Pickles", new Counter(0, 10))
+            );
+            TrackQuest("Kill Everyone, Again", () => Notifications.NotificationSystem.Instance.Post("Quest", "Kill Everyone, Again"),
+                FormatObjective("Kill Bob This Time")
+            );
         }
 
         public void Update()
         {
             timer += Time.deltaTime;
-            UpdateQuest("It's a Family Affair", 7, FormatCountdownFailable("Time Remaining", timer));
+            UpdateQuest("It's a Family Affair", 8, FormatCountdownFailable("Time Remaining", timer));
         }
 
 
@@ -134,12 +142,11 @@ namespace HexClicker.UI.QuestTracker
         {
             string title = RandomQuestTitle();
 
-            TrackQuest(title, () => Debug.Log(title), new string[]
-            {
+            TrackQuest(title, () => Notifications.NotificationSystem.Instance.Post("Quest", title), 
                 FormatCounter("Collect Firewood", new Counter(0, 10)),
                 FormatCounter("Chop Onions", new Counter(2, 2)),
-                FormatCounter("Feed Cats", new Counter(0, 28)),
-            });
+                FormatCounter("Feed Cats", new Counter(0, 28))
+            );
         }
 
         private static string RandomQuestTitle()

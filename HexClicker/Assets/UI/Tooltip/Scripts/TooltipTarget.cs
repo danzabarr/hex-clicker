@@ -35,6 +35,19 @@ namespace HexClicker.UI.Tooltip
         public string title;
         [TextArea] public string body;
 
+        private Outline outline;
+
+        private void Awake()
+        {
+            outline = GetComponent<Outline>();
+        }
+
+        private void Start()
+        {
+            if (outline)
+                outline.enabled = false;
+        }
+
         public void OnPointerEnter(PointerEventData eventData)
         {
             Tooltip.Instance.DisplayInfo(this);
@@ -48,11 +61,17 @@ namespace HexClicker.UI.Tooltip
         void OnMouseEnter()
         {
             if (!UIMethods.IsMouseOverUI)
+            {
+                if (outline)
+                    outline.enabled = true;
                 Tooltip.Instance.DisplayInfo(this);
+            }
         }
 
         void OnMouseExit()
         {
+            if (outline)
+                outline.enabled = false;
             Tooltip.Instance.HideInfo(this);
         }
     }

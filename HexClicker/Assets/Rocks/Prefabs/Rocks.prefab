@@ -93,6 +93,7 @@ GameObject:
   - component: {fileID: 3596174739094976881}
   - component: {fileID: 5351672933447002405}
   - component: {fileID: 2092371189732729656}
+  - component: {fileID: 1866460096389975028}
   m_Layer: 20
   m_Name: Rocks
   m_TagString: Untagged
@@ -200,8 +201,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showHandles: 0
-  outline: {r: 1, g: 1, b: 1, a: 0.56078434}
-  fill: {r: 1, g: 1, b: 1, a: 0.3019608}
   calculateOutline: 0
   calculateFill: 1
   points:
@@ -238,3 +237,19 @@ MonoBehaviour:
   layout: 0
   title: Rocks
   body: Mine for stone.
+--- !u!114 &1866460096389975028
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6900677366993973959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbf3575480402db40813e763382412fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineColor: 0
+  hideOutline: 0
+  originalLayer: 0
+  originalMaterials: []
