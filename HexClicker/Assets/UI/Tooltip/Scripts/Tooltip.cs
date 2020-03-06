@@ -18,6 +18,7 @@ namespace HexClicker.UI.Tooltip
 
         private CanvasFader canvasFader;
         private TooltipTarget _entity;
+        private bool hidden = true;
 
         private void Awake()
         {
@@ -105,7 +106,7 @@ namespace HexClicker.UI.Tooltip
                             - _entity.tooltipPivot.x * tooltipObject.rect.width * tooltipCanvas.scaleFactor;
 
                 float y = parentPosition.y
-                            + parentRect.pivot.y * parentRect.rect.size.y * mainCanvas.scaleFactor
+                            - parentRect.pivot.y * parentRect.rect.size.y * mainCanvas.scaleFactor
                             + _entity.parentPivot.y * parentRect.sizeDelta.y * mainCanvas.scaleFactor
                             + _entity.offset.y
                             + _entity.tooltipPivot.y * tooltipObject.rect.height * tooltipCanvas.scaleFactor;
@@ -223,7 +224,8 @@ namespace HexClicker.UI.Tooltip
             SetPosition();
             LayoutRebuilder.ForceRebuildLayoutImmediate(tooltipObject);
 
-            canvasFader.StartFadeIn();
+            canvasFader.StartFadeIn(hidden ? entity.delay : 0);
+            hidden = false;
         }
 
 
@@ -235,6 +237,7 @@ namespace HexClicker.UI.Tooltip
             _entity = null;
 
             canvasFader.StartFadeOut();
+            hidden = true;
         }
     }
 }

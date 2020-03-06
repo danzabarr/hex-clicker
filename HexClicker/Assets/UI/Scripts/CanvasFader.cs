@@ -24,39 +24,51 @@ namespace HexClicker.UI
             set => canvasGroup.alpha = value;
         }
 
-        public void StartFadeIn()
+        public void StartFadeIn(float delay = 0)
         {
             if (fadeRoutine != null)
                 StopCoroutine(fadeRoutine);
-            fadeRoutine = StartCoroutine(FadeIn());
+            fadeRoutine = StartCoroutine(FadeIn(delay));
         }
 
-        public void StartFadeOut(bool destroy = false, bool deactivate = false)
+        public void StartFadeOut(bool destroy = false, bool deactivate = false, float delay = 0)
         {
             if (fadeRoutine != null)
                 StopCoroutine(fadeRoutine);
-            fadeRoutine = StartCoroutine(FadeOut(destroy, deactivate));
+            fadeRoutine = StartCoroutine(FadeOut(destroy, deactivate, delay));
         }
 
-        private IEnumerator FadeIn()
+        private IEnumerator FadeIn(float delay = 0)
         {
+            for (float t = 0; t < delay; t += Time.unscaledDeltaTime)
+                yield return null;
+
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+
             for (float t = canvasGroup.alpha; t < 1; t += Time.unscaledDeltaTime / fadeInDuration)
             {
                 canvasGroup.alpha = t;
                 yield return null;
             }
             canvasGroup.alpha = 1;
-            canvasGroup.interactable = true;
         }
 
-        private IEnumerator FadeOut(bool destroy = false, bool deactivate = false)
+        private IEnumerator FadeOut(bool destroy = false, bool deactivate = false, float delay = 0)
         {
+            for (float t = 0; t < delay; t += Time.unscaledDeltaTime)
+                yield return null;
+
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+
             for (float t = canvasGroup.alpha; t >= 0; t -= Time.unscaledDeltaTime / fadeOutDuration)
             {
                 canvasGroup.alpha = t;
                 yield return null;
             }
             canvasGroup.alpha = 0;
+
             if (deactivate)
                 gameObject.SetActive(false);
             if (destroy)

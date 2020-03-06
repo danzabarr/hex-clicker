@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 854871092013227641}
   - component: {fileID: 4297339775172194663}
   - component: {fileID: 1101530476913147696}
+  - component: {fileID: 7016468697799197017}
   m_Layer: 5
   m_Name: SideBarButton
   m_TagString: Untagged
@@ -61,7 +62,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.6}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -133,6 +134,28 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7016468697799197017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 854871092013227524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f80243249dece3b4681a3de5be2d4c22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 1
+  offset: {x: 10, y: 0}
+  tooltipPivot: {x: 0, y: 0.5}
+  parentPivot: {x: 1, y: 0.5}
+  parentTransform: {fileID: 854871092013227527}
+  clampToScreen: 1
+  layout: 0
+  delay: 1
+  title: 
+  body: 
 --- !u!1 &2401621538476514268
 GameObject:
   m_ObjectHideFlags: 0

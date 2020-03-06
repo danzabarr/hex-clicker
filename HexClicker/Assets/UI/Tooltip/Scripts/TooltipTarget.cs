@@ -30,6 +30,7 @@ namespace HexClicker.UI.Tooltip
 
         [Header("Layout")]
         public Layout layout;
+        public float delay;
 
         [Header("Content")]
         public string title;
