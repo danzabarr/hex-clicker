@@ -160,6 +160,13 @@
               <e p="NotificationSystem.cs" t="Include" />
             </e>
           </e>
+          <e p="RadialMenu" t="Include">
+            <e p="Scripts" t="Include">
+              <e p="RadialMenu.cs" t="Include" />
+              <e p="RadialMenuTarget.cs" t="Include" />
+              <e p="RadialSegment.cs" t="Include" />
+            </e>
+          </e>
           <e p="Resources" t="Include">
             <e p="DisplayItem.cs" t="Include" />
             <e p="Manager.cs" t="Include" />
