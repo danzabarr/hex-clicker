@@ -57,7 +57,7 @@ namespace HexClicker.Controls
             postProcessing.profile.TryGetSettings(out depthOfField);
         }
 
-        void LateUpdate()
+        void Update()
         {
             if (Input.GetMouseButtonDown(0) && ScreenCast.MouseScene.Cast(out Units.Unit unit))
             {

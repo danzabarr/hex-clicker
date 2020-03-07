@@ -215,8 +215,6 @@ namespace HexClicker.UI.Tooltip
                     bodyText.gameObject.SetActive(false);
                     break;
                 
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
 
             //Force a layout, then position the tooltip, then force another layout, ensures the tooltip is in the correct position before it is shown.
@@ -224,7 +222,7 @@ namespace HexClicker.UI.Tooltip
             SetPosition();
             LayoutRebuilder.ForceRebuildLayoutImmediate(tooltipObject);
 
-            canvasFader.StartFadeIn(hidden ? entity.delay : 0);
+            canvasFader.StartFadeIn(hidden && canvasFader.Alpha == 0 ? entity.delay : 0);
             hidden = false;
         }
 

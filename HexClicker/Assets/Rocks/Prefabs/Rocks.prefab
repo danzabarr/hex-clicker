@@ -92,8 +92,8 @@ GameObject:
   - component: {fileID: 6583195959489568518}
   - component: {fileID: 3596174739094976881}
   - component: {fileID: 5351672933447002405}
-  - component: {fileID: 2092371189732729656}
   - component: {fileID: 1866460096389975028}
+  - component: {fileID: 1308214156867314831}
   m_Layer: 20
   m_Name: Rocks
   m_TagString: Untagged
@@ -216,27 +216,6 @@ MonoBehaviour:
   - {x: 0.3514758, y: -0.24525991}
   - {x: 0.48390675, y: -0.1303454}
   - {x: 0.5219846, y: 0.059468873}
---- !u!114 &2092371189732729656
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6900677366993973959}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f80243249dece3b4681a3de5be2d4c22, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  type: 1
-  offset: {x: 50, y: 0}
-  tooltipPivot: {x: 0, y: 0.5}
-  parentPivot: {x: 0, y: 0}
-  parentTransform: {fileID: 6900677366993973955}
-  clampToScreen: 1
-  layout: 0
-  title: Rocks
-  body: Mine for stone.
 --- !u!114 &1866460096389975028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -253,3 +232,16 @@ MonoBehaviour:
   hideOutline: 0
   originalLayer: 0
   originalMaterials: []
+--- !u!114 &1308214156867314831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6900677366993973959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2632bd3f1f0b77347802f07542c926fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  menu: {fileID: 0}
