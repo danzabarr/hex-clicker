@@ -85,6 +85,15 @@
           <e p="Perlin.cs" t="Include" />
           <e p="Simplex.cs" t="Include" />
         </e>
+        <e p="OutlineEffect" t="Include">
+          <e p="LinkedSet.cs" t="Include" />
+          <e p="Outline.cs" t="Include" />
+          <e p="OutlineEffect.cs" t="Include" />
+          <e p="Resources" t="Include">
+            <e p="OutlineBufferShader.shader" t="Include" />
+            <e p="OutlineShader.shader" t="Include" />
+          </e>
+        </e>
         <e p="PathMask" t="Include">
           <e p="Scripts" t="Include">
             <e p="MaskRevealer.cs" t="Include" />
@@ -151,11 +160,20 @@
               <e p="NotificationSystem.cs" t="Include" />
             </e>
           </e>
+          <e p="Resources" t="Include">
+            <e p="DisplayItem.cs" t="Include" />
+            <e p="Manager.cs" t="Include" />
+          </e>
           <e p="Scripts" t="Include">
             <e p="CanvasFader.cs" t="Include" />
             <e p="Dialog.cs" t="Include" />
-            <e p="ResourceManager.cs" t="Include" />
+            <e p="ToggleFader.cs" t="Include" />
             <e p="UIMethods.cs" t="Include" />
+          </e>
+          <e p="SideBar" t="Include">
+            <e p="Scripts" t="Include">
+              <e p="MenuButton.cs" t="Include" />
+            </e>
           </e>
           <e p="Tooltip" t="Include">
             <e p="Scripts" t="Include">
@@ -165,8 +183,8 @@
           </e>
           <e p="Tracker" t="Include">
             <e p="Scripts" t="Include">
-              <e p="Item.cs" t="Include" />
-              <e p="Manager.cs" t="Include" />
+              <e p="TrackedQuest.cs" t="Include" />
+              <e p="Tracker.cs" t="Include" />
             </e>
           </e>
         </e>
