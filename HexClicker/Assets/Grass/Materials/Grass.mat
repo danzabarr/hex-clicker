@@ -88,6 +88,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DistanceCulling: 20
     - _DstBlend: 0
+    - _FogOfWar: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1

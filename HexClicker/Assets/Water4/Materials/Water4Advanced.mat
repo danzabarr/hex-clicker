@@ -106,6 +106,7 @@ Material:
     - _FadeExp: 0.91503274
     - _FlipNormal: 0
     - _FoamWaveDependency: 0.10205479
+    - _FogOfWar: 0
     - _FresnelPower: 1.7931035
     - _FresnelScale: 1.41
     - _GerstnerIntensity: 1.6714286

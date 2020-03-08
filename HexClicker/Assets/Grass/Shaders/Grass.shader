@@ -39,7 +39,10 @@ Shader "Roystan/Grass"
 		_DistanceCulling("Distance Culling", Float) = 500
 
 		_CameraMask("Camera Mask", 2D) = "black" {}
-    }
+		
+		[Toggle(FOG_OF_WAR)]
+		_FogOfWar("Fog of War", Float) = 1
+	}
 
     SubShader
     {
@@ -62,6 +65,7 @@ Shader "Roystan/Grass"
 			#pragma multi_compile_fwdbase
 			#pragma multi_compile_fog
 
+			#pragma shader_feature FOG_OF_WAR
 
 			#include "GrassBase.cginc"
 
@@ -85,8 +89,10 @@ Shader "Roystan/Grass"
 				col = saturate(col);
 
 				UNITY_APPLY_FOG(i.fogCoord, col);
-				ApplyFogOfWar(i.worldPos, col);
 
+		#ifdef FOG_OF_WAR
+				ApplyFogOfWar(i.worldPos, col);
+		#endif
 
 				return float4(col, 1);
 			}

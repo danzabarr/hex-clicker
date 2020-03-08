@@ -36,6 +36,8 @@ Properties {
 	_GDirectionCD ("Wave Direction", Vector) = (0.1 ,0.9, 0.5, 0.5)
 	[Toggle(FLIP_NORMAL)]
 	_FlipNormal ("Flip Normal", Float) = 0
+	[Toggle(FOG_OF_WAR)]
+	_FogOfWar ("Fog of War", Float) = 1
 
 }
 
@@ -257,7 +259,9 @@ CGINCLUDE
 		baseColor *= _LightColor0;
 		
 		UNITY_APPLY_FOG(i.fogCoord, baseColor);
+		#ifdef FOG_OF_WAR
 		ApplyFogOfWar(i.worldPos, baseColor);
+		#endif
 		return baseColor;
 	}
 	
@@ -446,6 +450,7 @@ Subshader
 		#pragma multi_compile WATER_REFLECTIVE WATER_SIMPLE
 		
 		#pragma shader_feature FLIP_NORMAL
+		#pragma shader_feature FOG_OF_WAR
 
 		ENDCG
 	}
