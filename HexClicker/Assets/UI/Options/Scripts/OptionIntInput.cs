@@ -6,37 +6,31 @@ namespace HexClicker.UI.Options
 {
     public class OptionIntInput : MonoBehaviour
     {
-        [SerializeField]private new string name;
-        [SerializeField] private int savedInt;
+        [SerializeField] private new string name;
+        [SerializeField] private int value;
         [SerializeField] private bool onlyPositive;
-        [SerializeField] private TMP_InputField  inputField;
+        [SerializeField] private TMP_InputField inputField;
 
         private void Awake()
         {
-        
-            savedInt = PlayerPrefs.GetInt(name, savedInt);
+            value = PlayerPrefs.GetInt(name, value);
             if (onlyPositive)
             {
-                savedInt = Mathf.Abs(savedInt);
+                value = Mathf.Abs(value);
             }
             inputField.contentType = TMP_InputField.ContentType.IntegerNumber;
-            inputField.text = savedInt.ToString();
+            inputField.text = value.ToString();
+            inputField.textComponent.alignment = TextAlignmentOptions.MidlineRight;
         }
 
         public void UpdateValue()
         {
-            savedInt = Convert.ToInt32(inputField.text);
+            value = Convert.ToInt32(inputField.text);
             if (onlyPositive)
             {
-                savedInt = Mathf.Abs(savedInt);
+                value = Mathf.Abs(value);
             }
-            PlayerPrefs.SetInt(name, savedInt);
-        }
-    
-        private void OnEnable()
-        {
-            Debug.Log(PlayerPrefs.HasKey(name));
-            Debug.Log(PlayerPrefs.GetInt(name));
+            PlayerPrefs.SetInt(name, value);
         }
     }
 }

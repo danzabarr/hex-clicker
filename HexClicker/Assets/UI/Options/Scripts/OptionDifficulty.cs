@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace HexClicker.UI.Options
+﻿namespace HexClicker.UI.Options
 {
     public enum Difficulty
     {
@@ -13,9 +9,6 @@ namespace HexClicker.UI.Options
         Fucking_Insane
     }
 
-    public class OptionDifficulty : OptionDropdown<Difficulty>
-    {
-
-    }
+    public class OptionDifficulty : OptionDropdown<Difficulty> { }
 
 }

@@ -1,38 +1,22 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HexClicker.UI.Options
 {
     public class OptionCheckBox : MonoBehaviour
     {
-        [SerializeField]private new string name;
-        [SerializeField] private bool state;
-        [SerializeField] private Toggle  toggle;
-        //[SerializeField] private UnityEvent onValueChanged;
-
+        [SerializeField] private new string name;
+        [SerializeField] private Toggle toggle;
 
         private void Awake()
         {
-           state = Convert.ToBoolean(PlayerPrefs.GetInt(name));
-           toggle.isOn = state;
-
-           //Debug.Log(PlayerPrefs.HasKey(name));
+            toggle.isOn = Convert.ToBoolean(PlayerPrefs.GetInt(name, toggle.isOn ? 1 : 0));
         }
         
         public void UpdateValue()
         { 
-            state = toggle.isOn;
-            //Debug.Log(Convert.ToInt32(state));
-            PlayerPrefs.SetInt(name, Convert.ToInt32(state));
-           
-        }
-
-        private void OnEnable()
-        {
-            Debug.Log(PlayerPrefs.HasKey(name));
-            Debug.Log(PlayerPrefs.GetInt(name));
+            PlayerPrefs.SetInt(name, toggle.isOn ? 1 : 0);
         }
     }
 }

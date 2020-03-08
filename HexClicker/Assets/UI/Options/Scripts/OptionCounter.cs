@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -19,13 +17,12 @@ namespace HexClicker.UI.Options
 
         private void Awake()
         {
-            //value = Mathf.Clamp(value,minVal,maxVal);
             value = PlayerPrefs.GetInt(name, value);
 
-            inputField.contentType = TMP_InputField.ContentType.IntegerNumber;
             inputField.text = value.ToString();
+            inputField.contentType = TMP_InputField.ContentType.IntegerNumber;
+            inputField.textComponent.alignment = TextAlignmentOptions.MidlineRight;
         }
-
 
         public void Add()
         {
