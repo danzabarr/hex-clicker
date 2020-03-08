@@ -35,7 +35,7 @@ namespace HexClicker.Navigation
         public int Obstructions { get; set; }
         public bool Accessible => Obstructions <= 0;
         public float NeighbourCost(int i, float takePaths) => Neighbours[i].Distance * Mathf.Lerp(1, (MovementCost + Neighbours[i].Node.MovementCost) / 2, takePaths);
-        public bool NeighbourAccessible(int i) => true;
+        //public bool NeighbourAccessible(int i) => true;
 
         public Node(Vector2Int hex, Vector3 position)
         {

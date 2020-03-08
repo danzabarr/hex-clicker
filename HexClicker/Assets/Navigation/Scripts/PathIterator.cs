@@ -17,12 +17,17 @@ namespace HexClicker.Navigation
         public Node NodeBehind { get; private set; }
         public PathIterator(List<PathFinding.Point> path)
         {
-            nodes = new Node[path.Count];
-            for (int i = 0; i < path.Count; i++)
+            int length = path.Count;
+
+            if (!path[length - 1].Node.Accessible)
+                length--;
+
+            nodes = new Node[length];
+            for (int i = 0; i < length; i++)
                 nodes[i] = path[i].Node;
 
-            distances = new float[path.Count - 1];
-            for (int i = 0; i < path.Count - 1; i++)
+            distances = new float[length - 1];
+            for (int i = 0; i < length - 1; i++)
             {
                 distances[i] = Node.Distance(path[i].Node, path[i + 1].Node);
                 TotalDistance += distances[i];

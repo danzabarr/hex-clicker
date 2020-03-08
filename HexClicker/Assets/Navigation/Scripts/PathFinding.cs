@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HexClicker.Navigation
 {
@@ -41,94 +42,20 @@ namespace HexClicker.Navigation
 
         public class Request
         {
-            public readonly Vector3 start, end;
-            public readonly Node startNode, endNode;
-            public readonly Node[] firstNeighbour;
-            public readonly Match match;
-            public readonly float maxCost;
-            public readonly float takeExistingPaths;
+            public Vector3 start, end;
+            public Node startNode, endNode;
+            public Node[] addStartNeighbours;
+            public Match match;
+            public float maxCost;
+            public float takeExistingPaths;
+            public bool matchTowardsEnd;
+            public bool allowInaccessibleEnd;
             public bool Queued { get; private set; }
             public bool Started { get; private set; }
             public bool Cancelled { get; private set; }
             public bool Completed { get; private set; }
             public List<Point> Path { get; private set; }
             public Result Result { get; private set; }
-
-            public Request(Vector3 start, Vector3 end, float maxCost, float takeExistingPaths)
-            {
-                this.maxCost = maxCost;
-                this.takeExistingPaths = takeExistingPaths;
-                this.start = start;
-                this.end = end;
-            }
-
-            public Request(Vector3 start, Node[] firstNeighbour, Vector3 end, float maxCost, float takeExistingPaths)
-            {
-                this.maxCost = maxCost;
-                this.takeExistingPaths = takeExistingPaths;
-                this.start = start;
-                this.firstNeighbour = firstNeighbour;
-                this.end = end;
-            }
-
-            public Request(Vector3 start, Node end, float maxCost, float takeExistingPaths)
-            {
-                this.maxCost = maxCost;
-                this.takeExistingPaths = takeExistingPaths;
-                this.start = start;
-                endNode = end;
-            }
-
-            public Request(Vector3 start, Node[] firstNeighbour, Node end, float maxCost, float takeExistingPaths)
-            {
-                this.maxCost = maxCost;
-                this.takeExistingPaths = takeExistingPaths;
-                this.start = start;
-                this.firstNeighbour = firstNeighbour;
-                endNode = end;
-            }
-
-            public Request(Node start, Node end, float maxCost, float takeExistingPaths)
-            {
-                this.maxCost = maxCost;
-                this.takeExistingPaths = takeExistingPaths;
-                startNode = start;
-                endNode = end;
-            }
-
-            public Request(Node start, Vector3 end, float maxCost, float takeExistingPaths)
-            {
-                this.maxCost = maxCost;
-                this.takeExistingPaths = takeExistingPaths;
-                startNode = start;
-                this.end = end;
-            }
-
-            public Request(Vector3 start, Match match, float maxCost, float takeExistingPaths)
-            {
-                this.maxCost = maxCost;
-                this.takeExistingPaths = takeExistingPaths;
-                this.start = start;
-                this.match = match;
-            }
-
-            public Request(Vector3 start, Node[] firstNeighbour, Match match, float maxCost, float takeExistingPaths)
-            {
-                this.maxCost = maxCost;
-                this.takeExistingPaths = takeExistingPaths;
-                this.start = start;
-                this.firstNeighbour = firstNeighbour;
-                this.match = match;
-            }
-
-            public Request(Node start, Match match, float maxCost, float takeExistingPaths)
-            {
-                this.maxCost = maxCost;
-                this.takeExistingPaths = takeExistingPaths;
-                startNode = start;
-                this.match = match;
-            }
-
             private static void StartThreads(int amount)
             {
                 threads = new Thread[amount];
@@ -195,42 +122,8 @@ namespace HexClicker.Navigation
             private void Execute(int thread)
             {
                 Started = true;
-
-                List<Point> path;
-
-                if (match != null)
-                {
-                    if (firstNeighbour != null)
-                        Result = PathFind(start, firstNeighbour, match, maxCost, takeExistingPaths, out path, thread);
-                    else if (startNode != null)
-                        Result = PathFind(startNode, match, maxCost, takeExistingPaths, out path, thread);
-                    else
-                        Result = PathFind(start, match, maxCost, takeExistingPaths, out path, thread);
-                }
-                else
-                {
-                    if (firstNeighbour != null)
-                    {
-                        if (endNode != null)
-                            Result = PathFind(start, firstNeighbour, endNode, maxCost, takeExistingPaths, out path, thread);
-                        else
-                            Result = PathFind(start, firstNeighbour, end, maxCost, takeExistingPaths, out path, thread);
-                    }
-                    else
-                    {
-                        if (endNode != null && startNode != null)
-                            Result = PathFind(startNode, endNode, maxCost, takeExistingPaths, out path, thread);
-                        else if (startNode != null)
-                            Result = PathFind(startNode, end, maxCost, takeExistingPaths, out path, thread);
-                        else if (endNode != null)
-                            Result = PathFind(start, endNode, maxCost, takeExistingPaths, out path, thread);
-                        else
-                            Result = PathFind(start, end, maxCost, takeExistingPaths, out path, thread);
-                    }
-                }
-
+                Result = PathFind(start, end, startNode, endNode, addStartNeighbours, match, matchTowardsEnd, allowInaccessibleEnd, maxCost, takeExistingPaths, out List<Point> path, thread);
                 Path = path;
-
                 Completed = true;
             }
         }
@@ -242,6 +135,8 @@ namespace HexClicker.Navigation
             FailureNoPath,
             FailureTooManyTries,
             FailureTooFar,
+            FailureStartObstructed,
+            FailureEndObstructed,
         }
 
         public static void DrawPath(List<Point> path, bool drawSpheres = false, bool labelNodes = false, bool labelEdges = false)
@@ -270,20 +165,63 @@ namespace HexClicker.Navigation
 #endif
         }
 
-        public static Result PathFind(Vector3 start, Match match, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
+        public static Result PathFind(Vector3 start, Vector3 end, Node startNode, Node endNode, Node[] addStartNeighbours, Match match, bool matchTowardsEnd, bool allowInaccessibleEnd, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
         {
-            path = null;
+            path = default;
+            Node s = startNode;
+            Node e = endNode;
+            List<Node> endNeighbours = default;
+            List<Node> startNeighbours = default;
 
-            Node startNode = new Node(start);
+            if (endNode != null && !endNode.Accessible && !allowInaccessibleEnd)
+                return Result.FailureEndObstructed;
 
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
-            if (startNeighbours.Count <= 0)
-                return Result.FailureNoPath;
+            if (startNode == null)
+            {
+                s = new Node(start);
+                startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
 
-            foreach (Node neighbour in startNeighbours)
-                startNode.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(startNode, neighbour)));
+                if (addStartNeighbours != null)
+                    for (int i = 0; i < addStartNeighbours.Length; i++)
+                        if (addStartNeighbours[i] != null)
+                            startNeighbours.Add(addStartNeighbours[i]);
 
-            Result result = PathToMatch(startNode, match, maxCost, takeExistingPaths, out path, thread);
+                if (startNeighbours.Count <= 0)
+                    return Result.FailureStartObstructed;
+            }
+
+            if (endNode == null)
+            {
+                e = new Node(end);
+                endNeighbours = NavigationGraph.NearestSquareNodes(end, true);
+                if (endNeighbours.Count <= 0)
+                    return Result.FailureEndObstructed;
+            }
+
+            if (startNode == null)
+            {
+                foreach (Node neighbour in startNeighbours)
+                    s.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(s, neighbour)));
+            }
+
+            if (endNode == null)
+            {
+                foreach (Node neighbour in endNeighbours)
+                    neighbour.Neighbours.Add(new Node.Neighbour(e, Node.Distance(neighbour, e)));
+            }
+
+            Result result;
+
+            if (match != null)
+                result = PathToMatch(s, match, end, matchTowardsEnd, allowInaccessibleEnd, maxCost, takeExistingPaths, out path, thread);
+            else
+                result = PathToNode(s, e, allowInaccessibleEnd, maxCost, takeExistingPaths, out path, thread);
+
+            if (endNode == null)
+            {
+                foreach (Node neighbour in endNeighbours)
+                    neighbour.RemoveNeighbour(e, false);
+            }
 
             if (result == Result.Success)
                 RaycastModifier(path, takeExistingPaths);
@@ -291,206 +229,17 @@ namespace HexClicker.Navigation
             return result;
         }
 
-        public static Result PathFind(Vector3 start, Node[] firstNeighbour, Match match, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
-        {
-            path = null;
-
-            Node startNode = new Node(start);
-
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
-
-            for (int i = 0; i < firstNeighbour.Length; i++)
-                if (firstNeighbour[i] != null)
-                    startNeighbours.Add(firstNeighbour[i]);
-
-            if (startNeighbours.Count <= 0)
-                return Result.FailureNoPath;
-
-            foreach (Node neighbour in startNeighbours)
-                startNode.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(startNode, neighbour)));
-
-            Result result = PathToMatch(startNode, match, maxCost, takeExistingPaths, out path, thread);
-
-            if (result == Result.Success)
-                RaycastModifier(path, takeExistingPaths);
-
-            return result;
-        }
-
-
-        public static Result PathFind(Node start, Match match, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
-        {
-            Result result = PathToMatch(start, match, maxCost, takeExistingPaths, out path, thread);
-
-            if (result == Result.Success)
-                RaycastModifier(path, takeExistingPaths);
-
-            return result;
-        }
-
-        public static Result PathFind(Vector3 start, Vector3 end, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
-        {
-            path = null;
-
-            Node startNode = new Node(start);
-            Node endNode = new Node(end);
-
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
-            if (startNeighbours.Count <= 0)
-                return Result.FailureNoPath;
-
-            List<Node> endNeighbours = NavigationGraph.NearestSquareNodes(end, true);
-            if (endNeighbours.Count <= 0)
-                return Result.FailureNoPath;
-
-            foreach (Node neighbour in startNeighbours)
-                startNode.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(startNode, neighbour)));
-
-            foreach (Node neighbour in endNeighbours)
-                neighbour.Neighbours.Add(new Node.Neighbour(endNode, Node.Distance(neighbour, endNode)));
-
-            Result result = PathToNode(startNode, endNode, maxCost, takeExistingPaths, out path, thread);
-
-            foreach (Node neighbour in endNeighbours)
-                neighbour.RemoveNeighbour(endNode, false);
-
-            if (result == Result.Success)
-                RaycastModifier(path, takeExistingPaths);
-
-            return result;
-        }
-
-        public static Result PathFind(Vector3 start, Node[] firstNeighbour, Vector3 end, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
-        {
-            path = null;
-
-            Node startNode = new Node(start);
-            Node endNode = new Node(end);
-
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
-
-            for (int i = 0; i < firstNeighbour.Length; i++)
-                if (firstNeighbour[i] != null)
-                    startNeighbours.Add(firstNeighbour[i]);
-
-            if (startNeighbours.Count <= 0)
-                return Result.FailureNoPath;
-
-            List<Node> endNeighbours = NavigationGraph.NearestSquareNodes(end, true);
-            if (endNeighbours.Count <= 0)
-                return Result.FailureNoPath;
-
-            foreach (Node neighbour in startNeighbours)
-                startNode.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(startNode, neighbour)));
-
-            foreach (Node neighbour in endNeighbours)
-                neighbour.Neighbours.Add(new Node.Neighbour(endNode, Node.Distance(neighbour, endNode)));
-
-            Result result = PathToNode(startNode, endNode, maxCost, takeExistingPaths, out path, thread);
-
-            foreach (Node neighbour in endNeighbours)
-                neighbour.RemoveNeighbour(endNode, false);
-
-            if (result == Result.Success)
-                RaycastModifier(path, takeExistingPaths);
-
-            return result;
-        }
-
-        public static Result PathFind(Vector3 start, Node end, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
-        {
-            path = null;
-
-            Node startNode = new Node(start);
-
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
-            if (startNeighbours.Count <= 0)
-                return Result.FailureNoPath;
-
-            foreach (Node neighbour in startNeighbours)
-                startNode.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(startNode, neighbour)));
-
-            Result result = PathToNode(startNode, end, maxCost, takeExistingPaths, out path, thread);
-
-            if (result == Result.Success)
-                RaycastModifier(path, takeExistingPaths);
-
-            return result;
-        }
-
-        public static Result PathFind(Vector3 start, Node[] firstNeighbour, Node end, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
-        {
-            path = null;
-
-            Node startNode = new Node(start);
-
-            List<Node> startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
-
-            for (int i = 0; i < firstNeighbour.Length; i++)
-                if (firstNeighbour[i] != null)
-                    startNeighbours.Add(firstNeighbour[i]);
-
-            if (startNeighbours.Count <= 0)
-                return Result.FailureNoPath;
-
-            foreach (Node neighbour in startNeighbours)
-                startNode.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(startNode, neighbour)));
-
-            Result result = PathToNode(startNode, end, maxCost, takeExistingPaths, out path, thread);
-
-            if (result == Result.Success)
-                RaycastModifier(path, takeExistingPaths);
-
-            return result;
-        }
-
-        public static Result PathFind(Node start, Vector3 end, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
-        {
-            path = null;
-
-            Node endNode = new Node(end);
-
-            List<Node> endNeighbours = NavigationGraph.NearestSquareNodes(end, true);
-            if (endNeighbours.Count <= 0)
-                return Result.FailureNoPath;
-
-            foreach (Node neighbour in endNeighbours)
-                neighbour.Neighbours.Add(new Node.Neighbour(endNode, Node.Distance(neighbour, endNode)));
-
-            Result result = PathToNode(start, endNode, maxCost, takeExistingPaths, out path, thread);
-
-            foreach (Node neighbour in endNeighbours)
-                neighbour.RemoveNeighbour(endNode, false);
-
-            if (result == Result.Success)
-                RaycastModifier(path, takeExistingPaths);
-
-            return result;
-        }
-
-        public static Result PathFind(Node start, Node end, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
-        {
-            Result result = PathToNode(start, end, maxCost, takeExistingPaths, out path, thread);
-
-            if (result == Result.Success)
-                RaycastModifier(path, takeExistingPaths);
-
-            return result;
-        }
-
-        private static Result PathToNode(Node start, Node end, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
+        private static Result PathToNode(Node start, Node end, bool allowInaccessibleEnd, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
         {
             path = null;
             if (start == null || end == null)
                 return Result.FailureNoPath;
 
-            if (!end.Accessible)
+            if (!allowInaccessibleEnd && !end.Accessible)
                 return Result.FailureNoPath;
 
             if (start.Equals(end))
                 return Result.AtDestination;
-
-            float startToEndDistance = Node.Distance(start, end);
 
             Dictionary<Node, Data> nodeData;
             List<Node> visited;
@@ -521,7 +270,7 @@ namespace HexClicker.Navigation
                 index = 0,
                 parent = -1,
                 gCost = 0,
-                hCost = startToEndDistance,
+                hCost = Node.Distance(start, end),
                 open = true
             });
 
@@ -585,14 +334,14 @@ namespace HexClicker.Navigation
                     if (neighbour == null)
                         continue;
 
-                    if (!neighbour.Accessible)
+                    if (!neighbour.Accessible && (!allowInaccessibleEnd || !neighbour.Equals(end)))
                         continue;
 
-                    if (!currentNode.NeighbourAccessible(i))
-                        continue;
+                    //if (!currentNode.NeighbourAccessible(i))
+                    //    continue;
 
-                    float tentativeHCost = Node.Distance(neighbour, end);
                     float tentativeGCost = currentData.gCost + currentNode.Neighbours[i].Distance * Mathf.Lerp(1, (currentNode.MovementCost + neighbour.MovementCost) / 2, takeExistingPaths);
+                    float tentativeHCost = Node.Distance(neighbour, end);
                     float tentativeCost = tentativeGCost + tentativeHCost;
 
                     bool neighbourExists = nodeData.TryGetValue(neighbour, out Data neighbourData);
@@ -640,7 +389,7 @@ namespace HexClicker.Navigation
             return Result.Success;
         }
 
-        private static Result PathToMatch(Node start, Match match, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
+        private static Result PathToMatch(Node start, Match match, Vector3 end, bool matchTowardsEnd, bool allowInaccessibleEnd, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
         {
             path = null;
             if (start == null)
@@ -679,6 +428,7 @@ namespace HexClicker.Navigation
                 index = 0,
                 parent = -1,
                 gCost = 0,
+                hCost = matchTowardsEnd ? Vector3.Distance(start.Position, end) : 0,
                 open = true
             });
 
@@ -743,14 +493,15 @@ namespace HexClicker.Navigation
                     if (neighbour == null)
                         continue;
 
-                    if (!neighbour.Accessible)
+                    if (!neighbour.Accessible && (!allowInaccessibleEnd || !match(neighbour)))
                         continue;
 
-                    if (!currentNode.NeighbourAccessible(i))
-                        continue;
+                    //if (!currentNode.NeighbourAccessible(i))
+                    //    continue;
 
                     float tentativeGCost = currentData.gCost + currentNode.Neighbours[i].Distance * Mathf.Lerp(1, (currentNode.MovementCost + neighbour.MovementCost) / 2, takeExistingPaths);
-                    float tentativeCost = tentativeGCost;
+                    float tentativeHCost = matchTowardsEnd ? Vector3.Distance(neighbour.Position, end) : 0;
+                    float tentativeCost = tentativeGCost + tentativeHCost;
 
                     bool neighbourExists = nodeData.TryGetValue(neighbour, out Data neighbourData);
 
@@ -761,6 +512,7 @@ namespace HexClicker.Navigation
 
                         neighbourData.parent = currentData.index;
                         neighbourData.gCost = tentativeGCost;
+                        neighbourData.hCost = tentativeHCost;
 
                         if (!neighbourData.open)
                         {

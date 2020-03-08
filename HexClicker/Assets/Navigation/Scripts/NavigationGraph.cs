@@ -169,11 +169,13 @@ namespace HexClicker.Navigation
 
             position *= Resolution / World.Map.TileSize;
 
-            int ceilX = Mathf.CeilToInt(position.x);
             int floorX = Mathf.FloorToInt(position.x);
+            int ceilX = Mathf.CeilToInt(position.x);
+            if (ceilX == floorX) ceilX++;
 
-            int ceilZ = Mathf.CeilToInt(position.z);
             int floorZ = Mathf.FloorToInt(position.z);
+            int ceilZ = Mathf.CeilToInt(position.z);
+            if (ceilZ == floorZ) ceilZ++;
 
             if (nodes.TryGetValue(new Vector2Int(floorX, floorZ), out Node n0) && (!onlyAccessibleNodes || n0.Accessible))
                 nearest.Add(n0);

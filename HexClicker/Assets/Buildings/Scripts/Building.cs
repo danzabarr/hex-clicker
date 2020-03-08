@@ -34,9 +34,9 @@ namespace HexClicker.Buildings
                 BuildingPart bp = hit.collider.GetComponent<BuildingPart>();
 
                 if (bp != null)
-                    result = PathFinding.PathFind(Exit, bp.Parent.Enter, 5000, 1, out path);
+                    result = PathFinding.PathFind(default, default, Exit, bp.Parent.Enter, null, null, false, false, 5000, 1, out path);
                 else
-                    result = PathFinding.PathFind(Exit, hit.point, 5000, 1, out path);
+                    result = PathFinding.PathFind(default, hit.point, Exit, null, null, null, false, false, 5000, 1, out path);
                 
                 if (result == PathFinding.Result.Success)
                 {

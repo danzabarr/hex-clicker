@@ -1,4 +1,5 @@
 ﻿using HexClicker.Buildings;
+using HexClicker.World;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -62,10 +63,14 @@ namespace HexClicker.Navigation
             Stop();
             Destination = destination;
             DestinationBuilding = null;
-            if (firstNeighbour != null)
-                pathRequest = new PathFinding.Request(transform.position, firstNeighbour, destination, maxCost, takeExistingPaths);
-            else
-                pathRequest = new PathFinding.Request(transform.position, destination, maxCost, takeExistingPaths);
+            pathRequest = new PathFinding.Request()
+            {
+                start = transform.position,
+                addStartNeighbours = firstNeighbour,
+                end = destination,
+                maxCost = maxCost,
+                takeExistingPaths = takeExistingPaths
+            };
             pathRequest.Queue();
             status = Status.Waiting;
         }
@@ -80,10 +85,62 @@ namespace HexClicker.Navigation
             Stop();
             Destination = destination.Enter.Position;
             DestinationBuilding = destination;
-            if (firstNeighbour != null)
-                pathRequest = new PathFinding.Request(transform.position, firstNeighbour, destination.Enter, maxCost, takeExistingPaths);
-            else
-                pathRequest = new PathFinding.Request(transform.position, destination.Enter, maxCost, takeExistingPaths);
+            pathRequest = new PathFinding.Request()
+            {
+                start = transform.position,
+                addStartNeighbours = firstNeighbour,
+                endNode = destination.Enter,
+                maxCost = maxCost,
+                takeExistingPaths = takeExistingPaths
+            };
+            pathRequest.Queue();
+            status = Status.Waiting;
+        }
+
+        public void LookFor(PathFinding.Match match, bool allowInaccessibleEnd, float maxCost)
+        {
+            if (CurrentBuilding != null)
+            {
+                LeaveBuilding(CurrentBuilding, match, allowInaccessibleEnd, maxCost);
+                return;
+            }
+            Stop();
+            Destination = default;
+            DestinationBuilding = null;
+            pathRequest = new PathFinding.Request()
+            {
+                start = transform.position,
+                addStartNeighbours = firstNeighbour,
+                match = match,
+                allowInaccessibleEnd = allowInaccessibleEnd,
+                maxCost = maxCost,
+                takeExistingPaths = takeExistingPaths
+            };
+            pathRequest.Queue();
+            status = Status.Waiting;
+        }
+
+        public void LookFor(PathFinding.Match match, Vector3 targetArea, bool allowInaccessibleEnd, float maxCost)
+        {
+            if (CurrentBuilding != null)
+            {
+                LeaveBuilding(CurrentBuilding, match, allowInaccessibleEnd, maxCost);
+                return;
+            }
+            Stop();
+            Destination = default;
+            DestinationBuilding = null;
+            pathRequest = new PathFinding.Request()
+            {
+                start = transform.position,
+                end = targetArea,
+                addStartNeighbours = firstNeighbour,
+                match = match,
+                matchTowardsEnd = true,
+                allowInaccessibleEnd = allowInaccessibleEnd,
+                maxCost = maxCost,
+                takeExistingPaths = takeExistingPaths
+            };
             pathRequest.Queue();
             status = Status.Waiting;
         }
@@ -93,7 +150,13 @@ namespace HexClicker.Navigation
             CurrentBuilding = current;
             DestinationBuilding = null;
             Destination = destination;
-            pathRequest = new PathFinding.Request(current.Exit, destination, maxCost, takeExistingPaths);
+            pathRequest = new PathFinding.Request()
+            {
+                startNode = current.Exit,
+                end = destination,
+                maxCost = maxCost,
+                takeExistingPaths = takeExistingPaths
+            };
             pathRequest.Queue();
             status = Status.Waiting;
         }
@@ -105,8 +168,49 @@ namespace HexClicker.Navigation
             CurrentBuilding = current;
             Destination = destination.Enter.Position;
             DestinationBuilding = destination;
-            pathRequest = new PathFinding.Request(current.Exit, destination.Enter, maxCost, takeExistingPaths);
+            pathRequest = new PathFinding.Request()
+            {
+                startNode = current.Exit,
+                endNode = destination.Enter,
+                maxCost = maxCost,
+                takeExistingPaths = takeExistingPaths
+            };
             pathRequest.Queue();
+            status = Status.Waiting;
+        }
+
+        public void LeaveBuilding(Building current, PathFinding.Match match, bool allowInaccessibleEnd, float maxCost)
+        {
+            CurrentBuilding = current;
+            Destination = default;
+            DestinationBuilding = null;
+            pathRequest = new PathFinding.Request()
+            {
+                startNode = current.Exit,
+                match = match,
+                allowInaccessibleEnd = allowInaccessibleEnd,
+                maxCost = maxCost,
+                takeExistingPaths = takeExistingPaths
+            };
+            pathRequest.Queue();
+            status = Status.Waiting;
+        }
+
+        public void LeaveBuilding(Building current, PathFinding.Match match, Vector3 targetArea, bool allowInaccessibleEnd, float maxCost)
+        {
+            CurrentBuilding = current;
+            Destination = default;
+            DestinationBuilding = null;
+            pathRequest = new PathFinding.Request()
+            {
+                startNode = current.Exit,
+                end = targetArea,
+                matchTowardsEnd = true,
+                match = match,
+                allowInaccessibleEnd = allowInaccessibleEnd,
+                maxCost = maxCost,
+                takeExistingPaths = takeExistingPaths
+            };
             status = Status.Waiting;
         }
 
@@ -137,7 +241,7 @@ namespace HexClicker.Navigation
                 }
                 else
                 {
-                    Debug.Log("Path was unsuccessful");
+                    Debug.Log("Path was unsuccessful: " + pathRequest.Result);
                     path = null;
                     pathIterator = null;
                     firstNeighbour = null;
@@ -155,7 +259,7 @@ namespace HexClicker.Navigation
                     path = null;
                     CurrentBuilding = DestinationBuilding;
                     firstNeighbour = null;
-                    transform.position = Destination;
+                    //transform.position = Destination;
                 }
             }
 
@@ -172,15 +276,23 @@ namespace HexClicker.Navigation
         {
             Gizmos.color = Color.green;
             PathFinding.DrawPath(path, true, false, false);
-            Gizmos.color = Color.red;
+
+
             if (pathIterator != null && pathIterator.NodeInfront != null)
                 Gizmos.DrawSphere(pathIterator.NodeInfront.Position, 0.05f);
 
 
-            if (PathFinding.PathFind(transform.position, (Node node) => { return node is BuildingNode; }, 500, 1, out List<PathFinding.Point> p) == PathFinding.Result.Success)
-            {
+            Gizmos.color = Color.yellow;
+            if (PathFinding.PathFind(transform.position, default, null, null, null, (Node node) => { return Map.Instance.TryGetTree(node.Index, out _); }, false, true, 500, 1, out List<PathFinding.Point> p) == PathFinding.Result.Success)
                 PathFinding.DrawPath(p);
-            }
+
+            Gizmos.color = Color.red;
+            foreach (Node node in NavigationGraph.NearestSquareNodes(transform.position, false))
+                Gizmos.DrawLine(transform.position, node.Position);
+
+            Gizmos.color = Color.blue;
+            foreach (Node node in NavigationGraph.NearestSquareNodes(transform.position, true))
+                Gizmos.DrawLine(transform.position, node.Position);
         }
 
     }

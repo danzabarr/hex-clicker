@@ -5,6 +5,7 @@ using HexClicker.Trees;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Tree = HexClicker.Trees.Tree;
 
 namespace HexClicker.World
 {
@@ -272,6 +273,11 @@ namespace HexClicker.World
             temperature += x / latitudeScale;
             temperature -= Mathf.Max(0, y * altitudeTemperature) - altitudeTemperature / 4;
             return temperature;
+        }
+
+        public bool TryGetTree(Vector2Int node, out Tree tree)
+        {
+            return treesRenderer.TryGet(node, out tree);
         }
         
         /// <summary>

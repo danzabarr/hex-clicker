@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using HexClicker.Navigation;
+using HexClicker.World;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -47,6 +49,11 @@ namespace HexClicker.Units
                         agent.SetDestination(hitInfo.point, 5000);
                     }
                 }
+            }
+
+            if (Input.GetMouseButtonDown(2) && !UI.UIMethods.IsMouseOverUI)
+            {
+                agent.LookFor((Node node) => Map.Instance.TryGetTree(node.Index, out _), true, 5000);
             }
         }
     }
