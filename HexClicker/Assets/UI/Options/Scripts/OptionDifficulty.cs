@@ -9,7 +9,8 @@ namespace HexClicker.UI.Options
         Easy,
         Normal,
         Hard,
-        Extreme
+        Extreme,
+        Fucking_Insane
     }
 
     public class OptionDifficulty : OptionDropdown<Difficulty>

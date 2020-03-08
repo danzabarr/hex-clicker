@@ -18,7 +18,7 @@ namespace HexClicker.UI.Options
             dropdown = GetComponent<Dropdown>();
             List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
             foreach (Enum e in System.Enum.GetValues(typeof(Enum)))
-                options.Add(new Dropdown.OptionData(e.ToString()));
+                options.Add(new Dropdown.OptionData(e.ToString().Replace("_", " ")));
             dropdown.options = options;
             dropdown.value = PlayerPrefs.GetInt(key, dropdown.value);
         }
