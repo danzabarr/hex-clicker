@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HexClicker.UI.Menus
+namespace HexClicker.UI.Options
 {
     public enum Difficulty
     {

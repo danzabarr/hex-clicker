@@ -11,16 +11,21 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionDropdown.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionDifficulty.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionStringInput.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionIntInput.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Notifications/Scripts/NotificationSystem.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Notifications/Scripts/Notification.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Notifications/Editor/NotificationSystemEditor.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Regions/Scripts/RegionManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Controls/CameraController.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Quests/Quest.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/UI/Notifications/Scripts/NotificationSystem.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionCounter.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Misc/Scripts/Counter.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/UI/Notifications/Scripts/Notification.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/UI/Resources/Manager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/UI/Tracker/Scripts/Tracker.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/UI/Resources/DisplayItem.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/UI/Notifications/Editor/NotificationSystemEditor.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionSlider.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionCheckBox.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -34,6 +39,16 @@
         <option value="$PROJECT_DIR$/Assets/UI/Tracker/Scripts/Item.cs" />
         <option value="$PROJECT_DIR$/Assets/UI/Resources/Manager.cs" />
         <option value="$PROJECT_DIR$/Assets/UI/Resources/DisplayItem.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Menus/Slider.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Menus/OptionsCheckBox.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Menus/OptionsSlider.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionDropdown.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionSlider.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionDifficulty.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionCheckBox.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionIntInput.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionStringInput.cs" />
+        <option value="$PROJECT_DIR$/Assets/UI/Options/Scripts/OptionCounter.cs" />
       </list>
     </option>
   </component>

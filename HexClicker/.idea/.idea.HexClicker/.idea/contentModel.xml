@@ -160,6 +160,17 @@
               <e p="NotificationSystem.cs" t="Include" />
             </e>
           </e>
+          <e p="Options" t="Include">
+            <e p="Scripts" t="Include">
+              <e p="OptionCheckBox.cs" t="Include" />
+              <e p="OptionCounter.cs" t="Include" />
+              <e p="OptionDifficulty.cs" t="Include" />
+              <e p="OptionDropdown.cs" t="Include" />
+              <e p="OptionIntInput.cs" t="Include" />
+              <e p="OptionSlider.cs" t="Include" />
+              <e p="OptionStringInput.cs" t="Include" />
+            </e>
+          </e>
           <e p="RadialMenu" t="Include">
             <e p="Scripts" t="Include">
               <e p="RadialMenu.cs" t="Include" />
@@ -167,7 +178,7 @@
               <e p="RadialSegment.cs" t="Include" />
             </e>
           </e>
-          <e p="Resources" t="Include">
+          <e p="ResourceManager" t="Include">
             <e p="DisplayItem.cs" t="Include" />
             <e p="Manager.cs" t="Include" />
           </e>

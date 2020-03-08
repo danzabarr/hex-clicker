@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HexClicker.UI.Menus
+namespace HexClicker.UI.Options
 {
     [RequireComponent(typeof(Dropdown))]
     public abstract class OptionDropdown<Enum> : MonoBehaviour
