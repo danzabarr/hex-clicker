@@ -18,10 +18,10 @@ GameObject:
   - component: {fileID: 3507713440063851876}
   - component: {fileID: 1517647279757179394}
   - component: {fileID: 5115989836468273306}
-  - component: {fileID: 5278470520190896781}
   - component: {fileID: 6273245247901101029}
   - component: {fileID: 7223983084480206814}
   - component: {fileID: 7508642461353329054}
+  - component: {fileID: 6536538215903235419}
   m_Layer: 13
   m_Name: House
   m_TagString: Untagged
@@ -203,27 +203,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 3329fa485c57474448b402dcee0b36f5, type: 3}
---- !u!114 &5278470520190896781
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 747027911334286951}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f80243249dece3b4681a3de5be2d4c22, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  type: 1
-  offset: {x: 50, y: 0}
-  tooltipPivot: {x: 0, y: 0.5}
-  parentPivot: {x: 0, y: 0}
-  parentTransform: {fileID: 3925231365343918134}
-  clampToScreen: 1
-  layout: 0
-  title: House
-  body: Is where the heart is... on the bus.
 --- !u!65 &6273245247901101029
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -266,6 +245,19 @@ MonoBehaviour:
   hideOutline: 0
   originalLayer: 0
   originalMaterials: []
+--- !u!114 &6536538215903235419
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747027911334286951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2632bd3f1f0b77347802f07542c926fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  radialMenu: House
 --- !u!1 &6817613133263708348
 GameObject:
   m_ObjectHideFlags: 0

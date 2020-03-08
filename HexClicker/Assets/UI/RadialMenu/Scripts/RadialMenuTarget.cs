@@ -6,7 +6,8 @@ namespace HexClicker.UI.Menus
 {
     public class RadialMenuTarget : MonoBehaviour
     {
-        [SerializeField] private RadialMenu menu;
+        [SerializeField] private string radialMenu;
+        private RadialMenu menu;
         private Outline outline;
         private bool active;
 
@@ -29,11 +30,12 @@ namespace HexClicker.UI.Menus
         private void Start()
         {
             Active = false;
+            menu = RadialMenu.Get(radialMenu);
         }
 
         private void OnMouseDown()
         {
-            if (menu.Open(this))
+            if (!UI.UIMethods.IsMouseOverUI && menu.Open(this))
             {
                 Active = true;
             }

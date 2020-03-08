@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace HexClicker.UI.Menus
 {
@@ -6,6 +7,11 @@ namespace HexClicker.UI.Menus
     {
         public static RadialMenu Active { get; private set; }
 
+        private static Dictionary<string, RadialMenu> menus = new Dictionary<string, RadialMenu>();
+
+        public static RadialMenu Get(string name) => menus[name];
+
+        [SerializeField] private new string name;
         [SerializeField] private float radius;
         [SerializeField, Range(0, 1)] private float innerRadius;
         [SerializeField] private float resolution;
@@ -28,10 +34,14 @@ namespace HexClicker.UI.Menus
         public RadialSegment HighlightedSegment => HighlightedIndex < 0 || HighlightedIndex >= Length ? null : segments[HighlightedIndex];
         public RadialMenuTarget Target { get; private set; }
 
+        private void Awake()
+        {
+            menus.Add(name, this);
+        }
+
         private void Start()
         {
             GenerateMeshes();
-
             for (int i = 0; i < segments.Length; i++)
                 segments[i].transform.localScale = Vector3.zero;
         }
@@ -96,7 +106,7 @@ namespace HexClicker.UI.Menus
                 }
             }
 
-            if (this == Active && open && wasOpen)
+            if (this == Active && open && wasOpen && !UI.UIMethods.IsMouseOverUI)
             {
                 if (Input.GetMouseButtonDown(0))
                 {
