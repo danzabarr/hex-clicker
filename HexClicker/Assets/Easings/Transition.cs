@@ -209,7 +209,7 @@ namespace HexClicker.Animation
         {
             for (float t = 0; t < duration; t += Time.unscaledDeltaTime)
             {
-                callback(start + easing(t) * change);
+                callback(start + easing(t / duration) * change);
                 yield return null;
             }
         }
@@ -235,7 +235,7 @@ namespace HexClicker.Animation
         {
             for (float t = 0; t < duration; t += Time.unscaledDeltaTime)
             {
-                callback(start + curve.Evaluate(t) * change);
+                callback(start + curve.Evaluate(t / duration) * change);
                 yield return null;
             }
         }
