@@ -4,16 +4,20 @@ using UnityEngine;
 
 namespace HexClicker.UI.Options
 {
-    public class OptionIntInput : MonoBehaviour
+    public class OptionIntegerInput : MonoBehaviour
     {
-        [SerializeField] private new string name;
-        [SerializeField] private int value;
+        [SerializeField] private string key;
         [SerializeField] private bool onlyPositive;
         [SerializeField] private TMP_InputField inputField;
 
         private void Awake()
         {
-            value = PlayerPrefs.GetInt(name, value);
+            int value = 0;
+            try { value = Convert.ToInt32(inputField.text); }
+            catch (Exception) { }
+
+            value = PlayerPrefs.GetInt(key, value);
+
             if (onlyPositive)
             {
                 value = Mathf.Abs(value);
@@ -25,12 +29,15 @@ namespace HexClicker.UI.Options
 
         public void UpdateValue()
         {
-            value = Convert.ToInt32(inputField.text);
+            int value = 0;
+            try { value = Convert.ToInt32(inputField.text); }
+            catch (Exception) { }
             if (onlyPositive)
             {
                 value = Mathf.Abs(value);
             }
-            PlayerPrefs.SetInt(name, value);
+            inputField.SetTextWithoutNotify(value.ToString());
+            PlayerPrefs.SetInt(key, value);
         }
     }
 }

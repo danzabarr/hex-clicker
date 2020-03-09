@@ -5,17 +5,17 @@ namespace HexClicker.UI.Options
 {
     public class OptionSlider : MonoBehaviour
     {
-        [SerializeField] private new string name;
+        [SerializeField] private string key;
         [SerializeField] private Slider slider;
 
         private void Awake()
         {
-            slider.value = PlayerPrefs.GetFloat(name, slider.value);
+            slider.value = PlayerPrefs.GetFloat(key, slider.value);
         }
         
         public void UpdateValue()
         {
-            PlayerPrefs.SetFloat(name, slider.value);
+            PlayerPrefs.SetFloat(key, slider.value);
         }
     }
 }

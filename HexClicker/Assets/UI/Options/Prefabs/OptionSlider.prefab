@@ -597,5 +597,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94f340d9230eaf647acd0c04dc465d7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: slider
+  name: 
   slider: {fileID: 3189192597127601155}

@@ -308,7 +308,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Hard
+  m_Text: Fucking Insane
 --- !u!1 &2309922181124816029
 GameObject:
   m_ObjectHideFlags: 0
@@ -515,7 +515,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14b4a32d460ce814987a9756151c637c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: resource
+  key: 
   dropdown: {fileID: 2781423609807514331}
 --- !u!1 &3157661100191917652
 GameObject:
@@ -961,7 +961,7 @@ MonoBehaviour:
   m_CaptionImage: {fileID: 0}
   m_ItemText: {fileID: 8205418998350107445}
   m_ItemImage: {fileID: 0}
-  m_Value: 2
+  m_Value: 4
   m_Options:
     m_Options:
     - m_Text: Easy

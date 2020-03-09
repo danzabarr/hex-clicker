@@ -292,8 +292,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7c7f3355dcb8004a833e68500335895, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: checkbox
-  state: 1
+  name: 
   toggle: {fileID: 1950176932142506657}
 --- !u!1 &6846966583931521599
 GameObject:

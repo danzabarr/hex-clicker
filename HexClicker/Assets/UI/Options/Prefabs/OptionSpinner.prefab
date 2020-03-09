@@ -87,7 +87,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26bb38b7d3d56de49a6a2b512525b25f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: optionCounter
+  name: 
   value: 0
   minVal: 0
   maxVal: 100
