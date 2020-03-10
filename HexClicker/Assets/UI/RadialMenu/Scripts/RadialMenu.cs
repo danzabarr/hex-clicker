@@ -11,20 +11,38 @@ namespace HexClicker.UI.Menus
 
         public static RadialMenu Get(string name) => menus[name];
 
-        [SerializeField] private new string name;
-        [SerializeField] private float radius;
-        [SerializeField, Range(0, 1)] private float innerRadius;
-        [SerializeField] private float resolution;
-        [SerializeField] private float spacing;
-        [SerializeField] private float highlightScale = 1;
-        [SerializeField] private float highlightInDuration;
-        [SerializeField] private float highlightOutDuration;
-        [SerializeField] private float hideDuration;
-        [SerializeField] private float minimumSelectRadius;
-        [SerializeField] private float maximumSelectRadius;
         [SerializeField] private new Camera camera;
         [SerializeField] private Canvas canvas;
+        [Space]
+        [SerializeField] private new string name;
 
+        [Header("Size & Shape")]
+        [SerializeField] private float radius = .15f;
+        [SerializeField, Range(0, 1)] private float innerRadius = .5f;
+        [SerializeField] private float resolution = 200;
+        [SerializeField] private float spacing = .001f;
+
+        [Header("Open/Close Transitions")]
+        [SerializeField] private float openTransitionDuration = .3f;
+        [SerializeField] private float closeTransitionDuration = .5f;
+        [Space]
+        [SerializeField] private Animation.Easing openTransitionEasing = Animation.Easing.EaseOutBack;
+        [SerializeField] private Animation.Easing closeTransitionEasing = Animation.Easing.EaseOutExpo;
+
+        [Header("On Hover Transitions")]
+
+        [SerializeField] private float minHoverRadius = 50f;
+        [SerializeField] private float maxHoverRadius = 200f;
+        [Space]
+        [SerializeField] private float hoverScale = 1.1f;
+        [Space]
+        [SerializeField] private float mouseEnterTransitionDuration = 1f;
+        [SerializeField] private float mouseExitTransitionDuration = 1f;
+        [Space]
+        [SerializeField] private Animation.Easing transitionMouseEnterEasing = Animation.Easing.EaseOutBack;
+        [SerializeField] private Animation.Easing transitionMouseExitEasing = Animation.Easing.EaseOutElastic;
+
+        private Coroutine routine;
         private RadialSegment[] segments;
         private bool open;
         private bool wasOpen;
@@ -42,15 +60,14 @@ namespace HexClicker.UI.Menus
         private void Start()
         {
             GenerateMeshes();
-            for (int i = 0; i < segments.Length; i++)
-                segments[i].transform.localScale = Vector3.zero;
         }
         
         private void OnValidate()
         {
             GenerateMeshes();
         }
-        
+
+
         public bool Open(RadialMenuTarget target)
         {
             if (Active != null)
@@ -60,6 +77,11 @@ namespace HexClicker.UI.Menus
             open = true;
             Active = this;
             Target = target;
+
+            if (routine != null)
+                StopCoroutine(routine);
+            routine = StartCoroutine(Animation.Transition.AnimateEasing(scale, 1 - scale, (1 - scale) * openTransitionDuration, openTransitionEasing, (float i) => { scale = i; }, true));
+
             return true;
         }
 
@@ -71,6 +93,10 @@ namespace HexClicker.UI.Menus
             Target = null;
             if (this == Active)
                 Active = null;
+
+            if (routine != null)
+                StopCoroutine(routine);
+            routine = StartCoroutine(Animation.Transition.AnimateEasing(scale, -scale, scale * closeTransitionDuration, closeTransitionEasing, (float i) => { scale = i; }, true));
         }
 
         private void LateUpdate()
@@ -79,9 +105,10 @@ namespace HexClicker.UI.Menus
             Vector3 delta = Input.mousePosition - screen;
             float sqDist = delta.x * delta.x + delta.y * delta.y;
 
+            int lastIndex = HighlightedIndex;
             HighlightedIndex = -1;
 
-            if (sqDist > minimumSelectRadius * minimumSelectRadius && sqDist < maximumSelectRadius * maximumSelectRadius)
+            if (open && sqDist > minHoverRadius * minHoverRadius && sqDist < maxHoverRadius * maxHoverRadius)
             {
                 float angle = Mathf.Atan2(delta.x, delta.y) * Mathf.Rad2Deg;
                 HighlightedIndex = Segment(angle);
@@ -93,17 +120,12 @@ namespace HexClicker.UI.Menus
             transform.rotation = camera.transform.rotation;
             transform.localScale = Vector3.one * scale * Vector3.Dot(transform.position - camera.transform.position, camera.transform.forward) * canvas.scaleFactor;
 
-            scale = Mathf.Lerp(scale, open ? 1 : 0, Time.deltaTime / hideDuration);
-
-            if (open)
+            if (lastIndex != HighlightedIndex)
             {
-                for (int i = 0; i < segments.Length; i++)
-                {
-                    if (i == HighlightedIndex)
-                        segments[i].transform.localScale = Vector3.Lerp(segments[i].transform.localScale, Vector3.one * highlightScale, Time.deltaTime / highlightInDuration);
-                    else
-                        segments[i].transform.localScale = Vector3.Lerp(segments[i].transform.localScale, Vector3.one, Time.deltaTime / highlightOutDuration);
-                }
+                if (lastIndex != -1)
+                    segments[lastIndex].Close(transitionMouseExitEasing, hoverScale, 1f, mouseExitTransitionDuration);
+                if (HighlightedIndex != -1)
+                    segments[HighlightedIndex].Open(transitionMouseEnterEasing, hoverScale, 1f, mouseEnterTransitionDuration);
             }
 
             if (this == Active && open && wasOpen && !UI.UIMethods.IsMouseOverUI)

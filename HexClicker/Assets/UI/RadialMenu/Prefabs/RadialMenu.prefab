@@ -50,18 +50,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15c8beb364f1e434b86ab18b02d7b5a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  camera: {fileID: 0}
+  canvas: {fileID: 0}
+  name: 
   radius: 0.15
   innerRadius: 0.5
   resolution: 200
   spacing: 0.001
-  highlightScale: 1.1
-  highlightInDuration: 0.1
-  highlightOutDuration: 0.1
-  hideDuration: 0.08
-  minimumSelectRadius: 50
-  maximumSelectRadius: 200
-  camera: {fileID: 0}
-  canvas: {fileID: 0}
+  openTransitionDuration: 0.3
+  closeTransitionDuration: 0.5
+  openTransitionEasing: 26
+  closeTransitionEasing: 17
+  minHoverRadius: 50
+  maxHoverRadius: 200
+  hoverScale: 1.1
+  mouseEnterTransitionDuration: 1
+  mouseExitTransitionDuration: 1
+  transitionMouseEnterEasing: 26
+  transitionMouseExitEasing: 23
 --- !u!1 &2827279442413065619
 GameObject:
   m_ObjectHideFlags: 0

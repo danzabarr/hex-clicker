@@ -4,45 +4,61 @@ using UnityEngine;
 
 namespace HexClicker.Animation
 {
-    public static class Transition
+    public enum Easing
     {
-        public delegate void Callback(float i);
+        Linear,
 
-        public delegate float SimpleEasing(float t);
+        EaseInQuad,
+        EaseOutQuad,
+        EaseInOutQuad,
 
-        public delegate float AdvancedEasing(float t, float start, float change, float duration);
+        EaseInCubic,
+        EaseOutCubic,
+        EaseInOutCubic,
 
-        public delegate float AdvancedEasing2(float t, float start, float change, float duration, float s);
+        EaseInQuart,
+        EaseOutQuart,
+        EaseInOutQuart,
 
-        // no easing, no acceleration
-        public static float Linear(float t) => t;
-        // accelerating from zero velocity
-        public static float EaseInQuad(float t) => t * t;
-        // decelerating to zero velocity
-        public static float EaseOutQuad(float t) => t * (2 - t);
-        // acceleration until halfway, then deceleration
-        public static float EaseInOutQuad(float t) => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-        // accelerating from zero velocity 
-        public static float EaseInCubic(float t) => t * t * t;
-        // decelerating to zero velocity 
-        public static float EaseOutCubic(float t) => (--t) * t * t + 1;
-        // acceleration until halfway, then deceleration 
-        public static float EaseInOutCubic(float t) => t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-        // accelerating from zero velocity 
-        public static float EaseInQuart(float t) => t * t * t * t;
-        // decelerating to zero velocity 
-        public static float EaseOutQuart(float t) => 1 - (--t) * t * t * t;
-        // acceleration until halfway, then deceleration
-        public static float EaseInOutQuart(float t) => t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t;
-        // accelerating from zero velocity
-        public static float EaseInQuint(float t) => t * t * t * t * t;
-        // decelerating to zero velocity
-        public static float EaseOutQuint(float t) => 1 + (--t) * t * t * t * t;
-        // acceleration until halfway, then deceleration 
-        public static float EaseInOutQuint(float t) => t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t;
+        EaseInQuint,
+        EaseOutQuint,
+        EaseInOutQuint,
 
+        EaseInSine,
+        EaseOutSine,
+        EaseInOutSine,
 
+        EaseInExpo,
+        EaseOutExpo,
+        EaseInOutExpo,
 
+        EaseInCirc,
+        EaseOutCirc,
+        EaseInOutCirc,
+
+        EaseInElastic,
+        EaseOutElastic,
+        EaseInOutElastic,
+
+        EaseInBack,
+        EaseOutBack,
+        EaseInOutBack,
+
+        EaseInBounce,
+        EaseOutBounce,
+        EaseInOutBounce
+
+    }
+    public delegate void Callback(float i);
+
+    public delegate float EasingFunction(float t, float start, float change, float duration);
+
+    public static class Transition 
+    {
+        public static float Linear(float t, float b, float c, float d)
+        {
+            return c * (t / d) + b;
+        }
         public static float EaseInQuad(float t, float b, float c, float d)
         {
             return c * (t /= d) * t + b;
@@ -163,16 +179,19 @@ namespace HexClicker.Animation
             if (t < 1) return -.5f * (a * Mathf.Pow(2, 10 * (t -= 1)) * Mathf.Sin((t * d - s) * (2 * Mathf.PI) / p)) + b;
             return a * Mathf.Pow(2, -10 * (t -= 1)) * Mathf.Sin((t * d - s) * (2 * Mathf.PI) / p) * .5f + c + b;
         }
-        public static float EaseInBack(float t, float b, float c, float d, float s = 1.70158f)
+        public static float EaseInBack(float t, float b, float c, float d)
         {
+            float s = 1.70158f;
             return c * (t /= d) * t * ((s + 1) * t - s) + b;
         }
-        public static float EaseOutBack(float t, float b, float c, float d, float s = 1.70158f)
+        public static float EaseOutBack(float t, float b, float c, float d)
         {
+            float s = 1.70158f;
             return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
         }
-        public static float EaseInOutBack(float t, float b, float c, float d, float s = 1.70158f)
+        public static float EaseInOutBack(float t, float b, float c, float d)
         {
+            float s = 1.70158f;
             if ((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= (1.525f)) + 1) * t - s)) + b;
             return c / 2 * ((t -= 2) * t * (((s *= (1.525f)) + 1) * t + s) + 2) + b;
         }
@@ -205,39 +224,268 @@ namespace HexClicker.Animation
             return EaseOutBounce(t * 2 - d, 0, c, d) * .5f + c * .5f + b;
         }
 
-        public static IEnumerator AnimateSimple(float start, float change, float duration, SimpleEasing easing, Callback callback)
+        public static EasingFunction Function(Easing easing)
         {
-            for (float t = 0; t < duration; t += Time.unscaledDeltaTime)
+            switch (easing)
             {
-                callback(start + easing(t / duration) * change);
-                yield return null;
+                case Easing.Linear:
+                    return Linear;
+                case Easing.EaseInQuad:
+                    return EaseInQuad;
+                case Easing.EaseOutQuad:
+                    return EaseOutQuad;
+                case Easing.EaseInOutQuad:
+                    return EaseInOutQuad;
+                case Easing.EaseInCubic:
+                    return EaseInCubic;
+                case Easing.EaseOutCubic:
+                    return EaseOutCubic;
+                case Easing.EaseInOutCubic:
+                    return EaseInOutCubic;
+                case Easing.EaseInQuart:
+                    return EaseInQuart;
+                case Easing.EaseOutQuart:
+                    return EaseOutQuart;
+                case Easing.EaseInOutQuart:
+                    return EaseInOutQuart;
+                case Easing.EaseInQuint:
+                    return EaseInQuint;
+                case Easing.EaseOutQuint:
+                    return EaseOutQuint;
+                case Easing.EaseInOutQuint:
+                    return EaseInOutQuint;
+                case Easing.EaseInSine:
+                    return EaseInSine;
+                case Easing.EaseOutSine:
+                    return EaseOutSine;
+                case Easing.EaseInOutSine:
+                    return EaseInOutSine;
+                case Easing.EaseInExpo:
+                    return EaseInExpo;
+                case Easing.EaseOutExpo:
+                    return EaseOutExpo;
+                case Easing.EaseInOutExpo:
+                    return EaseInOutExpo;
+                case Easing.EaseInCirc:
+                    return EaseInCirc;
+                case Easing.EaseOutCirc:
+                    return EaseOutCirc;
+                case Easing.EaseInOutCirc:
+                    return EaseInOutCirc;
+                case Easing.EaseInElastic:
+                    return EaseInElastic;
+                case Easing.EaseOutElastic:
+                    return EaseOutElastic;
+                case Easing.EaseInOutElastic:
+                    return EaseInOutElastic;
+                case Easing.EaseInBack:
+                    return EaseInBack;
+                case Easing.EaseOutBack:
+                    return EaseOutBack;
+                case Easing.EaseInOutBack:
+                    return EaseInOutBack;
+                case Easing.EaseInBounce:
+                    return EaseInBounce;
+                case Easing.EaseOutBounce:
+                    return EaseOutBounce;
+                case Easing.EaseInOutBounce:
+                    return EaseInOutBounce;
+                default:
+                    return Linear;
             }
         }
 
-        public static IEnumerator AnimateAdvanced(float start, float change, float duration, float s, AdvancedEasing2 easing, Callback callback)
+        public static float Value(float t, float start, float change, float duration, Easing easing)
         {
-            for (float t = 0; t < duration; t += Time.unscaledDeltaTime)
-            {
-                callback(easing(t, start, change, duration, s));
-                yield return null;
-            }
+            return Function(easing)(t, start, change, duration);
         }
-        public static IEnumerator AnimateAdvanced(float start, float change, float duration, AdvancedEasing easing, Callback callback)
+        public static IEnumerator AnimateEasing(float start, float change, float duration, Easing easing, Callback callback, bool useUnscaledDeltaTime)
         {
-            for (float t = 0; t < duration; t += Time.unscaledDeltaTime)
+            return AnimateEasing(start, change, duration, Function(easing), callback, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateEasing(float start, float change, float duration, EasingFunction easing, Callback callback, bool useUnscaledDeltaTime)
+        {
+            for (float t = 0; t < duration; t += useUnscaledDeltaTime ? Time.unscaledDeltaTime : Time.deltaTime)
             {
                 callback(easing(t, start, change, duration));
                 yield return null;
             }
+            callback(easing(duration, start, change, duration));
         }
-
-        public static IEnumerator AnimateCurve(float start, float change, float duration, AnimationCurve curve, Callback callback)
+        public static IEnumerator AnimateCurve(float start, float change, float duration, AnimationCurve easing, Callback callback, bool useUnscaledDeltaTime)
         {
-            for (float t = 0; t < duration; t += Time.unscaledDeltaTime)
+            for (float t = 0; t < duration; t += useUnscaledDeltaTime ? Time.unscaledDeltaTime : Time.deltaTime)
             {
-                callback(start + curve.Evaluate(t / duration) * change);
+                callback(start + easing.Evaluate(t / duration) * change);
                 yield return null;
             }
+            callback(start + easing.Evaluate(1) * change);
+        }
+
+        public delegate void Set<T>(T x);
+
+        public static IEnumerator AnimateFloat(float start, float target, Set<float> setter, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateFloat(start, target, setter, duration, Function(easing), useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateFloat(float start, float target, Set<float> setter, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            float change = target - start;
+            for (float t = 0; t < duration; t += useUnscaledDeltaTime ? Time.unscaledDeltaTime : Time.deltaTime)
+            {
+                setter(easing(t, start, change, duration));
+                yield return null;
+            }
+            setter(easing(duration, start, change, duration));
+        }
+        public static IEnumerator AnimateFloat(float start, float target, Set<float> setter, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            float change = target - start;
+            for (float t = 0; t < duration; t += useUnscaledDeltaTime ? Time.unscaledDeltaTime : Time.deltaTime)
+            {
+                setter(start + easing.Evaluate(t / duration) * change);
+                yield return null;
+            }
+            setter(start + easing.Evaluate(1) * change);
+        }
+
+        public static IEnumerator AnimateVector3(Vector3 start, Vector3 target, Set<Vector3> setter, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(start, target, setter, duration, Function(easing), useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateVector3(Vector3 start, Vector3 target, Set<Vector3> setter, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            Vector3 delta = target - start;
+            for (float t = 0; t < duration; t += useUnscaledDeltaTime ? Time.unscaledDeltaTime : Time.deltaTime)
+            {
+                setter(start + easing(t, 0, 1, duration) * delta);
+                yield return null;
+            }
+            setter(start + easing(duration, 0, 1, duration) * delta);
+        }
+        public static IEnumerator AnimateVector3(Vector3 start, Vector3 target, Set<Vector3> setter, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            Vector3 delta = target - start;
+            for (float t = 0; t < duration; t += useUnscaledDeltaTime ? Time.unscaledDeltaTime : Time.deltaTime)
+            {
+                setter(start + easing.Evaluate(t / duration) * delta);
+                yield return null;
+            }
+            setter(start + easing.Evaluate(1) * delta);
+        }
+
+        public static IEnumerator AnimateRotation(Quaternion start, Quaternion target, Set<Quaternion> setter, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(start, target, setter, duration, Function(easing), useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateRotation(Quaternion start, Quaternion target, Set<Quaternion> setter, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            for (float t = 0; t < duration; t += useUnscaledDeltaTime ? Time.unscaledDeltaTime : Time.deltaTime)
+            {
+                setter(Quaternion.LerpUnclamped(start, target, easing(t, 0, 1, duration)));
+                yield return null;
+            }
+            setter(target);
+        }
+        public static IEnumerator AnimateRotation(Quaternion start, Quaternion target, Set<Quaternion> setter, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            for (float t = 0; t < duration; t += useUnscaledDeltaTime ? Time.unscaledDeltaTime : Time.deltaTime)
+            {
+                setter(Quaternion.LerpUnclamped(start, target, easing.Evaluate(t / duration)));
+                yield return null;
+            }
+            setter(target);
+        }
+
+        public static IEnumerator AnimatePosition(this Transform transform, Vector3 target, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(transform.position, target, (Vector3 p) => transform.position = p, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimatePosition(this Transform transform, Vector3 target, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(transform.position, target, (Vector3 p) => transform.position = p, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimatePosition(this Transform transform, Vector3 target, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(transform.position, target, (Vector3 p) => transform.position = p, duration, easing, useUnscaledDeltaTime);
+        }
+
+        public static IEnumerator AnimateLocalPosition(this Transform transform, Vector3 target, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(transform.localPosition, target, (Vector3 p) => transform.localPosition = p, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateLocalPosition(this Transform transform, Vector3 target, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(transform.localPosition, target, (Vector3 p) => transform.localPosition = p, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateLocalPosition(this Transform transform, Vector3 target, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(transform.localPosition, target, (Vector3 p) => transform.localPosition = p, duration, easing, useUnscaledDeltaTime);
+        }
+
+        public static IEnumerator AnimateLocalScale(this Transform transform, Vector3 target, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(transform.localScale, target, (Vector3 p) => transform.localScale = p, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateLocalScale(this Transform transform, Vector3 target, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(transform.localScale, target, (Vector3 p) => transform.localScale = p, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateLocalScale(this Transform transform, Vector3 target, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateVector3(transform.localScale, target, (Vector3 p) => transform.localScale = p, duration, easing, useUnscaledDeltaTime);
+        }
+
+        public static IEnumerator AnimateLocalRotation(this Transform transform, Vector3 target, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.localRotation, Quaternion.Euler(target), (Quaternion q) => transform.localRotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateLocalRotation(this Transform transform, Vector3 target, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.localRotation, Quaternion.Euler(target), (Quaternion q) => transform.localRotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateLocalRotation(this Transform transform, Vector3 target, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.localRotation, Quaternion.Euler(target), (Quaternion q) => transform.localRotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+
+        public static IEnumerator AnimateLocalRotation(this Transform transform, Quaternion target, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.localRotation, target, (Quaternion q) => transform.localRotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateLocalRotation(this Transform transform, Quaternion target, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.localRotation, target, (Quaternion q) => transform.localRotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateLocalRotation(this Transform transform, Quaternion target, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.localRotation, target, (Quaternion q) => transform.localRotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+
+        public static IEnumerator AnimateRotation(this Transform transform, Vector3 target, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.rotation, Quaternion.Euler(target), (Quaternion q) => transform.rotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateRotation(this Transform transform, Vector3 target, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.rotation, Quaternion.Euler(target), (Quaternion q) => transform.rotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateRotation(this Transform transform, Vector3 target, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.rotation, Quaternion.Euler(target), (Quaternion q) => transform.rotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+        
+        public static IEnumerator AnimateRotation(this Transform transform, Quaternion target, float duration, AnimationCurve easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.rotation, target, (Quaternion q) => transform.rotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateRotation(this Transform transform, Quaternion target, float duration, EasingFunction easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.rotation, target, (Quaternion q) => transform.rotation = q, duration, easing, useUnscaledDeltaTime);
+        }
+        public static IEnumerator AnimateRotation(this Transform transform, Quaternion target, float duration, Easing easing, bool useUnscaledDeltaTime)
+        {
+            return AnimateRotation(transform.rotation, target, (Quaternion q) => transform.rotation = q, duration, easing, useUnscaledDeltaTime);
         }
     }
 }
