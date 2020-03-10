@@ -109,16 +109,16 @@ namespace HexClicker.Animation
         }
         public static float EaseInExpo(float t, float b, float c, float d)
         {
-            return (t == 0) ? b : c * Mathf.Pow(2, 10 * (t / d - 1)) + b;
+            return (t <= 0) ? b : c * Mathf.Pow(2, 10 * (t / d - 1)) + b;
         }
         public static float EaseOutExpo(float t, float b, float c, float d)
         {
-            return (t == d) ? b + c : c * (-Mathf.Pow(2, -10 * t / d) + 1) + b;
+            return (t >= d) ? b + c : c * (-Mathf.Pow(2, -10 * t / d) + 1) + b;
         }
         public static float EaseInOutExpo(float t, float b, float c, float d)
         {
-            if (t == 0) return b;
-            if (t == d) return b + c;
+            if (t <= 0) return b;
+            if (t >= d) return b + c;
             if ((t /= d / 2) < 1) return c / 2 * Mathf.Pow(2, 10 * (t - 1)) + b;
             return c / 2 * (-Mathf.Pow(2, -10 * --t) + 2) + b;
         }
@@ -137,8 +137,8 @@ namespace HexClicker.Animation
         }
         public static float EaseInElastic(float t, float b, float c, float d)
         {
-            if (t == 0) return b;
-            if ((t /= d) == 1) return b + c;
+            if (t <= 0) return b;
+            if ((t /= d) >= 1) return b + c;
             float p = d * .3f;
             float a = c;
             float s = a < Mathf.Abs(c) ? (p / 4) : (p / (2 * Mathf.PI) * Mathf.Asin(c / a));
@@ -146,8 +146,8 @@ namespace HexClicker.Animation
         }
         public static float EaseOutElastic(float t, float b, float c, float d)
         {
-            if (t == 0) return b;
-            if ((t /= d) == 1) return b + c;
+            if (t <= 0) return b;
+            if ((t /= d) >= 1) return b + c;
             float p = d * .3f;
             float a = c;
             float s = a < Mathf.Abs(c) ? (p / 4) : (p / (2 * Mathf.PI) * Mathf.Asin(c / a));
@@ -155,8 +155,8 @@ namespace HexClicker.Animation
         }
         public static float EaseInOutElastic(float t, float b, float c, float d)
         {
-            if (t == 0) return b;
-            if ((t /= d / 2) == 2) return b + c;
+            if (t <= 0) return b;
+            if ((t /= d / 2) >= 2) return b + c;
             float p = d * (.3f * 1.5f);
             float a = c;
             float s = a < Mathf.Abs(c) ? (p / 4) : (p / (2 * Mathf.PI) * Mathf.Asin(c / a));

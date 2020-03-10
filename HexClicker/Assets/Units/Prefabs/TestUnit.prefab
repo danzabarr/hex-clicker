@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1299481544107678495}
   - component: {fileID: 2350156819800898428}
   - component: {fileID: 1299481544107678488}
+  - component: {fileID: 9135277325137077902}
   - component: {fileID: 1299481544107678492}
   m_Layer: 14
   m_Name: TestUnit
@@ -61,9 +62,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 1
   raycastModifiedPaths: 1
-  pathCreation: 0.2
   takeExistingPaths: 1
-  status: 0
+--- !u!114 &9135277325137077902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1299481544107678494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6b95989ec51b7c4b982eea339d7e011, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderers:
+  - {fileID: 1299481544624945248}
+  visualInfluence: 3
+  nodeInfluence: 0.2
 --- !u!136 &1299481544107678492
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -89,7 +104,6 @@ GameObject:
   - component: {fileID: 1299481544624945250}
   - component: {fileID: 1299481544624945249}
   - component: {fileID: 1299481544624945248}
-  - component: {fileID: 3946123551633203488}
   m_Layer: 18
   m_Name: MaskRevealer
   m_TagString: Untagged
@@ -157,22 +171,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &3946123551633203488
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1299481544624945253}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6b95989ec51b7c4b982eea339d7e011, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  renderers:
-  - {fileID: 1299481544624945248}
-  sensitivity: 3
-  color: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1299481544809790841
 GameObject:
   m_ObjectHideFlags: 0

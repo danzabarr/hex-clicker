@@ -28,7 +28,7 @@ namespace HexClicker.Units
                 float range = Random.Range(3f, 20f);
 
                 Vector2 randomPosition = Random.insideUnitCircle * range + transform.position.xz();
-                agent.SetDestination(World.Map.Instance.OnTerrain(randomPosition), 5000);
+                agent.SetDestination(World.Map.Instance.OnTerrain(randomPosition));
             }
         }
         private void MoveMouseClick()
@@ -42,18 +42,18 @@ namespace HexClicker.Units
 
                     if (bp != null)
                     {
-                        agent.SetDestination(bp.Parent, 5000);
+                        agent.SetDestination(bp.Parent);
                     }
                     else
                     {
-                        agent.SetDestination(hitInfo.point, 5000);
+                        agent.SetDestination(hitInfo.point);
                     }
                 }
             }
 
             if (Input.GetMouseButtonDown(2) && !UI.UIMethods.IsMouseOverUI)
             {
-                agent.LookFor((Node node) => Map.Instance.TryGetTree(node.Index, out _), true, 5000);
+                agent.LookFor((Node node) => Map.Instance.TryGetTree(node.Index, out _), true);
             }
         }
     }

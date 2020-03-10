@@ -9,221 +9,92 @@ namespace HexClicker.Navigation
     {
         [SerializeField] private float speed;
         [SerializeField] private bool raycastModifiedPaths;
-        [SerializeField] private float pathCreation;
         [SerializeField] [Range(0, 1)] private float takeExistingPaths;
-
-        private Vector2Int nearestNode;
 
         private PathFinding.Request pathRequest;
         private List<PathFinding.Point> path;
         private PathIterator pathIterator;
         private Node[] firstNeighbour;
-
-        public enum Status
-        {
-            Waiting,
-            Stopped,
-            Pathing
-        }
-
-        public Status status;
         public Building CurrentBuilding { get; private set; }
         public Building DestinationBuilding { get; private set; }
-        public Vector3 Destination { get; private set; }
-        public bool HasDestination => pathRequest != null || pathIterator != null;
-        public bool HasPath => pathIterator != null;
-        public bool AtDestination => pathIterator != null && pathIterator.T >= 1;
-        public bool Stopped => !HasDestination || AtDestination;
-
-        /// <summary>
-        /// Sets the path for this unit directly.
-        /// </summary>
-        public void SetPath(List<PathFinding.Point> path)
+        public bool Stopped => pathRequest == null && pathIterator == null && path == null;
+        public void SetDestination(Vector3 position)
         {
             Stop();
-            this.path = path;
-            if (path != null)
-            {
-                pathIterator = new PathIterator(path);
-                Destination = path[path.Count - 1].Node.Position;
-            }
-        }
-
-        /// <summary>
-        /// Enqueues a request to pathfind to the destination.
-        /// </summary>
-        public void SetDestination(Vector3 destination, float maxCost)
-        {
-            if (CurrentBuilding != null)
-            {
-                LeaveBuilding(CurrentBuilding, destination, maxCost);
-                return;
-            }
-
-            Stop();
-            Destination = destination;
-            DestinationBuilding = null;
             pathRequest = new PathFinding.Request()
             {
                 start = transform.position,
+                end = position,
                 addStartNeighbours = firstNeighbour,
-                end = destination,
-                maxCost = maxCost,
+                maxCost = 1000,
                 takeExistingPaths = takeExistingPaths
             };
+            if (CurrentBuilding != null)
+                pathRequest.startNode = CurrentBuilding.Exit;
             pathRequest.Queue();
-            status = Status.Waiting;
         }
 
-        public void SetDestination(Building destination, float maxCost)
+        public void SetDestination(Building building)
         {
-            if (CurrentBuilding != null)
-            {
-                LeaveBuilding(CurrentBuilding, destination, maxCost);
-                return;
-            }
             Stop();
-            Destination = destination.Enter.Position;
-            DestinationBuilding = destination;
+            DestinationBuilding = building;
             pathRequest = new PathFinding.Request()
             {
                 start = transform.position,
+                endNode = building.Enter,
                 addStartNeighbours = firstNeighbour,
-                endNode = destination.Enter,
-                maxCost = maxCost,
+                maxCost = 1000,
                 takeExistingPaths = takeExistingPaths
             };
+            if (CurrentBuilding != null)
+                pathRequest.startNode = CurrentBuilding.Exit;
             pathRequest.Queue();
-            status = Status.Waiting;
         }
 
-        public void LookFor(PathFinding.Match match, bool allowInaccessibleEnd, float maxCost)
+        public void LookFor(PathFinding.Match match, bool allowInaccessibleEnd)
         {
-            if (CurrentBuilding != null)
-            {
-                LeaveBuilding(CurrentBuilding, match, allowInaccessibleEnd, maxCost);
-                return;
-            }
             Stop();
-            Destination = default;
-            DestinationBuilding = null;
             pathRequest = new PathFinding.Request()
             {
                 start = transform.position,
-                addStartNeighbours = firstNeighbour,
                 match = match,
-                allowInaccessibleEnd = allowInaccessibleEnd,
-                maxCost = maxCost,
-                takeExistingPaths = takeExistingPaths
+                addStartNeighbours = firstNeighbour,
+                maxCost = 1000,
+                takeExistingPaths = takeExistingPaths,
+                allowInaccessibleEnd = allowInaccessibleEnd
             };
+            if (CurrentBuilding != null)
+                pathRequest.startNode = CurrentBuilding.Exit;
             pathRequest.Queue();
-            status = Status.Waiting;
         }
 
-        public void LookFor(PathFinding.Match match, Vector3 targetArea, bool allowInaccessibleEnd, float maxCost)
+        public void LookFor(PathFinding.Match match, Vector3 towards, bool allowInaccessibleEnd)
         {
-            if (CurrentBuilding != null)
-            {
-                LeaveBuilding(CurrentBuilding, match, allowInaccessibleEnd, maxCost);
-                return;
-            }
             Stop();
-            Destination = default;
-            DestinationBuilding = null;
             pathRequest = new PathFinding.Request()
             {
                 start = transform.position,
-                end = targetArea,
+                end = towards,
+                match = match,
                 addStartNeighbours = firstNeighbour,
-                match = match,
-                matchTowardsEnd = true,
+                maxCost = 1000,
+                takeExistingPaths = takeExistingPaths,
                 allowInaccessibleEnd = allowInaccessibleEnd,
-                maxCost = maxCost,
-                takeExistingPaths = takeExistingPaths
+                matchTowardsEnd = true
             };
+            if (CurrentBuilding != null)
+                pathRequest.startNode = CurrentBuilding.Exit;
             pathRequest.Queue();
-            status = Status.Waiting;
         }
 
-        public void LeaveBuilding(Building current, Vector3 destination, float maxCost)
-        {
-            CurrentBuilding = current;
-            DestinationBuilding = null;
-            Destination = destination;
-            pathRequest = new PathFinding.Request()
-            {
-                startNode = current.Exit,
-                end = destination,
-                maxCost = maxCost,
-                takeExistingPaths = takeExistingPaths
-            };
-            pathRequest.Queue();
-            status = Status.Waiting;
-        }
-
-        public void LeaveBuilding(Building current, Building destination, float maxCost)
-        {
-            if (destination == current)
-                return;
-            CurrentBuilding = current;
-            Destination = destination.Enter.Position;
-            DestinationBuilding = destination;
-            pathRequest = new PathFinding.Request()
-            {
-                startNode = current.Exit,
-                endNode = destination.Enter,
-                maxCost = maxCost,
-                takeExistingPaths = takeExistingPaths
-            };
-            pathRequest.Queue();
-            status = Status.Waiting;
-        }
-
-        public void LeaveBuilding(Building current, PathFinding.Match match, bool allowInaccessibleEnd, float maxCost)
-        {
-            CurrentBuilding = current;
-            Destination = default;
-            DestinationBuilding = null;
-            pathRequest = new PathFinding.Request()
-            {
-                startNode = current.Exit,
-                match = match,
-                allowInaccessibleEnd = allowInaccessibleEnd,
-                maxCost = maxCost,
-                takeExistingPaths = takeExistingPaths
-            };
-            pathRequest.Queue();
-            status = Status.Waiting;
-        }
-
-        public void LeaveBuilding(Building current, PathFinding.Match match, Vector3 targetArea, bool allowInaccessibleEnd, float maxCost)
-        {
-            CurrentBuilding = current;
-            Destination = default;
-            DestinationBuilding = null;
-            pathRequest = new PathFinding.Request()
-            {
-                startNode = current.Exit,
-                end = targetArea,
-                matchTowardsEnd = true,
-                match = match,
-                allowInaccessibleEnd = allowInaccessibleEnd,
-                maxCost = maxCost,
-                takeExistingPaths = takeExistingPaths
-            };
-            status = Status.Waiting;
-        }
-
-        /// <summary>
-        /// Cancels movement and deletes current path if one exists.
-        /// </summary>
         public void Stop()
         {
             if (pathIterator != null)
                 firstNeighbour = new Node[] { pathIterator.NodeBehind, pathIterator.NodeInfront };
             pathIterator = null;
             pathRequest = null;
-            status = Status.Stopped;
+            path = null;
+            DestinationBuilding = null;
         }
 
         public void Update()
@@ -233,18 +104,19 @@ namespace HexClicker.Navigation
             {
                 if (pathRequest.Result == PathFinding.Result.Success)
                 {
-                    
                     path = pathRequest.Path;
                     pathIterator = new PathIterator(path);
+                    firstNeighbour = null;
                     CurrentBuilding = null;
-                    status = Status.Pathing;
+                    if (pathIterator.Last is BuildingNode)
+                        DestinationBuilding = (pathIterator.Last as BuildingNode).building;
                 }
                 else
                 {
                     Debug.Log("Path was unsuccessful: " + pathRequest.Result);
                     path = null;
                     pathIterator = null;
-                    firstNeighbour = null;
+                    DestinationBuilding = null;
                 }
                 pathRequest = null;
             }
@@ -255,23 +127,15 @@ namespace HexClicker.Navigation
                 transform.position = pathIterator.CurrentPosition;
                 if (pathIterator.T >= 1)
                 {
+                    if (pathIterator.Last is BuildingNode)
+                        CurrentBuilding = (pathIterator.Last as BuildingNode).building;
+                    firstNeighbour = null;
                     pathIterator = null;
                     path = null;
-                    CurrentBuilding = DestinationBuilding;
-                    firstNeighbour = null;
-                    //transform.position = Destination;
                 }
             }
-
-            //Apply path to navigation nodes
-            Vector2Int nearestNode = Vector2Int.RoundToInt((transform.position * NavigationGraph.Resolution / World.Map.TileSize).xz());
-            if (this.nearestNode != nearestNode)
-            {
-                this.nearestNode = nearestNode;
-                if (NavigationGraph.TryGetNode(nearestNode, out Node node))
-                    node.DesirePathCost -= pathCreation;
-            }
         }
+
         public void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.green;
@@ -294,6 +158,5 @@ namespace HexClicker.Navigation
             foreach (Node node in NavigationGraph.NearestSquareNodes(transform.position, true))
                 Gizmos.DrawLine(transform.position, node.Position);
         }
-
     }
 }

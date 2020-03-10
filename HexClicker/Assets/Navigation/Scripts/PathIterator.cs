@@ -15,6 +15,8 @@ namespace HexClicker.Navigation
         public Vector3 CurrentPosition { get; private set; }
         public Node NodeInfront { get; private set; }
         public Node NodeBehind { get; private set; }
+        public Node First => nodes[0];
+        public Node Last => nodes[nodes.Length - 1];
         public PathIterator(List<PathFinding.Point> path)
         {
             int length = path.Count;

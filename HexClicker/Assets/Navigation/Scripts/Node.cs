@@ -24,6 +24,7 @@ namespace HexClicker.Navigation
         public readonly Vector3 Position;
         public readonly List<Neighbour> Neighbours = new List<Neighbour>(1);
         public readonly bool ZeroDistance;
+        public readonly bool OffGrid;
 
         private float desirePathCost = MaxDesirePathCost;
         public float DesirePathCost
@@ -46,12 +47,14 @@ namespace HexClicker.Navigation
         public Node(Vector3 position)
         {
             Position = position;
+            OffGrid = true;
         }
 
         public Node(Vector3 position, bool zeroDistance)
         {
             Position = position;
             ZeroDistance = zeroDistance;
+            OffGrid = true;
         }
 
         public void RemoveLastAddedNeighbour()
