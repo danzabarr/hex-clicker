@@ -1,0 +1,139 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7857972516497551664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c23dcc7ccca732449f4353ccdae693a, type: 3}
+  m_Name: Wait
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  rect:
+    serializedVersion: 2
+    x: -250
+    y: 325
+    width: 250
+    height: 250
+  connections:
+  - {fileID: 9078280471381009887}
+  mode: 0
+  time: 5
+--- !u!114 &-3656509327241144775
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bd3d51a981bf5e4d9b53380dafb87cf, type: 3}
+  m_Name: Any
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  rect:
+    serializedVersion: 2
+    x: 250
+    y: 0
+    width: 250
+    height: 250
+  connections: []
+  mode: 0
+--- !u!114 &-1922780392773367537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee065bbea72161e48be7193831535214, type: 3}
+  m_Name: Entry
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  rect:
+    serializedVersion: 2
+    x: -250
+    y: 0
+    width: 250
+    height: 250
+  connections:
+  - {fileID: 1263614670324732486}
+  mode: 0
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2123d47ed6835b244b1dffb2072f73ef, type: 3}
+  m_Name: BehaviourGraph
+  m_EditorClassIdentifier: 
+  nodes:
+  - {fileID: -1922780392773367537}
+  - {fileID: -3656509327241144775}
+  - {fileID: -7857972516497551664}
+  - {fileID: 6163492637606888469}
+  entry: {fileID: -1922780392773367537}
+  any: {fileID: -3656509327241144775}
+--- !u!114 &1263614670324732486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
+  m_Name: Connection (Entry -> Wait)
+  m_EditorClassIdentifier: 
+  node: {fileID: -7857972516497551664}
+  evaluation: 0
+  conditions: []
+--- !u!114 &6163492637606888469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c23dcc7ccca732449f4353ccdae693a, type: 3}
+  m_Name: Wait
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  rect:
+    serializedVersion: 2
+    x: -250
+    y: 675
+    width: 250
+    height: 250
+  connections: []
+  mode: 2
+  time: 5
+--- !u!114 &9078280471381009887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
+  m_Name: Connection (Wait -> Wait)
+  m_EditorClassIdentifier: 
+  node: {fileID: 6163492637606888469}
+  evaluation: 0
+  conditions: []

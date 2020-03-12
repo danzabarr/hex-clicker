@@ -151,7 +151,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &29837812
@@ -172,8 +172,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &29837813
 MeshRenderer:
@@ -359,7 +358,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &72544445
@@ -380,8 +379,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &72544446
 MeshRenderer:
@@ -474,7 +472,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &82649774
@@ -495,8 +493,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &82649775
 MeshRenderer:
@@ -596,8 +593,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!64 &164268349
 MeshCollider:
@@ -610,7 +606,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!23 &164268350
@@ -704,7 +700,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &174024175
@@ -725,8 +721,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &174024176
 MeshRenderer:
@@ -819,7 +814,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &236948686
@@ -840,8 +835,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &236948687
 MeshRenderer:
@@ -934,7 +928,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &246464070
@@ -955,8 +949,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &246464071
 MeshRenderer:
@@ -1049,7 +1042,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &343664183
@@ -1070,8 +1063,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &343664184
 MeshRenderer:
@@ -1255,7 +1247,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &504356376
@@ -1276,8 +1268,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &504356377
 MeshRenderer:
@@ -1370,7 +1361,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &654284513
@@ -1391,8 +1382,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &654284514
 MeshRenderer:
@@ -1485,7 +1475,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &664408063
@@ -1506,8 +1496,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &664408064
 MeshRenderer:
@@ -1600,7 +1589,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &674775614
@@ -1621,8 +1610,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &674775615
 MeshRenderer:
@@ -1715,7 +1703,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &734962557
@@ -1736,8 +1724,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &734962558
 MeshRenderer:
@@ -1830,7 +1817,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &792707437
@@ -1851,8 +1838,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &792707438
 MeshRenderer:
@@ -1945,7 +1931,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &815032077
@@ -1966,8 +1952,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &815032078
 MeshRenderer:
@@ -2060,7 +2045,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &863560541
@@ -2081,8 +2066,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &863560542
 MeshRenderer:
@@ -2258,7 +2242,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &934071421
@@ -2279,8 +2263,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &934071422
 MeshRenderer:
@@ -2373,7 +2356,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &979608030
@@ -2394,8 +2377,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &979608031
 MeshRenderer:
@@ -2488,7 +2470,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1114217616
@@ -2509,8 +2491,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1114217617
 MeshRenderer:
@@ -2603,7 +2584,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1242944009
@@ -2624,8 +2605,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1242944010
 MeshRenderer:
@@ -2718,7 +2698,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1246107532
@@ -2739,8 +2719,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1246107533
 MeshRenderer:
@@ -2833,7 +2812,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1362661289
@@ -2854,8 +2833,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1362661290
 MeshRenderer:
@@ -2948,7 +2926,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1452708012
@@ -2969,8 +2947,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1452708013
 MeshRenderer:
@@ -3063,7 +3040,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1577158856
@@ -3084,8 +3061,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1577158857
 MeshRenderer:
@@ -3178,7 +3154,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1672603050
@@ -3199,8 +3175,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1672603051
 MeshRenderer:
@@ -3293,7 +3268,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1675532286
@@ -3314,8 +3289,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1675532287
 MeshRenderer:
@@ -3408,7 +3382,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1758913574
@@ -3429,8 +3403,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1758913575
 MeshRenderer:
@@ -3523,7 +3496,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1805874188
@@ -3544,8 +3517,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1805874189
 MeshRenderer:
@@ -3704,7 +3676,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1901693451
@@ -3725,8 +3697,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1901693452
 MeshRenderer:
@@ -3819,7 +3790,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &1910387930
@@ -3840,8 +3811,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &1910387931
 MeshRenderer:
@@ -3934,7 +3904,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &2023141744
@@ -3955,8 +3925,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &2023141745
 MeshRenderer:
@@ -4049,7 +4018,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: -2432090755550338912, guid: 007484c8a20b51d4982a0843f3456541, type: 3}
 --- !u!114 &2023350637
@@ -4070,8 +4039,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  target: {x: 0, y: 0, z: 100}
-  duration: 3
+  duration: 1
   easing: 29
 --- !u!23 &2023350638
 MeshRenderer:

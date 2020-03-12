@@ -2,6 +2,7 @@
 using HexClicker.World;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HexClicker.Navigation
 {
@@ -10,6 +11,8 @@ namespace HexClicker.Navigation
         [SerializeField] private float speed;
         [SerializeField] private bool raycastModifiedPaths;
         [SerializeField] [Range(0, 1)] private float takeExistingPaths;
+        [SerializeField] private UnityEvent onAcquirePath;
+        [SerializeField] private UnityEvent onReachDestination;
 
         private PathFinding.Request pathRequest;
         private List<PathFinding.Point> path;
@@ -17,6 +20,7 @@ namespace HexClicker.Navigation
         private Node[] firstNeighbour;
         public Building CurrentBuilding { get; private set; }
         public Building DestinationBuilding { get; private set; }
+        public Node DestinationNode => path?[path.Count - 1].Node;
         public bool Stopped => pathRequest == null && pathIterator == null && path == null;
         public void SetDestination(Vector3 position)
         {
@@ -110,6 +114,7 @@ namespace HexClicker.Navigation
                     CurrentBuilding = null;
                     if (pathIterator.Last is BuildingNode)
                         DestinationBuilding = (pathIterator.Last as BuildingNode).building;
+                    onAcquirePath.Invoke();
                 }
                 else
                 {
@@ -130,6 +135,7 @@ namespace HexClicker.Navigation
                     if (pathIterator.Last is BuildingNode)
                         CurrentBuilding = (pathIterator.Last as BuildingNode).building;
                     firstNeighbour = null;
+                    onReachDestination.Invoke();
                     pathIterator = null;
                     path = null;
                 }

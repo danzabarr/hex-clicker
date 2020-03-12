@@ -1,8 +1,8 @@
-﻿using HexClicker.Navigation;
-using HexClicker.World;
+﻿using HexClicker.World;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using HexClicker.Animation;
 
 namespace HexClicker.Units
 {
@@ -53,8 +53,18 @@ namespace HexClicker.Units
 
             if (Input.GetMouseButtonDown(2) && !UI.UIMethods.IsMouseOverUI)
             {
-                agent.LookFor((Node node) => Map.Instance.TryGetTree(node.Index, out _), true);
+                agent.LookFor((Navigation.Node node) => Map.Instance.TryGetTree(node.Index, out _), true);
             }
+        }
+
+        public void PathAcquired()
+        {
+            Debug.Log("Path Acquired");
+        }
+
+        public void DestinationReached()
+        {
+            Debug.Log("Destination Reached");
         }
     }
 }

@@ -63,11 +63,11 @@ MonoBehaviour:
   closeTransitionEasing: 17
   minHoverRadius: 50
   maxHoverRadius: 200
-  hoverScale: 1.1
+  hoverScale: 1.125
   mouseEnterTransitionDuration: 1
-  mouseExitTransitionDuration: 1
+  mouseExitTransitionDuration: 0.5
   transitionMouseEnterEasing: 26
-  transitionMouseExitEasing: 23
+  transitionMouseExitEasing: 11
 --- !u!1 &2827279442413065619
 GameObject:
   m_ObjectHideFlags: 0
