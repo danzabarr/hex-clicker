@@ -35,24 +35,21 @@ namespace HexClicker.Behaviour
         public virtual void OnPause(Agent target) { }
         public virtual void OnResume(Agent target) { }
 
-        public Node Evaluate(Agent target)
+        public Node NextState(Agent target)
         {
-            int index = -1;
-            float highest = 0;
-            for (int i = 0; i < connections.Count; i++)
+            Node next = null;
+            float best = 0;
+            foreach(Connection c in connections)
             {
-                float value = connections[i].Evaluate(target);
-                if (value > highest)
+                float value = c.Evaluate(target);
+                if (value > best)
                 {
-                    index = i;
-                    highest = value;
+                    next = c.to;
+                    best = value;
                 }
             }
 
-            if (index < 0)
-                return null;
-
-            return connections[index].node;
+            return next;
         }
 
         public bool Connect(Node node, out Connection connection)
@@ -60,20 +57,14 @@ namespace HexClicker.Behaviour
             connection = null;
             if (node == null)
                 return false;
-            if (HasConnection(node))
-                return false;
-            connections.Add(connection = new Connection(node));
-            return true;
-        }
 
-        public bool Connect(Node node, out Connection connection, Evaluation type, Condition conditions)
-        {
-            connection = null;
-            if (node == null)
+            if (node.graph != graph)
                 return false;
+
             if (HasConnection(node))
                 return false;
-            connections.Add(connection = new Connection(node, type, conditions));
+
+            connections.Add(connection = new Connection(this, node, graph));
             return true;
         }
 
@@ -81,17 +72,15 @@ namespace HexClicker.Behaviour
         {
             if (node == null)
                 return false;
-            return connections.Any(c => c.node == node);
+            return connections.Any(c => c.to == node);
         }
 
         public bool Disconnect(Node node)
         {
             if (node == null)
                 return false;
-            if (!HasConnection(node))
-                return false;
 
-            return connections.RemoveAll(c => c.node == node) > 0;
+            return connections.RemoveAll(c => c.to == node) > 0;
         }
     }
 }

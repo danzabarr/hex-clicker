@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
+using System.Linq;
 
 namespace HexClicker.Behaviour
 {
@@ -11,17 +13,25 @@ namespace HexClicker.Behaviour
         public static GraphEditorWindow current;
 
         private Graph graph;
+        private Agent agent;
 
         private Vector2 panOffset;
         private float zoom = 1;
         private bool autoSave = true;
 
-        private Node draggedNode;
-        private Vector2 dragStart;
+        private List<Node> draggedNode;
+        private List<Vector2> dragStart;
         private Node connectingNode;
+        private Rect selectionRect;
+        private bool selecting;
 
         private static Texture2D connectionButton;
         private static Texture2D connectionButtonFocused;
+
+        public static readonly float ConnectionSelectionDistance = 50f;
+        public static readonly float MinZoom = 1f;
+        public static readonly float MaxZoom = 4f;
+        public static readonly float ZoomSensitivity = .1f;
 
         public void OnFocus()
         {
@@ -50,7 +60,7 @@ namespace HexClicker.Behaviour
             w.graph = graph;
         }
 
-        private int topPadding { get { return isDocked() ? 19 : 22; } }
+        private int topPadding => isDocked() ? 19 : 22;
         private Func<bool> isDocked
         {
             get
@@ -116,13 +126,45 @@ namespace HexClicker.Behaviour
             return null;
         }
 
-        public static Vector2 Bezier(float t, Vector2 start, Vector2 end, Vector2 startTangent, Vector2 endTangent)
+        public float ClosestPointToCubicBezier(Vector2 p, int slices, int iterations, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
         {
-            Vector2 p0 = start;
-            Vector2 p1 = startTangent;
-            Vector2 p2 = endTangent;
-            Vector2 p3 = end;
+            return ClosestPointToCubicBezier(iterations, p, 0, 1f, slices, p0, p1, p2, p3);
+        }
 
+        private float ClosestPointToCubicBezier(int iterations, Vector2 p, float start, float end, int slices, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+        {
+            if (iterations <= 0)
+                return (start + end) / 2;
+            float tick = (end - start) / (float)slices;
+            Vector2 test, delta;
+            float best = 0;
+            float bestDistance = float.PositiveInfinity;
+            float currentDistance;
+            float t = start;
+            while (t <= end)
+            {
+                //B(t) = (1-t)**3 p0 + 3(1 - t)**2 t P1 + 3(1-t)t**2 P2 + t**3 P3
+                //x = (1 - t) * (1 - t) * (1 - t) * p0.x + 3 * (1 - t) * (1 - t) * t * p1.x + 3 * (1 - t) * t * t * p2.x + t * t * t * p3.x;
+                //y = (1 - t) * (1 - t) * (1 - t) * p0.y + 3 * (1 - t) * (1 - t) * t * p1.y + 3 * (1 - t) * t * t * p2.y + t * t * t * p3.y;
+
+                test = Bezier(t, p0, p1, p2, p3);
+                delta = test - p;
+
+                delta *= delta;
+
+                currentDistance = delta.x + delta.y;
+                if (currentDistance < bestDistance)
+                {
+                    bestDistance = currentDistance;
+                    best = t;
+                }
+                t += tick;
+            }
+            return ClosestPointToCubicBezier(iterations - 1, p, Mathf.Max(best - tick, 0f), Mathf.Min(best + tick, 1f), slices, p0, p1, p2, p3);
+        }
+
+        public static Vector2 Bezier(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+        {
             return (1 - t) * (1 - t) * (1 - t) * p0
                 + 3 * (1 - t) * (1 - t) * t * p1
                 + 3 * (1 - t) * t * t * p2
@@ -152,16 +194,14 @@ namespace HexClicker.Behaviour
             return new Vector2(x, y);
         }
 
-        private static void DrawConnection(Vector2 start, Vector2 end, out Vector2 middle)
+        private static void DrawConnection(Vector2 start, Vector2 end, out Vector2 startTangent, out Vector2 endTangent, Color color)
         {
-            middle = default;
-            Vector2 startTangent = new Vector2(start.x, Mathf.Max(end.y, start.y + (start.y - end.y) + 50));
-            Vector2 endTangent = new Vector2(end.x, Mathf.Min(start.y, end.y + (end.y - start.y) - 50));
+            startTangent = new Vector2(start.x, Mathf.Max(end.y, start.y + (start.y - end.y) + 50));
+            endTangent = new Vector2(end.x, Mathf.Min(start.y, end.y + (end.y - start.y) - 50));
 
             float deltaX = Mathf.Abs(start.x - end.x);
             float minSpace = 250;
 
-            Vector2 center = (start + end) / 2;
 
             if (start.y > end.y && deltaX < minSpace)
             {
@@ -169,36 +209,31 @@ namespace HexClicker.Behaviour
                 {
                     startTangent.x += minSpace - deltaX;
                     endTangent.x += minSpace - deltaX;
-                    center.x += (minSpace - deltaX) / 2;
                 }
                 else
                 {
                     startTangent.x -= minSpace - deltaX;
                     endTangent.x -= minSpace - deltaX;
-                    center.x -= (minSpace - deltaX) / 2;
                 }
             }
 
-            Handles.DrawBezier(start, end, startTangent, endTangent, Color.yellow, null, 8);
-
-            middle = Bezier(.5f, start, end, startTangent, endTangent);
+            Handles.DrawBezier(start, end, startTangent, endTangent, color, null, 8);
         }
 
         private static GUIStyle connectionButtonStyle;
 
         private void OnInspectorUpdate()
         {
-            Repaint();
+            if (agent != null)
+                Repaint();
         }
 
         private void OnGUI()
         {
             EditorGUI.DrawRect(new Rect(Vector2.zero, position.size), new Color(.375f, .375f, .375f));
 
-            float minZoom = 1f;
-            float maxZoom = 4f;
-            float zoomSensitivity = .1f;
-            zoom = Mathf.Clamp(zoom, minZoom, maxZoom);
+
+            zoom = Mathf.Clamp(zoom, MinZoom, MaxZoom);
 
             BeginZoomed();
 
@@ -215,7 +250,6 @@ namespace HexClicker.Behaviour
                 GUI.Label(new Rect(Screen.width / 2 - 100, Screen.height / 2 - 50 + topPadding, 200, 100), "No Graph Selected", new GUIStyle("label") { alignment = TextAnchor.MiddleCenter, fontSize = 15 });
                 return;
             }
-
            
             if (graph.entry == null)
                 graph.entry = CreateNode(typeof(EntryNode), new Vector2(0, 0)) as EntryNode;
@@ -224,9 +258,9 @@ namespace HexClicker.Behaviour
                 graph.any = CreateNode(typeof(AnyNode), new Vector2(500, 0)) as AnyNode;
 
 
-            Agent agent = Selection.activeGameObject?.GetComponent<Agent>();
+            agent = Selection.activeGameObject?.GetComponent<Agent>();
 
-            Vector2 mouse = Event.current.mousePosition + new Vector2(0, topPadding);
+            Vector2 mouse = Event.current.mousePosition;// + new Vector2(0, topPadding);
             mouse -= panOffset * zoom;
 
             #region Draw Connections
@@ -252,6 +286,14 @@ namespace HexClicker.Behaviour
                 connectionButtonStyle.focused.background = connectionButtonFocused;
             }
 
+
+            float connectionSelectionDistance = 50;
+
+            Connection mouseConnection = null;
+            float closestConnectionSq = connectionSelectionDistance * connectionSelectionDistance;
+
+            Color selectedColor = new Color(.4f, .7f, 1f);
+
             foreach (Node node in graph)
             {
                 if (node == null)
@@ -264,16 +306,33 @@ namespace HexClicker.Behaviour
                     if (c == null)
                         continue;
 
-                    DrawConnection(node.Button.center + panOffset * zoom, c.node.InPoint + panOffset * zoom, out Vector2 middle);
+                    Vector2 start = node.Button.center + panOffset * zoom;
+                    Vector2 end = c.to.InPoint + panOffset * zoom;
+
+                    DrawConnection(start, end, out Vector2 startTangent, out Vector2 endTangent, Selection.Contains(c.GetInstanceID()) ? selectedColor : Color.white);
 
                     Vector2 connectionButtonSize = new Vector2(50, 50);
 
-                    Rect connectionButtonRect = new Rect(middle - connectionButtonSize / 2, connectionButtonSize);
-                    GUILayout.BeginArea(connectionButtonRect);
-                    if (GUILayout.Button("", connectionButtonStyle))
+                    Vector2 middle = Bezier(.5f, start, startTangent, endTangent, end);
+
+                    float closestT = ClosestPointToCubicBezier(mouse + panOffset * zoom, 10, 3, start, startTangent, endTangent, end);
+
+                    Vector2 closestPoint = Bezier(closestT, start, startTangent, endTangent, end);
+                    float distSq = (closestPoint - (mouse + panOffset * zoom)).sqrMagnitude;
+
+                    if (distSq < closestConnectionSq)
                     {
+                        closestConnectionSq = distSq;
+                        mouseConnection = c;
                     }
-                    GUILayout.EndArea();
+                        
+
+                    c.button = new Rect(middle - connectionButtonSize / 2, connectionButtonSize);
+
+                    if (c.condition != null)
+                    {
+                        GUI.DrawTexture(c.button, connectionButton);
+                    }
                 }
             }
 
@@ -283,113 +342,195 @@ namespace HexClicker.Behaviour
 
             foreach (Node node in graph)
             {
-                NodeEditor.GetEditor(node, this).OnGUI(panOffset * zoom, agent != null && node == agent.State, ConnectionButtonClicked);
+                NodeEditor.GetEditor(node, this).OnGUI(panOffset * zoom, agent != null && node == agent.State, () => SetConnectingNode(node));
+            }
 
-                void ConnectionButtonClicked()
+            void SetConnectingNode(Node node)
+            {
+                if (connectingNode != null)
                 {
-                    if (connectingNode != null)
-                        connectingNode = null;
-                    else
-                        connectingNode = node;
+                    connectingNode = null;
+                    wantsMouseMove = false;
+                }
+                else
+                {
+                    connectingNode = node;
+                    wantsMouseMove = true;
                 }
             }
-            #endregion
-
-            #region Draw Current Connection
-
-            if (connectingNode != null)
-            {
-
-                DrawConnection(connectingNode.Button.center + panOffset * zoom, mouse + panOffset * zoom, out _);
-                Repaint();
-            }
 
             #endregion
 
-            #region Draw Selection Box
-
-            #endregion
-
-            
+            int controlID = GetInstanceID();
 
             switch (Event.current.type)
             {
                 case EventType.MouseDown:
-                    if (Event.current.button == 0)
                     {
-                        Node get = GetNode(mouse);
-                        
-                        if (get != null)
+                        if (Event.current.button == 0)
                         {
+
                             if (connectingNode != null)
-                            { 
-                                if (connectingNode.Connect(get, out Connection connection))
+                            {
+                                Node get = GetNode(mouse);
+                                if (get != null)
                                 {
-                                    connection.name = "Connection (" + connectingNode.name + " -> " + get.name + ")";
-                                    AssetDatabase.AddObjectToAsset(connection, graph);
-                                    if (autoSave) AssetDatabase.SaveAssets();
-                                    connectingNode = null;
-                                    Repaint();
+                                    if (connectingNode.Connect(get, out Connection connection))
+                                    {
+                                        connection.name = "Connection (" + connectingNode.name + " -> " + get.name + ")";
+                                        AssetDatabase.AddObjectToAsset(connection, graph);
+                                        if (autoSave) AssetDatabase.SaveAssets();
+                                    }
                                 }
+                                connectingNode = null;
+                                Repaint();
                             }
                             else
                             {
-                                draggedNode = get;
-                                Selection.activeInstanceID = draggedNode ? draggedNode.GetInstanceID() : -1;
-                                dragStart = mouse - draggedNode.rect.position;
-                                EditorGUIUtility.PingObject(draggedNode);
+                                Node get = GetNode(mouse);
+                                if (get != null)
+                                {
+                                    if (Selection.Contains(get))
+                                    {
+                                        draggedNode = (from UnityEngine.Object obj in Selection.objects
+                                                       where obj is Node && (obj as Node).graph == graph
+                                                       select obj as Node).ToList();
+
+                                        dragStart = (from Node node in draggedNode
+                                                     select mouse - node.rect.position).ToList();
+                                    }
+                                    else
+                                    {
+                                        draggedNode = new List<Node> { get };
+                                        dragStart = new List<Vector2> { mouse - get.rect.position };
+
+                                        Selection.activeInstanceID = get.GetInstanceID();
+                                        EditorGUIUtility.PingObject(get);
+                                    }
+
+                                    Repaint();
+                                }
+                                else if (mouseConnection != null)
+                                {
+                                    Selection.activeInstanceID = mouseConnection.GetInstanceID();
+                                    EditorGUIUtility.PingObject(mouseConnection);
+                                    Repaint();
+                                }
+                                else
+                                {
+                                    Selection.activeObject = null;
+                                    Repaint();
+                                }
+                            }
+
+                            if (draggedNode == null)
+                            {
+                                selectionRect = new Rect(mouse, Vector2.zero);
+                                selecting = true;
+                                GUIUtility.hotControl = controlID;
                                 Repaint();
                             }
                         }
                     }
-
                     break;
                 case EventType.MouseUp:
-                    if (Event.current.button == 0)
                     {
-                        draggedNode = null;
-                    }
-                    break;
-                case EventType.MouseMove:
-                    break;
-                case EventType.MouseDrag:
-
-                    if (Event.current.button == 0)
-                    {
-                        if (draggedNode != null)
+                        if (Event.current.button == 0)
                         {
-                            draggedNode.rect.position = mouse - dragStart;//+= Event.current.delta;
-                            draggedNode.rect.position = Snap(draggedNode.rect.position, 25);
+                            draggedNode = null;
+                            selectionRect = default;
+                            selecting = false;
                             Repaint();
                         }
                     }
-
-                    else if (Event.current.button == 2)
-                    {
-                        panOffset += Event.current.delta / zoom;
-                        Repaint();
-                    }
-
                     break;
+                case EventType.MouseMove:
+                    {
+                        if (connectingNode != null)
+                            Repaint();
+                        else
+                            wantsMouseMove = false;
+                    }
+                    break;
+                case EventType.MouseDrag:
+                    {
+                        if (Event.current.button == 0)
+                        {
+                            if (draggedNode != null)
+                            {
+                                for (int i = 0; i < draggedNode.Count; i++)
+                                {
+                                    Node node = draggedNode[i];
+                                    node.rect.position = mouse - dragStart[i];
+                                    node.rect.position = Snap(node.rect.position, 25);
+                                }
 
+                                Repaint();
+                            }
+
+                            else if (selecting)
+                            {
+                                selectionRect.size = mouse - selectionRect.position;
+                                Selection.instanceIDs = (from Node node in graph where selectionRect.Overlaps(node.rect, true) select node.GetInstanceID()).ToArray();
+                                Repaint();
+                            }
+                        }
+
+                        else if (Event.current.button == 2)
+                        {
+                            panOffset += Event.current.delta / zoom;
+                            Repaint();
+                        }
+                    }
+                    break;
                 case EventType.KeyDown:
+                    {
+                        if (Event.current.keyCode == KeyCode.Backspace)
+                        {
+                            foreach(UnityEngine.Object obj in Selection.objects)
+                            {
+                                if (obj is Node)
+                                {
+                                    Node node = obj as Node;
+                                    if (node.graph != graph)
+                                        continue;
+
+                                    DeleteNode(node);
+                                }
+                                else if (obj is Connection)
+                                {
+                                    Connection connection = obj as Connection;
+                                    if (connection.graph != graph)
+                                        continue;
+
+                                    DeleteConnection(connection);
+                                }
+                            }
+                        }
+                    }
                     break;
                 case EventType.KeyUp:
                     break;
                 case EventType.ScrollWheel:
-
-                    float scrollDelta = Event.current.delta.y * zoomSensitivity;
-                    scrollDelta = Mathf.Clamp(zoom + scrollDelta, minZoom, maxZoom) - zoom;
-                    if (Mathf.Abs(scrollDelta) > 0.0001f)
                     {
-                        panOffset += mouse / zoom;
-                        zoom += scrollDelta;
-                        panOffset -= mouse / zoom;
-                        Repaint();
+                        float scrollDelta = Event.current.delta.y * ZoomSensitivity;
+                        scrollDelta = Mathf.Clamp(zoom + scrollDelta, MinZoom, MaxZoom) - zoom;
+                        if (Mathf.Abs(scrollDelta) > 0.0001f)
+                        {
+                            panOffset += mouse / zoom;
+                            zoom += scrollDelta;
+                            panOffset -= mouse / zoom;
+                            Repaint();
+                        }
                     }
-
                     break;
                 case EventType.Repaint:
+                    {
+                        if (connectingNode != null)
+                            DrawConnection(connectingNode.Button.center + panOffset * zoom, mouse + panOffset * zoom, out _, out _, Color.white);
+
+                        DrawSelectionBox();
+                    }
                     break;
                 case EventType.Layout:
                     break;
@@ -400,6 +541,18 @@ namespace HexClicker.Behaviour
                 case EventType.DragExited:
                     break;
                 case EventType.Ignore:
+                    {
+                        if (GUIUtility.hotControl == controlID && Event.current.rawType == EventType.MouseUp)
+                        {
+                            if (Event.current.button == 0)
+                            {
+                                draggedNode = null;
+                                selectionRect = default;
+                                selecting = false;
+                                Repaint();
+                            }
+                        }
+                    }
                     break;
                 case EventType.Used:
                     break;
@@ -411,31 +564,26 @@ namespace HexClicker.Behaviour
                     {
                         GenericMenu menu = new GenericMenu();
 
-
                         Node get = GetNode(mouse);
-
                         if (get != null)
                         {
-                            menu.AddItem(new GUIContent("Delete"), false, () =>
-                            {
-                                DeleteNode(get);
-                            });
+                            menu.AddItem(new GUIContent("Delete"), false, () => DeleteNode(get));
                         }
                         else
                         {
+
                             foreach (Type type in NodeEditor.NodeTypes)
                             {
                                 if (type == typeof(EntryNode))
                                     continue;
                                 if (type == typeof(AnyNode))
                                     continue;
-                                string path = "Add Node/" + GetNodeMenuName(type);
-                                if (string.IsNullOrEmpty(path)) continue;
-                                menu.AddItem(new GUIContent(path), false, () =>
-                                {
-                                    CreateNode(type, mouse);
-                                });
+                                string path = GetNodeMenuName(type);
 
+                                if (string.IsNullOrEmpty(path))
+                                    continue;
+
+                                menu.AddItem(new GUIContent("Add Node/" + path), false, () => CreateNode(type, mouse));
                             }
                         }
                         Matrix4x4 m4 = GUI.matrix;
@@ -445,7 +593,6 @@ namespace HexClicker.Behaviour
 
                         GUI.matrix = m4;
                     }
-
                     break;
                 case EventType.MouseEnterWindow:
                     break;
@@ -454,6 +601,27 @@ namespace HexClicker.Behaviour
             }
 
             EndZoomed();
+        }
+
+        private void DrawSelectionBox()
+        {
+            Matrix4x4 m = GUI.matrix;
+            GUI.matrix = prevGuiMatrix;
+            Rect sr = selectionRect;
+
+            if (sr.width * sr.height != 0)
+            {
+                sr.min /= zoom;
+                sr.max /= zoom;
+                sr.min += panOffset;
+                sr.max += panOffset;
+                sr.min += new Vector2(0, topPadding - topPadding * zoom);
+                sr.max += new Vector2(0, topPadding - topPadding * zoom);
+                sr = new Rect(Mathf.Min(sr.xMin, sr.xMax), Mathf.Min(sr.yMin, sr.yMax), Mathf.Abs(sr.width), Mathf.Abs(sr.height));
+                GUI.Box(sr, "", new GUIStyle("selectionRect"));
+            }
+
+            GUI.matrix = m;
         }
 
         public Node CreateNode(Type type, Vector2 position)
@@ -477,16 +645,32 @@ namespace HexClicker.Behaviour
 
         public void DeleteNode(Node node)
         {
+            if (node == null)
+                return;
+
             foreach(Connection c in node.connections)
                 AssetDatabase.RemoveObjectFromAsset(c);
+
             foreach(Node n in graph)
                 foreach(Connection c in n.connections)
-                    if (c.node == node)
+                    if (c.to == node)
                         AssetDatabase.RemoveObjectFromAsset(c);
 
             graph.RemoveNode(node);
 
             AssetDatabase.RemoveObjectFromAsset(node);
+            if (autoSave) AssetDatabase.SaveAssets();
+            Repaint();
+        }
+
+        public void DeleteConnection(Connection connection)
+        {
+            if (connection == null)
+                return;
+
+            graph.RemoveConnection(connection);
+
+            AssetDatabase.RemoveObjectFromAsset(connection);
             if (autoSave) AssetDatabase.SaveAssets();
             Repaint();
         }

@@ -48,11 +48,18 @@ namespace HexClicker.Behaviour
                     if (c == null)
                         continue;
 
-                    if (c.node == node)
+                    if (c.to == node)
                         n.connections.RemoveAt(i);
                 }
             }
             return true;
+        }
+
+        public bool RemoveConnection(Connection connection)
+        {
+            if (connection == null)
+                return false;
+            return connection.from.connections.Remove(connection);
         }
 
         public void Clear()

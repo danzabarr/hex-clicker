@@ -59,6 +59,7 @@ namespace HexClicker.Behaviour
                 currentState.OnPause(this);
             }
         }
+
         public void Resume()
         {
             if (!paused)
@@ -138,7 +139,7 @@ namespace HexClicker.Behaviour
 
             if (stateComplete)
             {
-                Node nextState = currentState.Evaluate(this);
+                Node nextState = currentState.NextState(this);
 
                 if (nextState == null)
                 {
