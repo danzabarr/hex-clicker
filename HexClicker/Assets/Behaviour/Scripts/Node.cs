@@ -22,8 +22,8 @@ namespace HexClicker.Behaviour
         {
             get
             {
-                float buttonWidth = 50;
-                float buttonHeight = 15;
+                float buttonWidth = rect.width / 2;
+                float buttonHeight =25;
                 return new Rect(rect.x + rect.width * .5f - buttonWidth * .5f, rect.yMax - 10, buttonWidth, buttonHeight);
             }
         }
@@ -34,22 +34,42 @@ namespace HexClicker.Behaviour
         public virtual void OnEnd(Agent target) { }
         public virtual void OnPause(Agent target) { }
         public virtual void OnResume(Agent target) { }
-
-        public Node NextState(Agent target)
+        public Connection NextConnection(Agent target)
         {
-            Node next = null;
+            if (target == null)
+                return null;
+            Connection next = null;
             float best = 0;
+
+            if (this != graph.any)
+            {
+                foreach(Connection c in graph.any.connections)
+                {
+                    float value = c.Evaluate(target);
+                    if (value > best)
+                    {
+                        next = c;
+                        best = value;
+                    }
+                }
+            }
+
             foreach(Connection c in connections)
             {
                 float value = c.Evaluate(target);
                 if (value > best)
                 {
-                    next = c.to;
+                    next = c;
                     best = value;
                 }
             }
 
             return next;
+        }
+
+        public Node NextState(Agent target)
+        {
+            return NextConnection(target)?.to;
         }
 
         public bool Connect(Node node, out Connection connection)
@@ -61,10 +81,16 @@ namespace HexClicker.Behaviour
             if (node.graph != graph)
                 return false;
 
+            if (node is EntryNode)
+                return false;
+
+            if (node is AnyNode)
+                return false;
+
             if (HasConnection(node))
                 return false;
 
-            connections.Add(connection = new Connection(this, node, graph));
+            connections.Add(connection = new Connection(this, node, graph, connections.Count));
             return true;
         }
 

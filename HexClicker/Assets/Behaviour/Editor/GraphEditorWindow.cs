@@ -60,6 +60,11 @@ namespace HexClicker.Behaviour
             w.graph = graph;
         }
 
+        private void OnSelectionChange()
+        {
+            Repaint();
+        }
+
         private int topPadding => isDocked() ? 19 : 22;
         private Func<bool> isDocked
         {
@@ -293,6 +298,7 @@ namespace HexClicker.Behaviour
             float closestConnectionSq = connectionSelectionDistance * connectionSelectionDistance;
 
             Color selectedColor = new Color(.4f, .7f, 1f);
+            Color nextColor = new Color(1f, .9f, .2f);
 
             foreach (Node node in graph)
             {
@@ -301,15 +307,30 @@ namespace HexClicker.Behaviour
                 if (node.connections == null)
                     continue;
 
-                foreach (Connection c in node.connections)
+                int count = node.connections.Count;
+
+                Connection next = node.NextConnection(agent);
+
+                for (int i = 0; i < count; i++)
                 {
+                    Connection c = node.connections[i];
                     if (c == null)
                         continue;
 
-                    Vector2 start = node.Button.center + panOffset * zoom;
+                    c.index = i;
+
+                    //Vector2 start = node.Button.center + panOffset * zoom;
+                    Vector2 start = new Vector2(node.rect.x + node.rect.width / 4 + node.rect.width / 2 / (count) * (i + 0.5f), node.rect.yMax) + panOffset * zoom;
                     Vector2 end = c.to.InPoint + panOffset * zoom;
 
-                    DrawConnection(start, end, out Vector2 startTangent, out Vector2 endTangent, Selection.Contains(c.GetInstanceID()) ? selectedColor : Color.white);
+
+                    Color color = Color.white;
+                    if (Selection.Contains(c.GetInstanceID()))
+                        color = selectedColor;
+                    else if (c == next)
+                        color = nextColor;
+
+                    DrawConnection(start, end, out Vector2 startTangent, out Vector2 endTangent, color);
 
                     Vector2 connectionButtonSize = new Vector2(50, 50);
 

@@ -22,12 +22,14 @@ namespace HexClicker.Behaviour
         public Node from;
         public Node to;
         public Condition condition;
+        public int index;
 
-        public Connection(Node from, Node to, Graph graph)
+        public Connection(Node from, Node to, Graph graph, int index)
         {
             this.from = from;
             this.to = to;
             this.graph = graph;
+            this.index = index;
         }
 
         public float Evaluate(Agent target)
