@@ -55,7 +55,7 @@ namespace HexClicker.Trees
                 if (currentBatch != null && currentBatch.Add(tree))
                 {
                     tree.batch = currentBatchIndex;
-                    allTrees.Add(tree.node, tree);
+                    allTrees.Add(tree.vertex, tree);
                 }
             }
 
@@ -81,7 +81,7 @@ namespace HexClicker.Trees
             if (tree == null)
                 return false;
 
-            if (allTrees.ContainsKey(tree.node))
+            if (allTrees.ContainsKey(tree.vertex))
                 return false;
 
             for (int i = 0; i < batches.Count; i++)
@@ -91,7 +91,7 @@ namespace HexClicker.Trees
                 if (batches[i].Add(tree))
                 {
                     tree.batch = i;
-                    allTrees.Add(tree.node, tree);
+                    allTrees.Add(tree.vertex, tree);
                     return true;
                 }
             }
@@ -102,7 +102,7 @@ namespace HexClicker.Trees
             if (newBatch.Add(tree))
             {
                 tree.batch = batches.Count - 1;
-                allTrees.Add(tree.node, tree);
+                allTrees.Add(tree.vertex, tree);
                 return true;
             }
             else return false;
@@ -117,7 +117,7 @@ namespace HexClicker.Trees
                 return false;
 
             bool removedFromBatch = batches[tree.batch].Remove(tree.index);
-            bool removedFromDict = allTrees.Remove(tree.node);
+            bool removedFromDict = allTrees.Remove(tree.vertex);
 
             return removedFromBatch || removedFromDict;
         }

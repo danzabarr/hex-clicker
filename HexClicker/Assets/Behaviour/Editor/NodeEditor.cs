@@ -96,7 +96,7 @@ namespace HexClicker.Behaviour
 
         public delegate void ButtonClicked();
 
-        public virtual void OnGUI(Vector2 panOffset, bool active, ButtonClicked connectionButtonClicked)
+        public void OnGUI(Vector2 panOffset, bool active, ButtonClicked connectionButtonClicked)
         {
             //nodeStyle = null;
             //headerStyle = null;
@@ -177,6 +177,11 @@ namespace HexClicker.Behaviour
                 if (prop.name == "graph") continue;
                 if (prop.name == "rect") continue;
                 if (prop.name == "connections") continue;
+                if (target is AnyNode || target is EntryNode)
+                {
+                    if (prop.name == "mode") continue;
+                    if (prop.name == "exclude") continue;
+                }
 
                 EditorGUILayout.PropertyField(prop);
             }

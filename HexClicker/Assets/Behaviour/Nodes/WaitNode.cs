@@ -16,7 +16,7 @@ namespace HexClicker.Behaviour
                 for (float t = 0; t < time; t += Time.deltaTime)
                     yield return null;
                 
-                target.Complete(this);
+                target.End(this, StateResult.Succeeded);
             }
         }
     }

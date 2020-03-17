@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8662380278555241408
+--- !u!114 &-747814548330650100
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -9,112 +9,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
-  m_Name: Connection (Wait -> Wait)
-  m_EditorClassIdentifier: 
-  graph: {fileID: 11400000}
-  button:
-    serializedVersion: 2
-    x: 1211.9208
-    y: 1533.8885
-    width: 50
-    height: 50
-  from: {fileID: 5725167835135402445}
-  to: {fileID: 7148035238131465831}
-  condition: {fileID: 0}
-  index: 1
---- !u!114 &-5456524417138186589
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c23dcc7ccca732449f4353ccdae693a, type: 3}
-  m_Name: Wait
+  m_Script: {fileID: 11500000, guid: 96df52f490fd68c44b21690b85fdc395, type: 3}
+  m_Name: Chop Tree
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
   rect:
     serializedVersion: 2
     x: -250
-    y: 500
-    width: 250
-    height: 250
-  connections:
-  - {fileID: -5163149083598678777}
-  - {fileID: 458560059318219259}
-  mode: 0
-  time: 5
---- !u!114 &-5163149083598678777
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
-  m_Name: Connection (Wait -> Wait)
-  m_EditorClassIdentifier: 
-  graph: {fileID: 11400000}
-  button:
-    serializedVersion: 2
-    x: 930.6708
-    y: 1033.8885
-    width: 50
-    height: 50
-  from: {fileID: -5456524417138186589}
-  to: {fileID: -3795782903765983716}
-  condition: {fileID: 11400000, guid: b65b9d7447b61884eb03866786dc9c34, type: 2}
-  index: 0
---- !u!114 &-3795782903765983716
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c23dcc7ccca732449f4353ccdae693a, type: 3}
-  m_Name: Wait
-  m_EditorClassIdentifier: 
-  graph: {fileID: 11400000}
-  rect:
-    serializedVersion: 2
-    x: -375
     y: 1000
     width: 250
     height: 250
   connections: []
   mode: 2
-  time: 5
---- !u!114 &-2127392703216627204
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
-  m_Name: Connection (Entry -> Wait)
-  m_EditorClassIdentifier: 
-  graph: {fileID: 11400000}
-  button:
-    serializedVersion: 2
-    x: 1008.7958
-    y: 533.8886
-    width: 50
-    height: 50
-  from: {fileID: 1700470977758530916}
-  to: {fileID: -5456524417138186589}
-  condition: {fileID: 0}
-  index: 0
+  maxPathCost: 1000
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -129,15 +36,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodes:
   - {fileID: 1700470977758530916}
-  - {fileID: -5456524417138186589}
-  - {fileID: -3795782903765983716}
-  - {fileID: 5725167835135402445}
   - {fileID: 2722349440393163722}
-  - {fileID: 8972909807959071588}
-  - {fileID: 7148035238131465831}
+  - {fileID: -747814548330650100}
   entry: {fileID: 1700470977758530916}
   any: {fileID: 2722349440393163722}
---- !u!114 &458560059318219259
+--- !u!114 &1175280037120150847
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -147,19 +50,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
-  m_Name: Connection (Wait -> Wait)
+  m_Name: Connection (Entry -> Chop Tree)
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
   button:
     serializedVersion: 2
-    x: 1086.9208
-    y: 1033.8885
-    width: 50
-    height: 50
-  from: {fileID: -5456524417138186589}
-  to: {fileID: 5725167835135402445}
-  condition: {fileID: 11400000, guid: b65b9d7447b61884eb03866786dc9c34, type: 2}
-  index: 1
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+  from: {fileID: 1700470977758530916}
+  to: {fileID: -747814548330650100}
+  condition: {fileID: 0}
+  index: 0
 --- !u!114 &1700470977758530916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,7 +83,7 @@ MonoBehaviour:
     width: 250
     height: 250
   connections:
-  - {fileID: -2127392703216627204}
+  - {fileID: 1175280037120150847}
   mode: 0
 --- !u!114 &2722349440393163722
 MonoBehaviour:
@@ -203,94 +106,3 @@ MonoBehaviour:
     height: 250
   connections: []
   mode: 0
---- !u!114 &5725167835135402445
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c23dcc7ccca732449f4353ccdae693a, type: 3}
-  m_Name: Wait
-  m_EditorClassIdentifier: 
-  graph: {fileID: 11400000}
-  rect:
-    serializedVersion: 2
-    x: -125
-    y: 1000
-    width: 250
-    height: 250
-  connections:
-  - {fileID: 6527503783390086790}
-  - {fileID: -8662380278555241408}
-  mode: 0
-  time: 5
---- !u!114 &6527503783390086790
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
-  m_Name: Connection (Wait -> Wait)
-  m_EditorClassIdentifier: 
-  graph: {fileID: 11400000}
-  button:
-    serializedVersion: 2
-    x: 1055.6708
-    y: 1533.8885
-    width: 50
-    height: 50
-  from: {fileID: 5725167835135402445}
-  to: {fileID: 8972909807959071588}
-  condition: {fileID: 0}
-  index: 0
---- !u!114 &7148035238131465831
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c23dcc7ccca732449f4353ccdae693a, type: 3}
-  m_Name: Wait
-  m_EditorClassIdentifier: 
-  graph: {fileID: 11400000}
-  rect:
-    serializedVersion: 2
-    x: -0
-    y: 1500
-    width: 250
-    height: 250
-  connections: []
-  mode: 2
-  time: 5
---- !u!114 &8972909807959071588
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c23dcc7ccca732449f4353ccdae693a, type: 3}
-  m_Name: Wait
-  m_EditorClassIdentifier: 
-  graph: {fileID: 11400000}
-  rect:
-    serializedVersion: 2
-    x: -250
-    y: 1500
-    width: 250
-    height: 250
-  connections: []
-  mode: 2
-  time: 5

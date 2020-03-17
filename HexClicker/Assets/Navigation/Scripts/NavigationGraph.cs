@@ -53,16 +53,16 @@ namespace HexClicker.Navigation
             {
                 if (node == null)
                     continue;
-                if (nodes.TryGetValue(node.Index + new Vector2Int(-1, -1), out Node n1))
+                if (nodes.TryGetValue(node.Vertex + new Vector2Int(-1, -1), out Node n1))
                     Node.Connect(node, n1, false);
 
-                if (nodes.TryGetValue(node.Index + new Vector2Int(0, -1), out Node n2))
+                if (nodes.TryGetValue(node.Vertex + new Vector2Int(0, -1), out Node n2))
                     Node.Connect(node, n2, false);
 
-                if (nodes.TryGetValue(node.Index + new Vector2Int(1, -1), out Node n3))
+                if (nodes.TryGetValue(node.Vertex + new Vector2Int(1, -1), out Node n3))
                     Node.Connect(node, n3, false);
 
-                if (nodes.TryGetValue(node.Index + new Vector2Int(1, 0), out Node n4))
+                if (nodes.TryGetValue(node.Vertex + new Vector2Int(1, 0), out Node n4))
                     Node.Connect(node, n4, false);
             }
 

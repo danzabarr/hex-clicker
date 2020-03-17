@@ -1,70 +1,31 @@
-﻿using HexClicker.World;
+﻿using HexClicker.Behaviour;
+using HexClicker.World;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using HexClicker.Animation;
 
 namespace HexClicker.Units
 {
     [RequireComponent(typeof(Navigation.Agent))]
-    public class Unit : MonoBehaviour
+    public class Unit : Behaviour.Agent
     {
-        private Navigation.Agent agent;
+        public Navigation.Agent NavAgent { get; private set; }
+        public Trees.Tree TargetTree { get; set; }
 
         private void Awake()
         {
-            agent = GetComponent<Navigation.Agent>();
+            NavAgent = GetComponent<Navigation.Agent>();
         }
 
-        private void Update()
+        public IEnumerator Chop(ChopTreeNode node, float duration)
         {
-            MoveMouseClick();
-        }
-
-        private void MoveRandomly()
-        {
-            if (agent.Stopped)
+            for (float t = 0; t < duration; t += Time.deltaTime)
             {
-                float range = Random.Range(3f, 20f);
-
-                Vector2 randomPosition = Random.insideUnitCircle * range + transform.position.xz();
-                agent.SetDestination(World.Map.Instance.OnTerrain(randomPosition));
-            }
-        }
-        private void MoveMouseClick()
-        {
-            if (Input.GetMouseButtonDown(1) && !UI.UIMethods.IsMouseOverUI)
-            {
-                if (ScreenCast.MouseScene.Cast(out RaycastHit hitInfo))
-                {
-
-                    Buildings.BuildingPart bp = hitInfo.collider.GetComponent<Buildings.BuildingPart>();
-
-                    if (bp != null)
-                    {
-                        agent.SetDestination(bp.Parent);
-                    }
-                    else
-                    {
-                        agent.SetDestination(hitInfo.point);
-                    }
-                }
+                yield return null;
             }
 
-            if (Input.GetMouseButtonDown(2) && !UI.UIMethods.IsMouseOverUI)
-            {
-                agent.LookFor((Navigation.Node node) => Map.Instance.TryGetTree(node.Index, out _), true);
-            }
-        }
-
-        public void PathAcquired()
-        {
-            Debug.Log("Path Acquired");
-        }
-
-        public void DestinationReached()
-        {
-            Debug.Log("Destination Reached");
+            Map.Instance.RemoveTree(TargetTree.vertex, out _);
+            TargetTree = null;
+            End(node, StateResult.Succeeded);
         }
     }
 }

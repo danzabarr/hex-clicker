@@ -42,6 +42,8 @@ namespace HexClicker.Navigation
 
         public class Request
         {
+            public delegate void Callback();
+
             public Vector3 start, end;
             public Node startNode, endNode;
             public Node[] addStartNeighbours;
@@ -50,12 +52,15 @@ namespace HexClicker.Navigation
             public float takeExistingPaths;
             public bool matchTowardsEnd;
             public bool allowInaccessibleEnd;
+            public Callback callback;
             public bool Queued { get; private set; }
             public bool Started { get; private set; }
             public bool Cancelled { get; private set; }
             public bool Completed { get; private set; }
             public List<Point> Path { get; private set; }
             public Result Result { get; private set; }
+            public Node First => Path[0].Node;
+            public Node Last => Path[Path.Count - 1].Node;
             private static void StartThreads(int amount)
             {
                 threads = new Thread[amount];
@@ -117,7 +122,14 @@ namespace HexClicker.Navigation
                 Queued = true;
             }
 
-            public void Cancel() { if (!Started) Cancelled = true; }
+            public void Cancel()
+            {
+                if (!Started && !Cancelled)
+                {
+                    Cancelled = true;
+                    callback?.Invoke();
+                }
+            }
 
             private void Execute(int thread)
             {
@@ -125,6 +137,7 @@ namespace HexClicker.Navigation
                 Result = PathFind(start, end, startNode, endNode, addStartNeighbours, match, matchTowardsEnd, allowInaccessibleEnd, maxCost, takeExistingPaths, out List<Point> path, thread);
                 Path = path;
                 Completed = true;
+                callback?.Invoke();
             }
         }
 
@@ -201,13 +214,13 @@ namespace HexClicker.Navigation
             if (startNode == null)
             {
                 foreach (Node neighbour in startNeighbours)
-                    s.Neighbours.Add(new Node.Neighbour(neighbour, Node.Distance(s, neighbour)));
+                    s.Neighbours.Add(neighbour, Node.Distance(s, neighbour));
             }
 
             if (endNode == null)
             {
                 foreach (Node neighbour in endNeighbours)
-                    neighbour.Neighbours.Add(new Node.Neighbour(e, Node.Distance(neighbour, e)));
+                    neighbour.Neighbours.Add(e, Node.Distance(neighbour, e));
             }
 
             Result result;
@@ -220,7 +233,7 @@ namespace HexClicker.Navigation
             if (endNode == null)
             {
                 foreach (Node neighbour in endNeighbours)
-                    neighbour.RemoveNeighbour(e, false);
+                    neighbour.Neighbours.Remove(e);
             }
 
             if (result == Result.Success)
@@ -327,10 +340,8 @@ namespace HexClicker.Navigation
                 currentData.open = false;
                 nodeData[currentNode] = currentData;
 
-                for (int i = 0; i < currentNode.Neighbours.Count; i++)
+                foreach(Node neighbour in currentNode.Neighbours.Keys)
                 {
-                    Node neighbour = currentNode.Neighbours[i].Node;
-
                     if (neighbour == null)
                         continue;
 
@@ -340,7 +351,7 @@ namespace HexClicker.Navigation
                     //if (!currentNode.NeighbourAccessible(i))
                     //    continue;
 
-                    float tentativeGCost = currentData.gCost + currentNode.Neighbours[i].Distance * Mathf.Lerp(1, (currentNode.MovementCost + neighbour.MovementCost) / 2, takeExistingPaths);
+                    float tentativeGCost = currentData.gCost + currentNode.Neighbours[neighbour] * Mathf.Lerp(1, (currentNode.MovementCost + neighbour.MovementCost) / 2, takeExistingPaths);
                     float tentativeHCost = Node.Distance(neighbour, end);
                     float tentativeCost = tentativeGCost + tentativeHCost;
 
@@ -486,10 +497,8 @@ namespace HexClicker.Navigation
                 currentData.open = false;
                 nodeData[currentNode] = currentData;
 
-                for (int i = 0; i < currentNode.Neighbours.Count; i++)
+                foreach(Node neighbour in currentNode.Neighbours.Keys)
                 {
-                    Node neighbour = currentNode.Neighbours[i].Node;
-
                     if (neighbour == null)
                         continue;
 
@@ -499,7 +508,7 @@ namespace HexClicker.Navigation
                     //if (!currentNode.NeighbourAccessible(i))
                     //    continue;
 
-                    float tentativeGCost = currentData.gCost + currentNode.Neighbours[i].Distance * Mathf.Lerp(1, (currentNode.MovementCost + neighbour.MovementCost) / 2, takeExistingPaths);
+                    float tentativeGCost = currentData.gCost + currentNode.Neighbours[neighbour] * Mathf.Lerp(1, (currentNode.MovementCost + neighbour.MovementCost) / 2, takeExistingPaths);
                     float tentativeHCost = matchTowardsEnd ? Vector3.Distance(neighbour.Position, end) : 0;
                     float tentativeCost = tentativeGCost + tentativeHCost;
 

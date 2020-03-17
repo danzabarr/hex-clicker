@@ -8,7 +8,7 @@ namespace HexClicker.Behaviour
     {
         public override void OnBegin(Agent target)
         {
-            target.Complete(this);
+            target.End(this, StateResult.Succeeded);
         }
     }
 }

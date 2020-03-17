@@ -275,9 +275,19 @@ namespace HexClicker.World
             return temperature;
         }
 
-        public bool TryGetTree(Vector2Int node, out Tree tree)
+        public bool TryGetTree(Vector2Int vertex, out Tree tree)
         {
-            return treesRenderer.TryGet(node, out tree);
+            return treesRenderer.TryGet(vertex, out tree);
+        }
+
+        public bool RemoveTree(Vector2Int vertex, out Tree tree)
+        {
+            if (TryGetTree(vertex, out tree) && NavigationGraph.TryGetNode(vertex, out Node node) && treesRenderer.Remove(tree))
+            {
+                node.Obstructions--;
+                return true;
+            }
+            return false;
         }
         
         /// <summary>
@@ -347,9 +357,9 @@ namespace HexClicker.World
 
             foreach(Node node in NavigationGraph.Nodes)
             {
-                if (node.Index.x % 2 == 0)
+                if (node.Vertex.x % 2 == 0)
                     continue;
-                if (node.Index.y % 2 == 0)
+                if (node.Vertex.y % 2 == 0)
                     continue;
                 //Vector3 position = OnTerrain(tile.transform.position + vertices[i] + new Vector3(Random.value - 0.5f, 0, Random.value - 0.5f) * TileSize / TileResolution * treesRandomPosition);
                 Vector3 position = OnTerrain(node.Position + new Vector3(Random.value - 0.5f, 0, Random.value - 0.5f) * TileSize / NavigationGraph.Resolution * treesRandomPosition);
@@ -379,7 +389,7 @@ namespace HexClicker.World
 
                 treesRenderer.Add(new Trees.Tree()
                 {
-                    node = node.Index,
+                    vertex = node.Vertex,
                     position = position,
                     rotation = 90,
                     scale = scale,

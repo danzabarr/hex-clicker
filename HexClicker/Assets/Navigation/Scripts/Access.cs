@@ -51,18 +51,18 @@ namespace HexClicker.Navigation
 
                 if (path.isEntrance)
                 {
-                    inside.Neighbours.Add(new Node.Neighbour(parent.Enter, 0));
-                    outside.Neighbours.Add(new Node.Neighbour(inside, distance));
+                    inside.Neighbours.Add(parent.Enter, 0);
+                    outside.Neighbours.Add(inside, distance);
                     foreach (Node link in links)
-                        link.Neighbours.Add(new Node.Neighbour(outside, Node.Distance(link, outside)));
+                        link.Neighbours.Add(outside, Node.Distance(link, outside));
                 }
 
                 if (path.isExit)
                 {
-                    parent.Exit.Neighbours.Add(new Node.Neighbour(inside, 0));
-                    inside.Neighbours.Add(new Node.Neighbour(outside, distance));
+                    parent.Exit.Neighbours.Add(inside, 0);
+                    inside.Neighbours.Add(outside, distance);
                     foreach (Node link in links)
-                        outside.Neighbours.Add(new Node.Neighbour(link, Node.Distance(outside, link)));
+                        outside.Neighbours.Add(link, Node.Distance(outside, link));
                 }
             }
         }
@@ -71,16 +71,15 @@ namespace HexClicker.Navigation
         {
             foreach (Node o in outsideNodes)
                 foreach (Node l in links)
-                    o.RemoveNeighbour(l);
-            
+                    o.Neighbours.Remove(l);
+
 
             foreach (Node l in links)
-                foreach(Node o in outsideNodes)
-                    l.RemoveNeighbour(o);
+                foreach (Node o in outsideNodes)
+                    l.Neighbours.Remove(o);
 
             foreach (Node i in insideNodes)
-                parent.Exit.RemoveNeighbour(i);
-
+                parent.Exit.Neighbours.Remove(i);
 
             outsideNodes = null;
             links = null;
@@ -109,8 +108,8 @@ namespace HexClicker.Navigation
                 Gizmos.color = Color.white;
                 foreach(Node node in outsideNodes)
                 {
-                    foreach(Node.Neighbour neighbour in node.Neighbours)
-                        Gizmos.DrawLine(node.Position, neighbour.Node.Position);
+                    foreach(Node neighbour in node.Neighbours.Keys)
+                        Gizmos.DrawLine(node.Position, neighbour.Position);
                 }
             }
         }

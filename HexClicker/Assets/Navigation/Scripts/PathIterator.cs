@@ -9,20 +9,24 @@ namespace HexClicker.Navigation
         private readonly float[] distances;
         private int i;
         private float d0, d1;
+        private float proximityToEnd;
         public float TotalDistance { get; private set; }
         public float CurrentDistance { get; private set; }
         public float T => Mathf.Clamp(CurrentDistance / TotalDistance, 0, 1);
+        public bool AtEnd => nodes.Length <= 1 || TotalDistance <= 0 || T >= 1 || (Last.Position - CurrentPosition).sqrMagnitude < proximityToEnd * proximityToEnd;
         public Vector3 CurrentPosition { get; private set; }
         public Node NodeInfront { get; private set; }
         public Node NodeBehind { get; private set; }
         public Node First => nodes[0];
         public Node Last => nodes[nodes.Length - 1];
-        public PathIterator(List<PathFinding.Point> path)
+        public PathIterator(List<PathFinding.Point> path, float proximityToEnd = 0)
         {
             int length = path.Count;
 
-            if (!path[length - 1].Node.Accessible)
-                length--;
+            proximityToEnd = .1f;
+            this.proximityToEnd = proximityToEnd;
+            //if (!path[length - 1].Node.Accessible)
+            //    length--;
 
             nodes = new Node[length];
             for (int i = 0; i < length; i++)

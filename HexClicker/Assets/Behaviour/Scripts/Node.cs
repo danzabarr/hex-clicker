@@ -23,7 +23,7 @@ namespace HexClicker.Behaviour
             get
             {
                 float buttonWidth = rect.width / 2;
-                float buttonHeight =25;
+                float buttonHeight = 25;
                 return new Rect(rect.x + rect.width * .5f - buttonWidth * .5f, rect.yMax - 10, buttonWidth, buttonHeight);
             }
         }
@@ -34,6 +34,7 @@ namespace HexClicker.Behaviour
         public virtual void OnEnd(Agent target) { }
         public virtual void OnPause(Agent target) { }
         public virtual void OnResume(Agent target) { }
+
         public Connection NextConnection(Agent target)
         {
             if (target == null)

@@ -9,20 +9,11 @@ namespace HexClicker.Navigation
     {
         public static readonly float MinDesirePathCost = .5f;
         public static readonly float MaxDesirePathCost = 2;
-        public readonly struct Neighbour
-        {
-            public readonly Node Node;
-            public readonly float Distance;
-            public Neighbour(Node node, float distance)
-            {
-                Node = node;
-                Distance = distance;
-            }
-        }
 
-        public readonly Vector2Int Index;
+        public readonly Vector2Int Vertex;
         public readonly Vector3 Position;
-        public readonly List<Neighbour> Neighbours = new List<Neighbour>(1);
+        public readonly Dictionary<Node, float> Neighbours = new Dictionary<Node, float>();
+
         public readonly bool ZeroDistance;
         public readonly bool OffGrid;
 
@@ -35,12 +26,12 @@ namespace HexClicker.Navigation
         public float MovementCost => DesirePathCost;// + roads + other stuff;
         public int Obstructions { get; set; }
         public bool Accessible => Obstructions <= 0;
-        public float NeighbourCost(int i, float takePaths) => Neighbours[i].Distance * Mathf.Lerp(1, (MovementCost + Neighbours[i].Node.MovementCost) / 2, takePaths);
+        //public float NeighbourCost(int i, float takePaths) => Neighbours[i].Distance * Mathf.Lerp(1, (MovementCost + Neighbours[i].Node.MovementCost) / 2, takePaths);
         //public bool NeighbourAccessible(int i) => true;
 
-        public Node(Vector2Int hex, Vector3 position)
+        public Node(Vector2Int vertex, Vector3 position)
         {
-            Index = hex;
+            Vertex = vertex;
             Position = position;
         }
 
@@ -57,30 +48,12 @@ namespace HexClicker.Navigation
             OffGrid = true;
         }
 
-        public void RemoveLastAddedNeighbour()
-        {
-            if (Neighbours.Count > 0)
-                Neighbours.RemoveAt(Neighbours.Count - 1);
-        }
-        
-        public void RemoveNeighbour(Node node, bool all = true)
-        {
-            for (int i = Neighbours.Count - 1; i >= 0; i--)
-                if (Neighbours[i].Node == node)
-                {
-                    Neighbours.RemoveAt(i);
-                    if (!all)
-                        return;
-                }
-        }
-
         public void Disconnect()
         {
-            for (int i = Neighbours.Count - 1; i >= 0; i--)
-            {
-                Neighbours[i].Node.RemoveNeighbour(this);
-                Neighbours.RemoveAt(i);
-            }
+            foreach (Node node in Neighbours.Keys)
+                node.Neighbours.Remove(this);
+
+            Neighbours.Clear();
         }
 
         public static bool Connect(Node n1, Node n2, bool check = true)
@@ -92,17 +65,14 @@ namespace HexClicker.Navigation
                 return false;
 
             float distance = Distance(n1, n2);
-            n1.Neighbours.Add(new Neighbour(n2, distance));
-            n2.Neighbours.Add(new Neighbour(n1, distance));
+            n1.Neighbours.Add(n2, distance);
+            n2.Neighbours.Add(n1, distance);
             return true;
         }
 
         public static bool Connected(Node n1, Node n2)
         {
-            foreach (Neighbour n in n1.Neighbours)
-                if (n.Node == n2)
-                    return true;
-            return false;
+            return n1.Neighbours.ContainsKey(n2);
         }
 
         public static float Distance(Node n1, Node n2) => (n1.ZeroDistance || n2.ZeroDistance) ? 0 : Vector3.Distance(n1.Position, n2.Position);

@@ -48,6 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5f8380ae00cced46abc898f351b9543, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  graph: {fileID: 11400000, guid: 72f56d524056ac24ea625b34c375232e, type: 2}
 --- !u!114 &1299481544107678488
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,34 +64,6 @@ MonoBehaviour:
   speed: 1
   raycastModifiedPaths: 1
   takeExistingPaths: 1
-  onAcquirePath:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 2350156819800898428}
-        m_MethodName: PathAcquired
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-  onReachDestination:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 2350156819800898428}
-        m_MethodName: DestinationReached
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &9135277325137077902
 MonoBehaviour:
   m_ObjectHideFlags: 0

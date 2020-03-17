@@ -5,6 +5,12 @@ using UnityEngine.Events;
 
 namespace HexClicker.Behaviour
 {
+    public enum StateResult
+    {
+        Failed,
+        Succeeded
+    }
+
     public class Agent : MonoBehaviour
     {
         /// <summary>
@@ -12,31 +18,16 @@ namespace HexClicker.Behaviour
         /// </summary>
         [SerializeField] private Graph graph;
 
-        /// <summary>
-        /// Called when a new state begins.
-        /// </summary>
-        [SerializeField] private UnityEvent onStateBegin;
+        private bool stateEnded;
+        public Node State { get; private set; }
+        public bool Stopped { get; private set; }
+        public bool Waiting { get; private set; }
+        public StateResult Result { get; private set; }
 
-        /// <summary>
-        /// Called when a state reaches an end.
-        /// </summary>
-        [SerializeField] private UnityEvent onStateEnd;
-        [SerializeField] private UnityEvent onPause;
-        [SerializeField] private UnityEvent onResume;
-
-        private Node currentState;
-        private bool stateComplete;
-        private bool paused = true;
-        private bool waiting;
-
-        public bool Stopped => paused;
-        public bool Waiting => waiting;
-        public Node State => currentState;
-
-        public void Awake()
-        {
-            Restart();
-        }
+        //public bool Stopped => paused;
+        //public bool Waiting => waiting;
+        //public Node State => currentState;
+        //public StateResult Result => result;
 
         /// <summary>
         /// Stops the current state of behaviour, and sets a new behaviour graph for the agent.
@@ -50,69 +41,67 @@ namespace HexClicker.Behaviour
 
         public void Pause()
         {
-            if (paused)
+            if (Stopped)
                 return;
-            paused = true;
-            if (currentState != null)
+            Stopped = true;
+            if (State != null)
             {
-                onPause.Invoke();
-                currentState.OnPause(this);
+                State.OnPause(this);
             }
         }
 
         public void Resume()
         {
-            if (!paused)
+            if (!Stopped)
                 return;
-            paused = false;
-            if (currentState != null)
+            Stopped = false;
+            if (State != null)
             {
-                onResume.Invoke();
-                currentState.OnResume(this);
+                State.OnResume(this);
             }
         }
 
         public void Stop()
         {
             Pause();
-            currentState = null;
-            stateComplete = false;
+            State = null;
+            stateEnded = false;
         }
 
         public void Restart()
         {
             Stop();
-            paused = false;
+            Stopped = false;
         }
 
         /// <summary>
         /// Mark the current state as completed, allowing the agent to move on to the next.
         /// If the passed in state is not the current one, it does nothing.
         /// </summary>
-        public void Complete(Node state)
+        public void End(Node state, StateResult result)
         {
-            if (currentState == null)
+            if (State == null)
                 return;
 
-            if (state != currentState)
+            if (state != State)
                 return;
 
-            stateComplete = true;
-            onStateEnd.Invoke();
-            currentState.OnEnd(this);
+            stateEnded = true;
+            Result = result;
+            State.OnEnd(this);
         }
 
         /// <summary>
         /// Mark the current state as completed, allowing the agent to move on to the next.
         /// </summary>
-        public void CompleteCurrent()
+        public void EndCurrent(StateResult result)
         {
-            if (currentState == null)
+            if (State == null)
                 return;
 
-            stateComplete = true;
-            onStateEnd.Invoke();
-            currentState.OnEnd(this);
+            stateEnded = true;
+            Result = result;
+            State.OnEnd(this);
         }
 
         private void Update()
@@ -120,63 +109,59 @@ namespace HexClicker.Behaviour
             if (graph == null)
                 return;
 
-            if (currentState == null)
+            if (State == null)
             {
-                currentState = graph.entry;
-                stateComplete = false;
-                if (currentState != null)
+                State = graph.entry;
+                stateEnded = false;
+                if (State != null)
                 {
-                    onStateBegin.Invoke();
-                    currentState.OnBegin(this);
+                    State.OnBegin(this);
                 }
             }
 
-            if (currentState == null)
+            if (State == null)
                 return;
 
-            if (paused)
+            if (Stopped)
                 return;
 
-            if (stateComplete)
+            if (stateEnded)
             {
-                Node nextState = currentState.NextState(this);
+                Node nextState = State.NextState(this);
 
                 if (nextState == null)
                 {
-                    switch (currentState.mode)
+                    switch (State.mode)
                     {
                         case StateMode.Single:
-                            waiting = true;
+                            Waiting = true;
                             break;
 
                         case StateMode.Loop:
-                            waiting = false;
-                            stateComplete = false;
-                            onStateBegin.Invoke();
-                            currentState.OnBegin(this);
+                            Waiting = false;
+                            stateEnded = false;
+                            State.OnBegin(this);
                             break;
 
                         case StateMode.Restart:
-                            waiting = false;
-                            currentState = graph.entry;
-                            stateComplete = false;
-                            if (currentState != null)
+                            Waiting = false;
+                            State = graph.entry;
+                            stateEnded = false;
+                            if (State != null)
                             {
-                                onStateBegin.Invoke();
-                                currentState.OnBegin(this);
+                                State.OnBegin(this);
                             }
                             break;
                     }
                 }
                 else
                 {
-                    waiting = false;
-                    currentState = nextState;
-                    stateComplete = false;
-                    if (currentState != null)
+                    Waiting = false;
+                    State = nextState;
+                    stateEnded = false;
+                    if (State != null)
                     {
-                        onStateBegin.Invoke();
-                        currentState.OnBegin(this);
+                        State.OnBegin(this);
                     }
                 }
             }
