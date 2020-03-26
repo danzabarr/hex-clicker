@@ -23,7 +23,6 @@ namespace HexClicker.Navigation
         {
             int length = path.Count;
 
-            proximityToEnd = .1f;
             this.proximityToEnd = proximityToEnd;
             //if (!path[length - 1].Node.Accessible)
             //    length--;

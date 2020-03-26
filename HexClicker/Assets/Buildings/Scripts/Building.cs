@@ -11,7 +11,10 @@ namespace HexClicker.Buildings
         public BuildingNode Enter { get; private set; }
         public BuildingNode Exit { get; private set; }
 
-        private Access[] accesses;
+        private AccessPoint[] accessPoints;
+
+        private WorkPoint[] constructionPoints;
+        private Storage[] storages;
 
         public void OnPlace()
         {
@@ -20,12 +23,31 @@ namespace HexClicker.Buildings
             ExtractParts();
             foreach (Area area in areas)
                 area.ObstructArea();
-            foreach (Access access in accesses)
+            foreach (AccessPoint access in accessPoints)
                 access.ConnectToGraph();
+            foreach (WorkPoint cp in constructionPoints)
+                cp.ConnectToGraph();
+            foreach (Storage st in storages)
+                st.Connect();
+        }
+
+        public void OnRemove()
+        {
+            foreach(Area area in areas)
+                area.RevertArea();
+            foreach (AccessPoint access in accessPoints)
+                access.DisconnectFromGraph();
+            foreach (WorkPoint cp in constructionPoints)
+                cp.DisconnectFromGraph();
+            foreach (Storage st in storages)
+                st.Disconnect();
         }
 
         private void OnDrawGizmosSelected()
         {
+            if (!Application.isPlaying)
+                return;
+
             if (ScreenCast.MouseScene.Cast(out RaycastHit hit))
             {
                 PathFinding.Result result;
@@ -48,14 +70,15 @@ namespace HexClicker.Buildings
 
         public void ExtractParts()
         {
-            parts = gameObject.GetComponentsInChildren<BuildingPart>();
+            parts = GetComponentsInChildren<BuildingPart>();
 
             foreach (BuildingPart part in parts)
                 part.SetupPlacingObjects();
 
-            areas = gameObject.GetComponentsInChildren<Area>();
-
-            accesses = gameObject.GetComponentsInChildren<Access>();
+            areas = GetComponentsInChildren<Area>();
+            accessPoints = GetComponentsInChildren<AccessPoint>();
+            constructionPoints = GetComponentsInChildren<WorkPoint>();
+            storages = GetComponentsInChildren<Storage>();
         }
 
         public void ToTerrain(Matrix4x4 parentTransform)

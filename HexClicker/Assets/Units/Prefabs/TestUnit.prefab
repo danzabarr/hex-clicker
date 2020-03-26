@@ -49,6 +49,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000, guid: 72f56d524056ac24ea625b34c375232e, type: 2}
+  paused: 0
 --- !u!114 &1299481544107678488
 MonoBehaviour:
   m_ObjectHideFlags: 0

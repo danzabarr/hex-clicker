@@ -67,7 +67,7 @@
 
 			float4 _MainTex_ST;
 			float4 _Normal_ST;
-			float4 _Metallic_ST;
+			float4 _Metallic_ST; 
 
 			struct appdata
 			{

@@ -144,6 +144,13 @@ namespace HexClicker.World
             RegionManager.SetRegion(1, 0, 0);
             RegionManager.UpdateTileVisibility();
             ShaderUpload();
+
+
+
+            if (Items.ItemDB.TryGet("Wood", out Item value))
+                Debug.Log(value.name);
+            else
+                Debug.Log("Fail");
         }
 
         private void OnValidate()

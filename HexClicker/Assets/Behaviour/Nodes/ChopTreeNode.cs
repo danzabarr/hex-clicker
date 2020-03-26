@@ -11,6 +11,8 @@ namespace HexClicker.Behaviour
     public class ChopTreeNode : Node
     {
         public float maxPathCost;
+        public float takeExistingPaths;
+        public float proximityToEnd;
 
         public override void OnBegin(Agent target)
         {
@@ -18,8 +20,8 @@ namespace HexClicker.Behaviour
             {
                 Unit unit = target as Unit;
 
-                unit.NavAgent.LookForTree(maxPathCost,
-                    
+                unit.NavAgent.LookForTree(maxPathCost, takeExistingPaths, proximityToEnd,
+
                     (Navigation.Agent.Status status) =>
                     {
                         switch (status)
@@ -53,7 +55,7 @@ namespace HexClicker.Behaviour
                             case Navigation.Agent.Status.AtDestination:
 
                                 //Temporary
-                                unit.StartCoroutine(unit.Chop(this, 3f));
+                                unit.StartCoroutine(Chop(unit, 3f));
                                 break;
                         }
                     }
@@ -61,7 +63,18 @@ namespace HexClicker.Behaviour
             }
         }
 
-        
+        public IEnumerator Chop(Unit unit, float duration)
+        {
+            for (float t = 0; t < duration; t += Time.deltaTime)
+            {
+                yield return null;
+            }
+
+            Map.Instance.RemoveTree(unit.TargetTree.vertex, out _);
+            unit.TargetTree = null;
+            unit.End(this, StateResult.Succeeded);
+        }
+
 
         public override void OnEnd(Agent target)
         {

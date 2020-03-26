@@ -7,11 +7,11 @@ namespace HexClicker.Navigation
 {
     public class BuildingNode : Node
     {
-        public readonly Building building;
+        public Building Building { get; private set; }
         public BuildingNode(Building building)
             : base(building.transform.position, true)
         {
-            this.building = building;
+            this.Building = building;
         }
     }
 }

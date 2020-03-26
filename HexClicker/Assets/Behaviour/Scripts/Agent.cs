@@ -8,7 +8,8 @@ namespace HexClicker.Behaviour
     public enum StateResult
     {
         Failed,
-        Succeeded
+        Succeeded,
+        Continuing
     }
 
     public class Agent : MonoBehaviour
@@ -23,6 +24,8 @@ namespace HexClicker.Behaviour
         public bool Stopped { get; private set; }
         public bool Waiting { get; private set; }
         public StateResult Result { get; private set; }
+
+        public bool paused;
 
         //public bool Stopped => paused;
         //public bool Waiting => waiting;
@@ -107,6 +110,9 @@ namespace HexClicker.Behaviour
         private void Update()
         {
             if (graph == null)
+                return;
+
+            if (paused)
                 return;
 
             if (State == null)

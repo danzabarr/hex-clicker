@@ -17,8 +17,12 @@ namespace HexClicker.Buildings
 
         public void SetupPlacingObjects()
         {
-            PlacingMesh = GetComponent<MeshFilter>()?.sharedMesh;
-            PlacingMaterial = GetComponent<MeshRenderer>()?.sharedMaterial;
+            MeshFilter filter = GetComponent<MeshFilter>();
+            if (filter) PlacingMesh = filter.sharedMesh;
+
+            MeshRenderer rend = GetComponent<MeshRenderer>();
+            if (rend) PlacingMaterial = rend.sharedMaterial;
+
             PlacingTransform = RelativeMatrix(transform, parent.transform);
             PlacingColliders = GetComponents<Collider>();
             originalElevation = transform.position.y;

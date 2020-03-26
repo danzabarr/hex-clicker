@@ -50,6 +50,7 @@ namespace HexClicker.Navigation
             public Match match;
             public float maxCost;
             public float takeExistingPaths;
+            public float proximityToEnd;
             public bool matchTowardsEnd;
             public bool allowInaccessibleEnd;
             public Callback callback;
@@ -214,13 +215,16 @@ namespace HexClicker.Navigation
             if (startNode == null)
             {
                 foreach (Node neighbour in startNeighbours)
-                    s.Neighbours.Add(neighbour, Node.Distance(s, neighbour));
+                    if (!s.Neighbours.ContainsKey(neighbour))
+                        s.Neighbours.TryAdd(neighbour, Node.Distance(s, neighbour));
             }
 
             if (endNode == null)
             {
                 foreach (Node neighbour in endNeighbours)
-                    neighbour.Neighbours.Add(e, Node.Distance(neighbour, e));
+                    if (!neighbour.Neighbours.ContainsKey(e))
+                        neighbour.Neighbours.TryAdd(e, Node.Distance(neighbour, e));
+
             }
 
             Result result;
@@ -233,7 +237,7 @@ namespace HexClicker.Navigation
             if (endNode == null)
             {
                 foreach (Node neighbour in endNeighbours)
-                    neighbour.Neighbours.Remove(e);
+                    neighbour.Neighbours.TryRemove(e, out _);
             }
 
             if (result == Result.Success)
@@ -497,18 +501,36 @@ namespace HexClicker.Navigation
                 currentData.open = false;
                 nodeData[currentNode] = currentData;
 
-                foreach(Node neighbour in currentNode.Neighbours.Keys)
+                if (currentNode == null)
+                    Debug.Log("currentNode");
+                else if (currentNode.Neighbours == null)
                 {
+                    Debug.Log("Neighbours " + currentNode);
+                    continue;
+                }
+                else if (currentNode.Neighbours.Keys == null)
+                    Debug.Log("Keys");
+                List<Node> neighbours = new List<Node>(currentNode.Neighbours.Keys);
+                //foreach(KeyValuePair<Node, float> pair in currentNode.Neighbours)
+                //{
+                
+
+
+
+                foreach(Node neighbour in neighbours)
+                {
+                    //Node neighbour = pair.Key;
                     if (neighbour == null)
                         continue;
 
                     if (!neighbour.Accessible && (!allowInaccessibleEnd || !match(neighbour)))
                         continue;
+                    float distance = currentNode.Neighbours[neighbour];
 
                     //if (!currentNode.NeighbourAccessible(i))
                     //    continue;
 
-                    float tentativeGCost = currentData.gCost + currentNode.Neighbours[neighbour] * Mathf.Lerp(1, (currentNode.MovementCost + neighbour.MovementCost) / 2, takeExistingPaths);
+                    float tentativeGCost = currentData.gCost + distance * Mathf.Lerp(1, (currentNode.MovementCost + neighbour.MovementCost) / 2, takeExistingPaths);
                     float tentativeHCost = matchTowardsEnd ? Vector3.Distance(neighbour.Position, end) : 0;
                     float tentativeCost = tentativeGCost + tentativeHCost;
 

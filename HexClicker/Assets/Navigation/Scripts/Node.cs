@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using HexClicker.Buildings;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,7 +14,7 @@ namespace HexClicker.Navigation
 
         public readonly Vector2Int Vertex;
         public readonly Vector3 Position;
-        public readonly Dictionary<Node, float> Neighbours = new Dictionary<Node, float>();
+        public readonly ConcurrentDictionary<Node, float> Neighbours = new ConcurrentDictionary<Node, float>();
 
         public readonly bool ZeroDistance;
         public readonly bool OffGrid;
@@ -51,7 +53,8 @@ namespace HexClicker.Navigation
         public void Disconnect()
         {
             foreach (Node node in Neighbours.Keys)
-                node.Neighbours.Remove(this);
+                node.Neighbours.TryRemove(this, out _);
+//                node.Neighbours.Remove(this);
 
             Neighbours.Clear();
         }
@@ -65,8 +68,8 @@ namespace HexClicker.Navigation
                 return false;
 
             float distance = Distance(n1, n2);
-            n1.Neighbours.Add(n2, distance);
-            n2.Neighbours.Add(n1, distance);
+            n1.Neighbours.TryAdd(n2, distance);
+            n2.Neighbours.TryAdd(n1, distance);
             return true;
         }
 

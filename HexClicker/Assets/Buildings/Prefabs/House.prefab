@@ -11,10 +11,11 @@ GameObject:
   - component: {fileID: 3925231365343918134}
   - component: {fileID: 3313719533227514733}
   - component: {fileID: 3459612873567520682}
-  - component: {fileID: 629045668572576133}
+  - component: {fileID: 6337552173618641250}
   - component: {fileID: 4063106885297602785}
   - component: {fileID: 3852944958784253485}
   - component: {fileID: 4911531330359508979}
+  - component: {fileID: 3654162165628813315}
   - component: {fileID: 3507713440063851876}
   - component: {fileID: 1517647279757179394}
   - component: {fileID: 5115989836468273306}
@@ -22,6 +23,10 @@ GameObject:
   - component: {fileID: 7223983084480206814}
   - component: {fileID: 7508642461353329054}
   - component: {fileID: 6536538215903235419}
+  - component: {fileID: 8724721079090247228}
+  - component: {fileID: 3027961799284570079}
+  - component: {fileID: 8437655358995758291}
+  - component: {fileID: 2806711657810914712}
   m_Layer: 13
   m_Name: House
   m_TagString: Untagged
@@ -90,7 +95,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &629045668572576133
+--- !u!114 &6337552173618641250
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -99,9 +104,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 747027911334286951}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8aae56967f2558e499a966e39b170cb2, type: 3}
+  m_Script: {fileID: 11500000, guid: c04622bd470c202479bda28487c468af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  residents:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!114 &4063106885297602785
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -114,7 +124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60a76711d25edc14a80036331b99b934, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  parent: {fileID: 629045668572576133}
+  parent: {fileID: 6337552173618641250}
   followTerrain: 0
 --- !u!114 &3852944958784253485
 MonoBehaviour:
@@ -152,17 +162,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c28c762291ba07f4b833693e025cefba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  parent: {fileID: 629045668572576133}
-  showHandles: 1
-  paths:
-  - isEntrance: 1
-    isExit: 1
-    inside: {x: -0.5, y: 0, z: -0.625}
-    outside: {x: -1.25, y: 0, z: -0.625}
-  - isEntrance: 1
-    isExit: 1
-    inside: {x: 0.25, y: 0, z: 0.5}
-    outside: {x: 0.25, y: 0, z: 1.25}
+  showHandles: 0
+  isEntrance: 1
+  isExit: 1
+  inside: {x: -0.5, y: 0, z: -0.625}
+  outside: {x: -1.25, y: 0, z: -0.625}
+--- !u!114 &3654162165628813315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747027911334286951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c28c762291ba07f4b833693e025cefba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  isEntrance: 1
+  isExit: 1
+  inside: {x: 0.25, y: 0, z: 0.5}
+  outside: {x: 0.25, y: 0, z: 1.25}
 --- !u!65 &3507713440063851876
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -258,6 +279,70 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radialMenu: House
+--- !u!114 &8724721079090247228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747027911334286951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0d13e61c3319a8458a74bb3cedc61d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  position: {x: -1.2, y: 0, z: 0}
+  rotation: 90
+  maxProgress: 10
+--- !u!114 &3027961799284570079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747027911334286951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0d13e61c3319a8458a74bb3cedc61d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  position: {x: -0.5, y: 0, z: 0.7}
+  rotation: 180
+  maxProgress: 10
+--- !u!114 &8437655358995758291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747027911334286951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0d13e61c3319a8458a74bb3cedc61d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  position: {x: 1.2, y: 0, z: 0}
+  rotation: 270
+  maxProgress: 10
+--- !u!114 &2806711657810914712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747027911334286951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0d13e61c3319a8458a74bb3cedc61d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  position: {x: 0, y: 0, z: -1.2}
+  rotation: 0
+  maxProgress: 10
 --- !u!1 &6817613133263708348
 GameObject:
   m_ObjectHideFlags: 0
