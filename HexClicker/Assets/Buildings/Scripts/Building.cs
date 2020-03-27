@@ -1,4 +1,5 @@
 ﻿using HexClicker.Navigation;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,6 +7,8 @@ namespace HexClicker.Buildings
 {
     public class Building : MonoBehaviour
     {
+        private static Dictionary<System.Type, List<Building>> buildings = new Dictionary<System.Type, List<Building>>();
+
         private BuildingPart[] parts;
         private Area[] areas;
         public BuildingNode Enter { get; private set; }
@@ -14,33 +17,39 @@ namespace HexClicker.Buildings
         private AccessPoint[] accessPoints;
 
         private WorkPoint[] constructionPoints;
-        private Storage[] storages;
+
+        public static T[] GetAll<T>() where T : Building
+        {
+            if (buildings.TryGetValue(typeof(T), out List<Building> list))
+                return Array.ConvertAll(list.ToArray(), item => (T)item);
+            return new T[0];
+        }
 
         public void OnPlace()
         {
             Enter = new BuildingNode(this);
             Exit = new BuildingNode(this);
             ExtractParts();
-            foreach (Area area in areas)
-                area.ObstructArea();
             foreach (AccessPoint access in accessPoints)
                 access.ConnectToGraph();
             foreach (WorkPoint cp in constructionPoints)
                 cp.ConnectToGraph();
-            foreach (Storage st in storages)
-                st.Connect();
+
+            if (buildings.TryGetValue(GetType(), out List<Building> list))
+                list.Add(this);
+            else
+                buildings.Add(GetType(), new List<Building>() { this });
         }
 
         public void OnRemove()
         {
-            foreach(Area area in areas)
-                area.RevertArea();
             foreach (AccessPoint access in accessPoints)
                 access.DisconnectFromGraph();
             foreach (WorkPoint cp in constructionPoints)
                 cp.DisconnectFromGraph();
-            foreach (Storage st in storages)
-                st.Disconnect();
+
+            if (buildings.TryGetValue(GetType(), out List<Building> list))
+                list.Remove(this);
         }
 
         private void OnDrawGizmosSelected()
@@ -56,9 +65,9 @@ namespace HexClicker.Buildings
                 BuildingPart bp = hit.collider.GetComponent<BuildingPart>();
 
                 if (bp != null)
-                    result = PathFinding.PathFind(default, default, Exit, bp.Parent.Enter, null, null, false, false, 5000, 1, out path);
+                    result = PathFinding.PathFind(default, default, Exit, bp.Parent.Enter, null, null, null, false, false, 5000, 1, out path);
                 else
-                    result = PathFinding.PathFind(default, hit.point, Exit, null, null, null, false, false, 5000, 1, out path);
+                    result = PathFinding.PathFind(default, hit.point, Exit, null, null, null, null, false, false, 5000, 1, out path);
                 
                 if (result == PathFinding.Result.Success)
                 {
@@ -78,7 +87,6 @@ namespace HexClicker.Buildings
             areas = GetComponentsInChildren<Area>();
             accessPoints = GetComponentsInChildren<AccessPoint>();
             constructionPoints = GetComponentsInChildren<WorkPoint>();
-            storages = GetComponentsInChildren<Storage>();
         }
 
         public void ToTerrain(Matrix4x4 parentTransform)

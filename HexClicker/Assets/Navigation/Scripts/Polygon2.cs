@@ -52,6 +52,8 @@ namespace HexClicker.Navigation
 
         public static Vector2[] TransformedPoints(Vector2[] points, Transform transform, bool useXZ)
         {
+            if (points == null)
+                return null;
             Vector2[] p = new Vector2[points.Length];
             for (int i = 0; i < p.Length; i++)
             {
@@ -65,6 +67,8 @@ namespace HexClicker.Navigation
 
         public static Vector3[] TransformedPoints3(Vector2[] points, Transform transform, bool useXZ)
         {
+            if (points == null)
+                return null;
             Vector3[] p = new Vector3[points.Length];
             for (int i = 0; i < p.Length; i++)
             {
@@ -78,7 +82,8 @@ namespace HexClicker.Navigation
 
         public static Vector2[] InverseTransformedPoints(Vector2[] points, Transform transform, bool useXZ)
         {
-
+            if (points == null)
+                return null;
             Vector2[] p = new Vector2[points.Length];
             for (int i = 0; i < p.Length; i++)
             {
@@ -123,6 +128,8 @@ namespace HexClicker.Navigation
         public static List<float> ScanRayIntersections(Vector2[] points, Vector2 p, bool sort)
         {
             List<float> intersections = new List<float>();
+            if (points == null)
+                return intersections;
 
             Vector2 rayDirection = new Vector2(1, 0);
 
@@ -155,6 +162,8 @@ namespace HexClicker.Navigation
         public static List<float> ScanLineIntersections(Vector2[] points, float y, bool sort)
         {
             List<float> intersections = new List<float>();
+            if (points == null)
+                return intersections;
 
             for (int i = 0; i < points.Length; i++)
             {
@@ -207,6 +216,8 @@ namespace HexClicker.Navigation
 
         public static bool PolygonContainsPoint(Vector2[] poly, Vector2 point)
         {
+            if (poly == null)
+                return false;
             List<float> intersections = ScanRayIntersections(poly, point, false);
             return intersections.Count % 2 == 0;
         }

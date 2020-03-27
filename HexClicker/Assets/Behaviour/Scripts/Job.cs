@@ -15,7 +15,6 @@ namespace HexClicker.Behaviour.Jobs
     {
 
     }
-    
 
     public class Job 
     {

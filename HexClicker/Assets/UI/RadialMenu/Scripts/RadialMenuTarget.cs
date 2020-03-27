@@ -40,6 +40,7 @@ namespace HexClicker.UI.Menus
                 Active = true;
             }
         }
+
     }
 }
 

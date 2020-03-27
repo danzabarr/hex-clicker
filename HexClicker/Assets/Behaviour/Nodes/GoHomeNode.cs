@@ -12,7 +12,7 @@ namespace HexClicker.Behaviour
         public bool findNew;
         public float maxCost;
         public float maxCostNew;
-        public float takeExistingPaths;
+        [Range(0, 1)] public float takeExistingPaths;
 
         public override void OnBegin(Agent target)
         {

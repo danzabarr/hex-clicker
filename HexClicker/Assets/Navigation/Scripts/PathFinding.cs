@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace HexClicker.Navigation
 {
@@ -47,6 +46,7 @@ namespace HexClicker.Navigation
             public Vector3 start, end;
             public Node startNode, endNode;
             public Node[] addStartNeighbours;
+            public Node[] endNodes;
             public Match match;
             public float maxCost;
             public float takeExistingPaths;
@@ -135,7 +135,7 @@ namespace HexClicker.Navigation
             private void Execute(int thread)
             {
                 Started = true;
-                Result = PathFind(start, end, startNode, endNode, addStartNeighbours, match, matchTowardsEnd, allowInaccessibleEnd, maxCost, takeExistingPaths, out List<Point> path, thread);
+                Result = PathFind(start, end, startNode, endNode, addStartNeighbours, endNodes, match, matchTowardsEnd, allowInaccessibleEnd, maxCost, takeExistingPaths, out List<Point> path, thread);
                 Path = path;
                 Completed = true;
                 callback?.Invoke();
@@ -179,9 +179,12 @@ namespace HexClicker.Navigation
 #endif
         }
 
-        public static Result PathFind(Vector3 start, Vector3 end, Node startNode, Node endNode, Node[] addStartNeighbours, Match match, bool matchTowardsEnd, bool allowInaccessibleEnd, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
+        public static Result PathFind(Vector3 start, Vector3 end, Node startNode, Node endNode, Node[] addStartNeighbours, Node[] endNodes, Match match, bool matchTowardsEnd, bool allowInaccessibleEnd, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
         {
-            path = default;
+            if (endNodes != null)
+                return PathFind(start, startNode, endNodes, addStartNeighbours, allowInaccessibleEnd, maxCost, takeExistingPaths, out path, thread);
+
+            path = null;
             Node s = startNode;
             Node e = endNode;
             List<Node> endNeighbours = default;
@@ -244,6 +247,79 @@ namespace HexClicker.Navigation
                 RaycastModifier(path, takeExistingPaths);
 
             return result;
+        }
+
+        public static Result PathFind(Vector3 start, Node startNode, Node[] endNodes, Node[] addStartNeighbours, bool allowInaccessibleEnd, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
+        {
+            path = default;
+            if (endNodes == null)
+                return Result.FailureEndObstructed;
+
+            Node s = startNode;
+            List<Node> startNeighbours = default;
+
+            if (startNode == null)
+            {
+                s = new Node(start);
+                startNeighbours = NavigationGraph.NearestSquareNodes(start, true);
+
+                if (addStartNeighbours != null)
+                    for (int i = 0; i < addStartNeighbours.Length; i++)
+                        if (addStartNeighbours[i] != null)
+                            startNeighbours.Add(addStartNeighbours[i]);
+
+                if (startNeighbours.Count <= 0)
+                    return Result.FailureStartObstructed;
+            }
+
+            if (startNode == null)
+            {
+                foreach (Node neighbour in startNeighbours)
+                    if (!s.Neighbours.ContainsKey(neighbour))
+                        s.Neighbours.TryAdd(neighbour, Node.Distance(s, neighbour));
+            }
+
+
+            List<Node> sortedEndNodes = new List<Node>(endNodes);
+            sortedEndNodes.Sort((Node a, Node b) =>
+            {
+                float da = Node.Distance(a, s);
+                float db = Node.Distance(b, s);
+                return da.CompareTo(db);
+            });
+
+            float bestPathCost = maxCost;
+
+            foreach(Node e in sortedEndNodes)
+            {
+                if (e == null)
+                    continue;
+                if (!e.Accessible && !allowInaccessibleEnd)
+                    continue;
+
+                float euclideanDistance = Node.Distance(e, s);
+                if (euclideanDistance * Node.MinDesirePathCost > bestPathCost)
+                    continue;
+
+                Result result = PathToNode(s, e, allowInaccessibleEnd, bestPathCost, takeExistingPaths, out List<Point> p, thread);
+                if (result != Result.Success)
+                    continue;
+
+                RaycastModifier(p, takeExistingPaths);
+
+                float pathCost = p[p.Count - 1].Data.gCost;
+
+                if (pathCost < bestPathCost)
+                {
+                    bestPathCost = pathCost;
+                    path = p;
+                }
+            }
+
+            if (path == null)
+                return Result.FailureNoPath;
+
+            return Result.Success;
         }
 
         private static Result PathToNode(Node start, Node end, bool allowInaccessibleEnd, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
@@ -593,6 +669,8 @@ namespace HexClicker.Navigation
 
             List<Vector3> points = new List<Vector3>();
 
+            float totalCost = path[path.Count - 1].Data.gCost;
+
             while (path.Count > startIndex)
             {
                 for (int i = path.Count - 1; i > startIndex; i--)
@@ -692,6 +770,7 @@ namespace HexClicker.Navigation
 
                     if (valid)
                     {
+                        totalCost += shortCutCost - pathCost;
                         //Debug.Log("(" + startIndex + "-" + i + ") Path distance: " + pathDistance + " Shortcut distance: " + shortCutDistance);
                         path.RemoveRange(startIndex + 1, i - startIndex - 1);
                         foreach (Vector3 point in points)
@@ -704,6 +783,11 @@ namespace HexClicker.Navigation
                 }
                 startIndex++;
             }
+
+            Node lastNode = path[path.Count - 1].Node;
+            Data lastData = path[path.Count - 1].Data;
+            lastData.gCost = totalCost;
+            path[path.Count - 1] = new Point(lastNode, lastData);
         }
     }
 }

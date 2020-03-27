@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a059e5030aad70b43b8b4658209ee31d, type: 3}
   m_Name: Wood
   m_EditorClassIdentifier: 
-  name: Wood
-  description: 
+  identifier: wood
+  descriptiveName: Wood
   emoticon: 
   icon: {fileID: 0}
   prefab: {fileID: 0}
-  maxStorageStack: 0
-  maxCarryStack: 0
-  splittable: 1
+  prefabPile: {fileID: 4368915026374263148, guid: fd1a49a62d4d7d0478351a82c5935272,
+    type: 3}
+  maxStorageStack: 18
   Quantity: 0

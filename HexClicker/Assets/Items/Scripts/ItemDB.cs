@@ -5,15 +5,15 @@ namespace HexClicker.Items
 {
     public static class ItemDB
     {
-        private static Dictionary<string, Item> database;
+        private static Dictionary<string, ItemData> database;
 
-        public static bool TryGet(string key, out Item value)
+        public static bool TryGet(string key, out ItemData value)
         {
             if (database == null)
             {
-                database = new Dictionary<string, Item>();
-                foreach (Item item in Resources.LoadAll<Item>(""))
-                    database.Add(item.name, item);
+                database = new Dictionary<string, ItemData>();
+                foreach (ItemData item in Resources.LoadAll<ItemData>(""))
+                    database.Add(item.ID, item);
             }
 
             return database.TryGetValue(key, out value);

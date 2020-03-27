@@ -183,7 +183,7 @@ namespace HexClicker.Behaviour
                     if (prop.name == "exclude") continue;
                 }
 
-                EditorGUILayout.PropertyField(prop);
+                EditorGUILayout.PropertyField(prop, true);
             }
 
             if (EditorGUI.EndChangeCheck())

@@ -4,24 +4,29 @@ namespace HexClicker.Buildings
 {
     public class BuildingManager : MonoBehaviour
     {
-        [SerializeField] private Building placingObject;
+        public static BuildingManager Instance { get; private set; }
+
         [SerializeField] private Material cantBuildMaterial;
         [SerializeField] private float placingRotation;
+        private Building placingObject;
 
         private void Awake()
         {
-            placingObject = Instantiate(placingObject);
-            if (placingObject)
-                placingObject.ExtractParts();
-            placingObject.gameObject.SetActive(false);
+            Instance = this;
         }
 
         private void Update()
         {
+            if (placingObject == null)
+                return;
+
             if (Input.GetKey(KeyCode.LeftArrow))
                 placingRotation -= 5;
+
             if (Input.GetKey(KeyCode.RightArrow))
                 placingRotation += 5;
+
+            
 
             if (ScreenCast.MouseTerrain.Cast(out RaycastHit hitInfo))//Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo, 1000, LayerMask.GetMask("Terrain")) && hitInfo.collider.GetComponent<HexTile>())
             {
@@ -33,7 +38,7 @@ namespace HexClicker.Buildings
                 {
                     placingObject.Draw(parentTransform, LayerMask.NameToLayer("Placing"), null, true);
 
-                    if (Input.GetMouseButtonDown(0))
+                    if (Input.GetMouseButtonDown(0) && !UI.UIMethods.IsMouseOverUI)
                     {
                         Building placed = Instantiate(placingObject, hitInfo.point, Quaternion.Euler(0, placingRotation, 0));
                         placed.gameObject.SetActive(true);
@@ -50,11 +55,13 @@ namespace HexClicker.Buildings
         {
             if (placingObject)
                 Destroy(placingObject.gameObject);
-            placingObject = Instantiate(building);
-            if (placingObject)
+            placingObject = null;
+            if (building)
+            {
+                placingObject = Instantiate(building);
                 placingObject.ExtractParts();
-            placingObject.gameObject.SetActive(false);
+                placingObject.gameObject.SetActive(false);
+            }
         }
     }
 }
-

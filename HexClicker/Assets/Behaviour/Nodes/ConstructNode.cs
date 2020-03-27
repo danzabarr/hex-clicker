@@ -10,7 +10,7 @@ namespace HexClicker.Behaviour
         public float maxCost;
         public float workDuration;
         public float workRate;
-        public float takeExistingPaths;
+        [Range(0, 1)] public float takeExistingPaths;
 
         public override void OnBegin(Agent target)
         {

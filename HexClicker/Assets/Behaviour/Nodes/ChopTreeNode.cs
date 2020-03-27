@@ -11,7 +11,7 @@ namespace HexClicker.Behaviour
     public class ChopTreeNode : Node
     {
         public float maxPathCost;
-        public float takeExistingPaths;
+        [Range(0, 1)] public float takeExistingPaths;
         public float proximityToEnd;
 
         public override void OnBegin(Agent target)

@@ -6,132 +6,73 @@ using UnityEngine;
 
 namespace HexClicker.Buildings
 {
-    public class Storage : MonoBehaviour
+    public class Storage : MonoBehaviour, IEnumerable<Item>
     {
-        [SerializeField] private AccessPoint[] accessPoints;
-        [SerializeField] private WorkPoint[] workPoints;
-        [SerializeField] private bool connectToGraph;
         [SerializeField] private Item[] items;
-        public StorageNode Node { get; private set; }
-        public Building Building { get; private set; }
-        private List<Node> links;
+        public Item this[int index] => items[index];
+        public int Length => items.Length;
 
-        public void Connect()
+        public IEnumerator<Item> GetEnumerator()
         {
-            Building = GetComponentInParent<Building>();
-            Node = new StorageNode(this, transform.position);
-
-            if (connectToGraph)
-            {
-                links = NavigationGraph.NearestSquareNodes(transform.position, true);
-                foreach (Node link in links)
-                {
-                    float distance = Navigation.Node.Distance(Node, link);
-                    link.Neighbours.TryAdd(Node, distance);
-                    Node.Neighbours.TryAdd(link, distance);
-                }
-            }
-
-            foreach (AccessPoint ap in accessPoints)
-            {
-                float distance = Navigation.Node.Distance(Node, ap.InsideNode);
-                ap.InsideNode.Neighbours.TryAdd(Node, distance);
-                Node.Neighbours.TryAdd(ap.InsideNode, distance);
-            }
-
-            foreach (WorkPoint wp in workPoints)
-            {
-                float distance = Navigation.Node.Distance(Node, wp.Node);
-                wp.Node.Neighbours.TryAdd(Node, distance);
-                Node.Neighbours.TryAdd(wp.Node, distance);
-            }
+            return ((IEnumerable<Item>)items).GetEnumerator();
         }
 
-        public void Disconnect()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            if (links != null)
-            {
-                foreach (Node link in links)
-                {
-                    link.Neighbours.TryRemove(Node, out _);
-                    Node.Neighbours.TryRemove(link, out _);
-                }
-            }
-            foreach (AccessPoint ap in accessPoints)
-            {
-                ap.InsideNode.Neighbours.TryRemove(Node, out _);
-                Node.Neighbours.TryRemove(ap.InsideNode, out _);
-            }
-
-            foreach (WorkPoint wp in workPoints)
-            {
-                wp.Node.Neighbours.TryRemove(Node, out _);
-                Node.Neighbours.TryRemove(wp.Node, out _);
-            }
+            return items.GetEnumerator();
         }
+
+        public virtual void ValueChanged(int index) { }
 
         public virtual bool AcceptsItem(string name) => true;
 
         /// <summary>
         /// Returns the quantity of items that would be added
         /// </summary>
-        public int SpaceFor(string name, int quantity)
+        public int SpaceFor(string id, int quantity)
         {
-            if (!AcceptsItem(name))
+            if (!AcceptsItem(id))
                 return 0;
 
-            if (!ItemDB.TryGet(name, out Item prefab))
+            if (!ItemDB.TryGet(id, out ItemData prefab))
                 return 0;
 
             if (prefab == null)
                 return 0;
 
             int added = 0;
-            if (prefab.Splittable)
+            for (int i = 0; i < items.Length; i++)
             {
-                for (int i = 0; i < items.Length; i++)
-                {
-                    if (items[i] == null)
-                        continue;
-                    if (items[i].name == name)
-                    {
-                        int space = items[i].MaxStorageStack - items[i].Quantity;
-                        if (space <= 0)
-                            continue;
+                if (items[i] == null)
+                    continue;
+                if (items[i].id != id)
+                    continue;
 
-                        int toAdd = Mathf.Min(space, quantity);
+                int space = prefab.MaxStorageStack - items[i].quantity;
+                if (space <= 0)
+                    continue;
 
-                        quantity -= toAdd;
-                        added += toAdd;
-                        if (quantity <= 0)
-                            return added;
-                    }
-                }
-
+                int toAdd = Mathf.Min(space, quantity);
+                quantity -= toAdd;
+                added += toAdd;
                 if (quantity <= 0)
                     return added;
             }
 
+            if (quantity <= 0)
+                return added;
 
             for (int i = 0; i < items.Length; i++)
             {
                 if (items[i] != null)
                     continue;
 
-                if (prefab.Splittable)
-                {
-                    int toAdd = Mathf.Min(quantity, prefab.MaxStorageStack);
-                    quantity -= toAdd;
-                    added += toAdd;
+                int toAdd = Mathf.Min(quantity, prefab.MaxStorageStack);
+                quantity -= toAdd;
+                added += toAdd;
 
-                    if (quantity <= 0)
-                        return added;
-                }
-                else
-                {
-                    added = quantity;
+                if (quantity <= 0)
                     return added;
-                }
             }
 
             return added;
@@ -140,88 +81,99 @@ namespace HexClicker.Buildings
         /// <summary>
         /// Returns the quantity of items added.
         /// </summary>
-        public int AddItem(string name, int quantity)
+        public int AddItem(string id, int quantity)
         {
-            if (!AcceptsItem(name))
+            if (!AcceptsItem(id))
                 return 0;
 
-            if (!ItemDB.TryGet(name, out Item prefab))
+            if (!ItemDB.TryGet(id, out ItemData prefab))
                 return 0;
 
             if (prefab == null)
                 return 0;
 
             int added = 0;
-            if (prefab.Splittable)
+            for (int i = 0; i < items.Length; i++)
             {
-                for (int i = 0; i < items.Length; i++)
-                {
-                    if (items[i] == null)
-                        continue;
-                    if (items[i].name == name)
-                    {
-                        int space = items[i].MaxStorageStack - items[i].Quantity;
-                        if (space <= 0)
-                            continue;
+                if (items[i] == null)
+                    continue;
+                if (items[i].id != id)
+                    continue;
+                int space = prefab.MaxStorageStack - items[i].quantity;
+                if (space <= 0)
+                    continue;
 
-                        int toAdd = Mathf.Min(space, quantity);
-
-                        items[i].Quantity += toAdd;
-                        quantity -= toAdd;
-                        added += toAdd;
-                        if (quantity <= 0)
-                            return added;
-                    }
-                }
-
+                int toAdd = Mathf.Min(space, quantity);
+                items[i].quantity += toAdd;
+                ValueChanged(i);
+                quantity -= toAdd;
+                added += toAdd;
                 if (quantity <= 0)
                     return added;
             }
-            
+
+            if (quantity <= 0)
+                return added;
 
             for (int i = 0; i < items.Length; i++)
             {
                 if (items[i] != null)
                     continue;
 
-                if (prefab.Splittable)
-                {
-                    int toAdd = Mathf.Min(quantity, prefab.MaxStorageStack);
+                int toAdd = Mathf.Min(quantity, prefab.MaxStorageStack);
 
-                    items[i] = Instantiate(prefab);
-                    items[i].Quantity = toAdd;
-                    quantity -= toAdd;
-                    added += toAdd;
+                items[i] = new Item(id, toAdd);
+                ValueChanged(i);
+                quantity -= toAdd;
+                added += toAdd;
 
-                    if (quantity <= 0)
-                        return added;
-                }
-                else
-                {
-                    items[i] = Instantiate(prefab);
-                    items[i].Quantity = quantity;
-                    added = quantity;
+                if (quantity <= 0)
                     return added;
-                }
             }
 
             return added;
         }
 
-        public int QuantityStored(string name)
+        public int TakeItem(string id, int quantity)
+        {
+            int taken = 0;
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (items[i] == null)
+                    continue;
+
+                if (items[i].id != id)
+                    continue;
+
+                int toTake = Mathf.Min(items[i].quantity, quantity);
+                items[i].quantity -= toTake;
+                if (items[i].quantity <= 0)
+                    items[i] = null;
+                ValueChanged(i);
+                quantity -= toTake;
+                taken += toTake;
+
+                if (quantity <= 0)
+                    return taken;
+            }
+
+            return taken;
+        }
+
+        public int QuantityStored(string id)
         {
             int quantity = 0;
             foreach (Item item in items)
-                if (item != null && item.name == name)
-                    quantity += item.Quantity;
+                if (item != null && item.id == id)
+                    quantity += item.quantity;
             return quantity;
         }
 
-        public int StacksStored(string name)
+        public int StacksStored(string id)
         {
             int stacks = 0;
             foreach (Item item in items)
-                if (item != null && item.name == name)
+                if (item != null && item.id == id)
                     stacks++;
             return stacks;
         }

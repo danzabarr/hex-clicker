@@ -76,6 +76,24 @@ namespace HexClicker.Navigation
             pathRequest.Queue();
         }
 
+        public void GoToNearest(Node[] nodes, float maxCost, float takeExistingPaths, float proximityToEnd, Callback pathCallback)
+        {
+            Stop();
+            callback = pathCallback;
+            pathRequest = new PathFinding.Request()
+            {
+                start = transform.position,
+                startNode = CurrentBuilding?.Exit,
+                endNodes = nodes,
+                addStartNeighbours = firstNeighbour,
+                maxCost = maxCost,
+                takeExistingPaths = takeExistingPaths,
+                proximityToEnd = proximityToEnd,
+                callback = ProcessRequestResult
+            };
+            pathRequest.Queue();
+        }
+
         public void SetDestination(Building building, float maxCost, float takeExistingPaths, float proximityToEnd, Callback callback)
         {
             Stop();
@@ -168,8 +186,6 @@ namespace HexClicker.Navigation
                     CurrentBuilding = null;
                     if (pathIterator.Last is BuildingNode)
                         DestinationBuilding = (pathIterator.Last as BuildingNode).Building;
-                    if (pathIterator.Last is StorageNode)
-                        DestinationBuilding = (pathIterator.Last as StorageNode).Building;
                     if (pathIterator.Last is WorkNode)
                         DestinationBuilding = (pathIterator.Last as WorkNode).Building;
 
@@ -215,10 +231,10 @@ namespace HexClicker.Navigation
                     //    CurrentBuilding = (pathIterator.Last as StorageNode).Building;
                     //if (pathIterator.Last is WorkNode)
                     //    CurrentBuilding = (pathIterator.Last as WorkNode).Building;
+                    callback?.Invoke(Status.AtDestination);
                     firstNeighbour = null;
                     pathIterator = null;
                     path = null;
-                    callback?.Invoke(Status.AtDestination);
                     callback = null;
                 }
                 else

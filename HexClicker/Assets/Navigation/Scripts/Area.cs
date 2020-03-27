@@ -9,6 +9,9 @@ namespace HexClicker.Navigation
         public static readonly Color outlineColor = new Color(1, 0, 0, .2f);
         public static readonly Color fillColor = new Color(1, 1, 1, .2f);
 
+        private bool hasStarted;
+        private bool hasObstructed;
+
         [SerializeField] private bool calculateOutline;
         [SerializeField] private bool calculateFill = true;
         [SerializeField] private Vector2[] points;
@@ -56,7 +59,30 @@ namespace HexClicker.Navigation
 
         private void Start()
         {
-            ObstructArea();
+            if (!hasObstructed)
+            {
+                ObstructArea();
+                hasObstructed = true;
+            }
+            hasStarted = true;
+        }
+
+        private void OnEnable()
+        {
+            if (hasStarted && !hasObstructed)
+            {
+                ObstructArea();
+                hasObstructed = true;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (hasObstructed)
+            {
+                RevertArea();
+                hasObstructed = false;
+            }
         }
 
         private void OnDrawGizmos()
@@ -99,6 +125,7 @@ namespace HexClicker.Navigation
 
         public void ObstructArea()
         {
+            Debug.Log(this + " " + transform.position);
             Recalculate();
             if (calculateFill)
             {
