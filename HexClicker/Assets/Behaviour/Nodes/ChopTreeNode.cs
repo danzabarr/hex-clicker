@@ -20,8 +20,9 @@ namespace HexClicker.Behaviour
             {
                 Unit unit = target as Unit;
 
-                unit.NavAgent.LookForTree(maxPathCost, takeExistingPaths, proximityToEnd,
-
+                unit.NavAgent.LookFor(
+                    (Navigation.Node node) => Map.Instance.TryGetTree(node.Vertex, out Trees.Tree tree) && !tree.tagged,
+                    true, maxPathCost, takeExistingPaths, proximityToEnd,
                     (Navigation.Agent.Status status) =>
                     {
                         switch (status)
@@ -35,25 +36,19 @@ namespace HexClicker.Behaviour
                                 else
                                 {
                                     unit.NavAgent.Stop();
-                                    target.End(this, StateResult.Failed);
+                                    target.End(this, StateResult.Failed, "Path returned did not end in a tree.");
                                 }
                                 break;
 
                             case Navigation.Agent.Status.Failed:
-                                Debug.Log("ChopTree " + status);
-                                target.End(this, StateResult.Failed);
+                                target.End(this, StateResult.Failed, "Path to a tree was not found.");
                                 break;
 
                             case Navigation.Agent.Status.Obstructed:
-                                target.End(this, StateResult.Failed);
-                                break;
-
-                            case Navigation.Agent.Status.InvalidTarget:
-                                target.End(this, StateResult.Failed);
+                                OnBegin(target);
                                 break;
 
                             case Navigation.Agent.Status.AtDestination:
-
                                 //Temporary
                                 unit.StartCoroutine(Chop(unit, 3f));
                                 break;
@@ -74,7 +69,6 @@ namespace HexClicker.Behaviour
             unit.TargetTree = null;
             unit.End(this, StateResult.Succeeded);
         }
-
 
         public override void OnEnd(Agent target)
         {

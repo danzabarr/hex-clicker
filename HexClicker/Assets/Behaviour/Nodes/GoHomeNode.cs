@@ -29,7 +29,7 @@ namespace HexClicker.Behaviour
                             switch (status)
                             {
                                 case Navigation.Agent.Status.Failed:
-                                    unit.End(this, StateResult.Failed);
+                                    unit.End(this, StateResult.Failed, "Path home was not found");
                                     break;
 
                                 case Navigation.Agent.Status.Started:
@@ -42,12 +42,8 @@ namespace HexClicker.Behaviour
                                     OnBegin(target);
                                     break;
 
-                                case Navigation.Agent.Status.InvalidTarget:
-                                    unit.End(this, StateResult.Failed);
-                                    break;
-
                                 case Navigation.Agent.Status.AtDestination:
-                                    unit.End(this, StateResult.Succeeded);
+                                    unit.End(this, StateResult.Succeeded, null);
                                     break;
                             }
                         }
@@ -79,14 +75,14 @@ namespace HexClicker.Behaviour
                             switch (status)
                             {
                                 case Navigation.Agent.Status.Failed:
-                                    unit.End(this, StateResult.Failed);
+                                    unit.End(this, StateResult.Failed, "Path to new home was not found");
                                     break;
 
                                 case Navigation.Agent.Status.Started:
 
                                     if (unit.NavAgent.DestinationBuilding == null)
                                     {
-                                        unit.End(this, StateResult.Failed);
+                                        unit.End(this, StateResult.Failed, "Destination node was null");
                                     }
                                     else
                                     {
@@ -101,10 +97,6 @@ namespace HexClicker.Behaviour
 
                                 case Navigation.Agent.Status.Obstructed:
                                     OnBegin(target);
-                                    break;
-
-                                case Navigation.Agent.Status.InvalidTarget:
-                                    unit.End(this, StateResult.Failed);
                                     break;
 
                                 case Navigation.Agent.Status.AtDestination:

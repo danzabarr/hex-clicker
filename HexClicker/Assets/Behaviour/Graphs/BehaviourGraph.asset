@@ -19,35 +19,13 @@ MonoBehaviour:
     y: 1500
     width: 250
     height: 250
-  connections: []
+  connections:
+  - {fileID: 7605753029457360033}
   mode: 2
   maxCost: 10000
   takeExistingPaths: 1
   item: wood
   quantity: 1
---- !u!114 &-6006307045690471241
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
-  m_Name: Connection (Go Home -> Chop Tree)
-  m_EditorClassIdentifier: 
-  graph: {fileID: 11400000}
-  button:
-    serializedVersion: 2
-    x: 635.6
-    y: 627.50073
-    width: 50
-    height: 50
-  from: {fileID: 4170521759029343683}
-  to: {fileID: -747814548330650100}
-  condition: {fileID: 11400000, guid: 1e5751bcffc35a54d994bd2deb514acc, type: 2}
-  index: 0
 --- !u!114 &-5352440517854979879
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -88,8 +66,8 @@ MonoBehaviour:
   graph: {fileID: 11400000}
   button:
     serializedVersion: 2
-    x: 823.1
-    y: 627.50073
+    x: 625.8003
+    y: 2832.001
     width: 50
     height: 50
   from: {fileID: -747814548330650100}
@@ -111,16 +89,42 @@ MonoBehaviour:
   graph: {fileID: 11400000}
   rect:
     serializedVersion: 2
-    x: -500
-    y: 1000
+    x: -1000
+    y: 2500
     width: 250
     height: 250
   connections:
   - {fileID: -5198276945620232734}
   mode: 0
-  maxPathCost: 1000
+  maxPathCost: 10000
   takeExistingPaths: 1
   proximityToEnd: 0.1
+--- !u!114 &-296862145576014098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e3c3ca7ab7d1c141ad5ecc66a6d7760, type: 3}
+  m_Name: Go Home
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  rect:
+    serializedVersion: 2
+    x: -1000
+    y: 2000
+    width: 250
+    height: 250
+  connections:
+  - {fileID: 8117455547514176817}
+  mode: 0
+  findNew: 1
+  maxCost: 10000
+  maxCostNew: 10000
+  takeExistingPaths: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -141,6 +145,7 @@ MonoBehaviour:
   - {fileID: -5352440517854979879}
   - {fileID: -6737730621013564311}
   - {fileID: 4875109430229074145}
+  - {fileID: -296862145576014098}
   entry: {fileID: 1700470977758530916}
   any: {fileID: 2722349440393163722}
 --- !u!114 &1700470977758530916
@@ -201,8 +206,8 @@ MonoBehaviour:
   graph: {fileID: 11400000}
   button:
     serializedVersion: 2
-    x: 323.09998
-    y: 627.50073
+    x: 625.8003
+    y: 1332.001
     width: 50
     height: 50
   from: {fileID: 4875109430229074145}
@@ -224,16 +229,15 @@ MonoBehaviour:
   graph: {fileID: 11400000}
   rect:
     serializedVersion: 2
-    x: -500
-    y: 1500
+    x: -1000
+    y: 3000
     width: 250
     height: 250
-  connections:
-  - {fileID: -6006307045690471241}
-  mode: 1
+  connections: []
+  mode: 2
   findNew: 1
-  maxCost: 5000
-  maxCostNew: 4890
+  maxCost: 10000
+  maxCostNew: 10000
   takeExistingPaths: 1
 --- !u!114 &4875109430229074145
 MonoBehaviour:
@@ -276,11 +280,57 @@ MonoBehaviour:
   graph: {fileID: 11400000}
   button:
     serializedVersion: 2
-    x: 323.09998
-    y: 190.00073
+    x: 625.8003
+    y: 894.501
     width: 50
     height: 50
   from: {fileID: 1700470977758530916}
   to: {fileID: 4875109430229074145}
+  condition: {fileID: 0}
+  index: 0
+--- !u!114 &7605753029457360033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
+  m_Name: Connection (Fetch -> Go Home)
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  button:
+    serializedVersion: 2
+    x: 625.8003
+    y: 1832.001
+    width: 50
+    height: 50
+  from: {fileID: -6737730621013564311}
+  to: {fileID: -296862145576014098}
+  condition: {fileID: 0}
+  index: 0
+--- !u!114 &8117455547514176817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 583b37447ef89d940bb445d0fda7a049, type: 3}
+  m_Name: Connection (Go Home -> Chop Tree)
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  button:
+    serializedVersion: 2
+    x: 625.8003
+    y: 2332.001
+    width: 50
+    height: 50
+  from: {fileID: -296862145576014098}
+  to: {fileID: -747814548330650100}
   condition: {fileID: 0}
   index: 0

@@ -160,6 +160,7 @@ namespace HexClicker.Navigation
 
             return nodes.TryGetValue(NodePos(position), out node);
         }
+
         public static List<Node> NearestSquareNodes(Vector3 position, bool onlyAccessibleNodes)
         {
             List<Node> nearest = new List<Node>();
@@ -189,6 +190,41 @@ namespace HexClicker.Navigation
             if (nodes.TryGetValue(new Vector2Int(ceilX, ceilZ), out Node n3) && (!onlyAccessibleNodes || n3.Accessible))
                 nearest.Add(n3);
 
+            return nearest;
+        }
+
+        public static Node NearestXYZ(Vector3 position, bool accessibleOnly)
+        {
+            float shortestDistance = float.MaxValue;
+            Node nearest = null;
+
+            foreach(Node node in nodes.Values)
+            {
+                if (accessibleOnly && !node.Accessible)
+                    continue;
+
+                float sqDist = (node.Position - position).sqrMagnitude;
+                if (sqDist < shortestDistance)
+                    nearest = node;
+            }
+            return nearest;
+        }
+
+        public static Node NearestXZ(Vector3 position, bool accessibleOnly)
+        {
+            if (NearestSquareNode(position, out Node nearest) && (!accessibleOnly || nearest.Accessible))
+                return nearest;
+
+            float shortestDistance = float.MaxValue;
+            foreach (Node node in nodes.Values)
+            {
+                if (accessibleOnly && !node.Accessible)
+                    continue;
+
+                float sqDist = (node.Position.xz() - position.xz()).sqrMagnitude;
+                if (sqDist < shortestDistance)
+                    nearest = node;
+            }
             return nearest;
         }
 

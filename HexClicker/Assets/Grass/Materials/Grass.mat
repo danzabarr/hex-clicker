@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Grass
   m_Shader: {fileID: 4800000, guid: 01eab4087a959ef4cbc34b8a3fba1e1f, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: FOG_OF_WAR
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -88,7 +88,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DistanceCulling: 20
     - _DstBlend: 0
-    - _FogOfWar: 0
+    - _FogOfWar: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1

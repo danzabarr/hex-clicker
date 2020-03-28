@@ -9,7 +9,7 @@ namespace HexClicker.Navigation
     public static class PathFinding
     {
         public static readonly int PathFindingThreads = 16;
-        public static readonly int MaxTries = 10000;
+        public static readonly int MaxTries = 50000;
 
         private static Thread[] threads;
         private static BlockingCollection<Request>[] queues;
@@ -42,7 +42,7 @@ namespace HexClicker.Navigation
         public class Request
         {
             public delegate void Callback();
-
+            public string identifier;
             public Vector3 start, end;
             public Node startNode, endNode;
             public Node[] addStartNeighbours;
@@ -151,6 +151,7 @@ namespace HexClicker.Navigation
             FailureTooFar,
             FailureStartObstructed,
             FailureEndObstructed,
+            FailureZeroEndNodes,
         }
 
         public static void DrawPath(List<Point> path, bool drawSpheres = false, bool labelNodes = false, bool labelEdges = false)
@@ -169,6 +170,7 @@ namespace HexClicker.Navigation
                     float length = Node.Distance(path[i].Node, path[i + 1].Node);
                     Handles.Label(midPoint, length + "");
                 }
+
             if (drawSpheres)
                 foreach (Point pp in path)
                     Gizmos.DrawSphere(pp.Node.Position, 0.02f);
@@ -252,8 +254,8 @@ namespace HexClicker.Navigation
         public static Result PathFind(Vector3 start, Node startNode, Node[] endNodes, Node[] addStartNeighbours, bool allowInaccessibleEnd, float maxCost, float takeExistingPaths, out List<Point> path, int thread = -1)
         {
             path = default;
-            if (endNodes == null)
-                return Result.FailureEndObstructed;
+            if (endNodes == null || endNodes.Length <= 0)
+                return Result.FailureZeroEndNodes;
 
             Node s = startNode;
             List<Node> startNeighbours = default;
@@ -290,6 +292,7 @@ namespace HexClicker.Navigation
 
             float bestPathCost = maxCost;
 
+
             foreach(Node e in sortedEndNodes)
             {
                 if (e == null)
@@ -297,11 +300,18 @@ namespace HexClicker.Navigation
                 if (!e.Accessible && !allowInaccessibleEnd)
                     continue;
 
-                float euclideanDistance = Node.Distance(e, s);
-                if (euclideanDistance * Node.MinDesirePathCost > bestPathCost)
-                    continue;
+                //float euclideanDistance = Node.Distance(e, s);
+                //if (euclideanDistance * Node.MinDesirePathCost > bestPathCost)
+                //    continue;
 
                 Result result = PathToNode(s, e, allowInaccessibleEnd, bestPathCost, takeExistingPaths, out List<Point> p, thread);
+
+                if (result == Result.AtDestination)
+                {
+                    path = p;
+                    return Result.AtDestination;
+                }
+
                 if (result != Result.Success)
                     continue;
 
@@ -329,7 +339,7 @@ namespace HexClicker.Navigation
                 return Result.FailureNoPath;
 
             if (!allowInaccessibleEnd && !end.Accessible)
-                return Result.FailureNoPath;
+                return Result.FailureEndObstructed;
 
             if (start.Equals(end))
                 return Result.AtDestination;

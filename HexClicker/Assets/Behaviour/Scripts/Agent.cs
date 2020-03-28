@@ -24,6 +24,7 @@ namespace HexClicker.Behaviour
         public bool Stopped { get; private set; }
         public bool Waiting { get; private set; }
         public StateResult Result { get; private set; }
+        public string Reason { get; private set; }
 
         public bool paused;
 
@@ -81,7 +82,7 @@ namespace HexClicker.Behaviour
         /// Mark the current state as completed, allowing the agent to move on to the next.
         /// If the passed in state is not the current one, it does nothing.
         /// </summary>
-        public void End(Node state, StateResult result)
+        public void End(Node state, StateResult result, string reason = null)
         {
             if (State == null)
                 return;
@@ -91,6 +92,7 @@ namespace HexClicker.Behaviour
 
             stateEnded = true;
             Result = result;
+            Reason = reason;
             State.OnEnd(this);
         }
 

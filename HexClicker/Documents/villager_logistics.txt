@@ -1,0 +1,83 @@
+0	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16	17	18	19	20	21	22	23	24
+
+0	1	2	3	2	5	3	7	2	3	5	11	3	13	7	5	2	17	9	19	5	7	11	23	3
+				2		2		2	3	2		2		2	3	2		2		2	3	2		2
+								2				2				2				2				2
+																2								2
+the humble VILLAGER
+...from a culturally, historically, and geographically AMBIGUOUS tribe of PRIMITIVE PEOPLE.
+
+Who is he? What does he do?
+
+To what extent is his life...
+
+
+
+
+DEEPLY COMPLEX VS BROADLY COMPLEX
+
+Simulation detail is considered in these terms.
+
+A BROAD simulation includes a greater range of behaviours, or coexistent systems,
+while a NARROW one supports fewer behaviours or features the agent could be engaged with.
+
+A DEEP simulation stretches back further into the reasons and interconnected factors that account for emergence of behaviour,
+while a SHALLOW one simplifies by making generalisations, grouping many small systems under one umbrella and ignoring others.
+
+An example of broad detail might be in the variety of tasks which result in obtaining food.
+For example hunting or trapping a variety of wild animals or fish, gathering a variety of vegetables and fruits, animal husbandry for meat, milk, eggs and other produce, cultivation of various farm crops, etc.
+	
+An example of a system with depth might be one where the rate at which villagers can complete different kinds of tasks is determined by a number of factors, for example different levels of developed skill/experience at specific tasks, other individual factors such as age and health or genetics, and also environmental and social factors.
+
+
+
+
+GAME MECHANIC VS SIMULATION DETAIL
+
+Systems simulating some detail of village life also represent a game-mechanic to the player, so they must not only add detail to the simulation, they must also pose a dilemma to the player - tempt the player with some promise of improvement, or trouble the player with some threat of disaster.
+
+
+
+
+SPECIALISED VS GENERAL
+
+In the real world, when groups of people are small, almost all their need-fulfilling activities are done either individually, collectively, or on a turn-taking basis.
+That is to say it makes no significant difference in terms of scale and efficiency for an individual member to take on collective responsibility all or most of the time for a certain task.
+	
+As groups of people grow larger, a diversity of specialisation naturally emerges.
+Specialisation also makes manageable industry on a greater scale.
+
+From a thematic point of view, and to simplify greatly, the more primitive a people are, the less specialised they are in their work.
+Developed industry necessarily requires a longer production chain, which means a greater variety of tools and skills, which is not only enhanced by specialisation, it likely presumes it.
+
+
+
+
+PLAYER-MANAGED VS INDEPENDENT/PROCEDURAL
+
+The question of specialisation perhaps ought to be instead whether the focus of the game is... 
+
+A) defining the tasks for the village, with villagers who can independently assign themselves roles (a generalist model)
+
+or...
+
+B) managing the roles of individual villagers who can independently assign themselves tasks (a specialist model)
+
+or...
+
+C) assigning individual tasks to individual villagers (a purely player-managed model)
+
+or...
+
+D) a hybrid of A+C or B+C, where the villagers are generally automated in one way or the other, but the player can also choose to micro-manage assignments.
+
+or...
+
+E) a hybrid of A+B where the player assigns roles, and tasks, but the villagers only prefer to fulfil those roles, and are not prevented from doing other things.
+
+Whether villagers are purely player-manageable, or else automated to some degree, is strongly linked to the kinds of complexity (as discussed previously) that would be manageable or appropriate.
+While a purely player-managed model might pose an unreasonable challenge if features are too deep in complexity, an automated model may actually require a certain level of depth in complexity in order to create a realistic, unrepetitive simulation.
+
+
+
+2/6 18:50 22:15

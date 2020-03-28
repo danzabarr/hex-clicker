@@ -15,7 +15,6 @@ namespace HexClicker.Navigation
             Started,
             Stopped,
             Obstructed,
-            InvalidTarget,
             AtDestination,
         }
 
@@ -37,7 +36,19 @@ namespace HexClicker.Navigation
 
         public void Start()
         {
+            ToTerrain();
+        }
+
+        public void ToTerrain()
+        {
             transform.position = Map.Instance.OnTerrain(transform.position);
+        }
+
+        public void SnapToNearestNode()
+        {
+            Node nearest = NavigationGraph.NearestXZ(transform.position, true);
+            if (nearest != null)
+                transform.position = nearest.Position;
         }
 
         public void SetDestination(Vector3 position, float maxCost, float takeExistingPaths, float proximityToEnd, Callback pathCallback)
@@ -46,6 +57,7 @@ namespace HexClicker.Navigation
             callback = pathCallback;
             pathRequest = new PathFinding.Request()
             {
+                identifier = StackTraceUtility.ExtractStackTrace(),
                 start = transform.position,
                 startNode = CurrentBuilding?.Exit,
                 end = position,
@@ -64,6 +76,7 @@ namespace HexClicker.Navigation
             callback = pathCallback;
             pathRequest = new PathFinding.Request()
             {
+                identifier = StackTraceUtility.ExtractStackTrace(),
                 start = transform.position,
                 startNode = CurrentBuilding?.Exit,
                 endNode = node,
@@ -82,6 +95,7 @@ namespace HexClicker.Navigation
             callback = pathCallback;
             pathRequest = new PathFinding.Request()
             {
+                identifier = StackTraceUtility.ExtractStackTrace(),
                 start = transform.position,
                 startNode = CurrentBuilding?.Exit,
                 endNodes = nodes,
@@ -101,6 +115,7 @@ namespace HexClicker.Navigation
             DestinationBuilding = building;
             pathRequest = new PathFinding.Request()
             {
+                identifier = StackTraceUtility.ExtractStackTrace(),
                 start = transform.position,
                 startNode = CurrentBuilding?.Exit,
                 endNode = building.Enter,
@@ -119,6 +134,7 @@ namespace HexClicker.Navigation
             this.callback = callback;
             pathRequest = new PathFinding.Request()
             {
+                identifier = StackTraceUtility.ExtractStackTrace(),
                 start = transform.position,
                 startNode = CurrentBuilding?.Exit,
                 match = match,
@@ -138,6 +154,7 @@ namespace HexClicker.Navigation
             this.callback = callback;
             pathRequest = new PathFinding.Request()
             {
+                identifier = StackTraceUtility.ExtractStackTrace(),
                 start = transform.position,
                 startNode = CurrentBuilding?.Exit,
                 end = towards,
@@ -151,16 +168,6 @@ namespace HexClicker.Navigation
                 callback = ProcessRequestResult
             };
             pathRequest.Queue();
-        }
-
-        public void LookForTree(float maxCost, float takeExistingPaths, float proximityToEnd, Callback callback)
-        {
-            LookFor((Node node) => Map.Instance.TryGetTree(node.Vertex, out Trees.Tree tree) && !tree.tagged, true, maxCost, takeExistingPaths, proximityToEnd, callback);
-        }
-
-        public void LookForTree(Vector3 towards, float maxCost, float takeExistingPaths, float proximityToEnd, Callback callback)
-        {
-            LookFor((Node node) => Map.Instance.TryGetTree(node.Vertex, out Trees.Tree tree) && !tree.tagged, towards, true, maxCost, takeExistingPaths, proximityToEnd, callback);
         }
 
         public void Stop()
@@ -201,7 +208,7 @@ namespace HexClicker.Navigation
                 }
                 else
                 {
-                    Debug.Log("Path was unsuccessful: " + pathRequest.Result);
+                    Debug.Log("Path was unsuccessful: " + pathRequest.Result + "\n" + pathRequest.identifier);
                     path = null;
                     pathIterator = null;
                     DestinationBuilding = null;
@@ -215,7 +222,6 @@ namespace HexClicker.Navigation
         public void Update()
         {
             //Create a new path iterator when a path has been found
-
             if (pathIterator != null)
             {
                 pathIterator.AdvanceDistance(speed * Time.deltaTime);
@@ -232,18 +238,13 @@ namespace HexClicker.Navigation
                     //if (pathIterator.Last is WorkNode)
                     //    CurrentBuilding = (pathIterator.Last as WorkNode).Building;
                     callback?.Invoke(Status.AtDestination);
+                    callback = null;
                     firstNeighbour = null;
                     pathIterator = null;
                     path = null;
-                    callback = null;
                 }
                 else
                     transform.forward = forward;
-            }
-            else
-            {
-                callback?.Invoke(Status.Failed);
-                callback = null;
             }
         }
 

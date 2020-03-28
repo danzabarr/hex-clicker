@@ -40,7 +40,11 @@ namespace HexClicker.Behaviour
                     storagePoints.Add(p.Node);
                 }
 
-
+            if (storagePoints.Count <= 0)
+            {
+                target.End(this, StateResult.Failed, "No storage points available containing the required item.");
+                return;
+            }
 
             unit.NavAgent.GoToNearest(storagePoints.ToArray(), maxCost, takeExistingPaths, 0,
             (Navigation.Agent.Status status) =>
@@ -48,7 +52,7 @@ namespace HexClicker.Behaviour
                 switch (status)
                 {
                     case Navigation.Agent.Status.Failed:
-                        target.End(this, StateResult.Failed);
+                        target.End(this, StateResult.Failed, "No path found to a valid storage point.");
                         break;
 
                     case Navigation.Agent.Status.Started:
@@ -62,25 +66,19 @@ namespace HexClicker.Behaviour
                         OnBegin(target);
                         break;
 
-                    case Navigation.Agent.Status.InvalidTarget:
-                        target.End(this, StateResult.Failed);
-                        break;
-
                     case Navigation.Agent.Status.AtDestination:
 
                         Navigation.Node destination = unit.NavAgent.DestinationNode;
-                        Debug.Log("At destination " + destination.GetType());
                         if (destination == null || !(destination is WorkNode))
                         {
-                            target.End(this, StateResult.Failed);
+                            target.End(this, StateResult.Failed, "Destination was not a valid storage point.");
                             break;
                         }
 
                         WorkNode wn = destination as WorkNode;
-                        Debug.Log("Work node " + wn);
                         if (wn.point == null || !(wn.point is StoragePoint))
                         {
-                            target.End(this, StateResult.Failed);
+                            target.End(this, StateResult.Failed, "Destination was not a valid storage point.");
                             break;
                         }
 
@@ -88,20 +86,16 @@ namespace HexClicker.Behaviour
 
                         if (sp.Item == null || sp.Item.id != item)
                         {
-                            target.End(this, StateResult.Failed);
+                            target.End(this, StateResult.Failed, "Destination was not valid storage point.");
                             break;
                         }
-
-                        Debug.Log("Storage point " + sp);
-
                         Stockpile stockpile = sp.Building as Stockpile;
                         int index = sp.Index;
                         int taken = stockpile.Take(index, item, quantity);
 
-                        Debug.Log("Picking up " + taken);
                         unit.Carry(item, quantity);
                         if (taken < quantity)
-                            target.End(this, StateResult.Continuing);
+                            target.End(this, StateResult.Continuing, $"Picked up {taken}/{quantity}");
                         else
                             target.End(this, StateResult.Succeeded);
 

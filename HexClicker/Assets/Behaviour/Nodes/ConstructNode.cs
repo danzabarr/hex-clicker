@@ -55,15 +55,14 @@ namespace HexClicker.Behaviour
                     {
                         //On path failed, end behaviour state with status failed.
                         case Navigation.Agent.Status.Failed:
-                            target.End(this, StateResult.Failed);
+                            target.End(this, StateResult.Failed, "No path found to construction node");
                             break;
 
                         //On path started 
                         case Navigation.Agent.Status.Started:
                             //End behaviour state with status failed if destination is no good
                             if (unit.NavAgent.DestinationNode == null)
-                                unit.End(this, StateResult.Failed);
-
+                                unit.End(this, StateResult.Failed, "Destination was null");
 
                             //Assign the unit as the worker to the WorkNode at the end of the path
                             else
@@ -79,11 +78,6 @@ namespace HexClicker.Behaviour
                         //On path obstructed start over
                         case Navigation.Agent.Status.Obstructed:
                             OnBegin(target);
-                            break;
-
-                        //On path invalid, end behaviour state with status failed
-                        case Navigation.Agent.Status.InvalidTarget:
-                            target.End(this, StateResult.Failed);
                             break;
 
                         //At destination, start construction
@@ -104,7 +98,7 @@ namespace HexClicker.Behaviour
                     {
                         //On path failed, end behaviour state with status failed.
                         case Navigation.Agent.Status.Failed:
-                            target.End(this, StateResult.Failed);
+                            target.End(this, StateResult.Failed, "No path found to construction node");
                             break;
 
                         case Navigation.Agent.Status.Started:
@@ -116,11 +110,6 @@ namespace HexClicker.Behaviour
                         //On path obstructed start over
                         case Navigation.Agent.Status.Obstructed:
                             OnBegin(target);
-                            break;
-
-                        //On path invalid, end behaviour state with status failed
-                        case Navigation.Agent.Status.InvalidTarget:
-                            target.End(this, StateResult.Failed);
                             break;
 
                         //At destination, start construction
@@ -183,7 +172,7 @@ namespace HexClicker.Behaviour
 
             if (!cp.IsComplete)
             {
-                unit.End(this, StateResult.Continuing);
+                unit.End(this, StateResult.Continuing, $"Work is {cp.FractionComplete:p0} complete");
             }
         }
     }

@@ -71,12 +71,12 @@ namespace HexClicker.Regions
                 foreach (Tile t in r)
                 {
                     SetTileVisibilityState(t.Position.x, t.Position.y, true, false);
-                    foreach(Tile n in t.Neighbours)
-                    {
-                        if (n == null)
-                            continue;
-                        SetTileVisibilityState(n.Position.x, n.Position.y, true, false);
-                    }
+                    //foreach(Tile n in t.Neighbours)
+                    //{
+                    //    if (n == null)
+                    //        continue;
+                    //    SetTileVisibilityState(n.Position.x, n.Position.y, true, false);
+                    //}
                 }
             }
             Shader.SetGlobalFloatArray("_Tiles", tileVisibility);

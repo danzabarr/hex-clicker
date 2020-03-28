@@ -4,11 +4,14 @@ using UnityEngine;
 
 namespace HexClicker.Behaviour
 {
+    /// <summary>
+    /// This describes what to do when a state ends and there is no valid subsequent state available.
+    /// </summary>
     public enum StateMode
     {
-        Single,
-        Loop,
-        Restart,
+        Single,     //The agent waits and reevaluates its connections each update until a new state is found.
+        Loop,       //The agent repeats the current state.
+        Restart,    //The agent restarts the behaviour from the entry node.
     }
 
     public abstract class Node : ScriptableObject
